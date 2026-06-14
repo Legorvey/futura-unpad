@@ -1,47 +1,12 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "../ui/button"
 import Link from "next/link"
-import { LogOutIcon } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
-import ConfirmDialog from "@/components/confirm-dialog"
+import UserProfileMenu from "@/components/user-profile-menu"
 
 export default function Navbar() {
-    const router = useRouter()
-    const pathname = usePathname()
-    const { user, isAdmin, signOut } = useAuth()
-    const [logoutOpen, setLogoutOpen] = useState(false)
-    const [isLoggingOut, setIsLoggingOut] = useState(false)
-    const logoutDialog = isAdmin
-        ? {
-            title: "Log out of admin?",
-            description:
-                "You will need to sign in again to manage registrations and view the admin dashboard.",
-        }
-        : {
-            title: "Log out?",
-            description: "You will need to sign in to your Futura account again.",
-        }
-
-    const logout = async () => {
-        setIsLoggingOut(true)
-        const { error } = await signOut()
-
-        if (error) {
-            console.error(error)
-            setIsLoggingOut(false)
-            throw new Error("Logout failed. Please try again.")
-        }
-
-        setIsLoggingOut(false)
-
-        if (pathname.startsWith("/admin") || pathname.startsWith("/seminar-list")) {
-            router.replace("/login")
-            return
-        }
-    }
+    const { user, isAdmin } = useAuth()
 
     return (
         <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
@@ -69,10 +34,6 @@ export default function Navbar() {
 
             {user ? (
                 <div className="flex min-w-0 items-center gap-3">
-                    <p className="hidden truncate text-sm text-muted-foreground sm:block">
-                        Welcome, {user.email}
-                    </p>
-
                     {isAdmin && (
                         <Link
                             href="/admin"
@@ -82,26 +43,7 @@ export default function Navbar() {
                         </Link>
                     )}
 
-                    <Button
-                        onClick={() => setLogoutOpen(true)}
-                        variant="destructive"
-                        size="sm"
-                        disabled={isLoggingOut}
-                    >
-                        <span className="sr-only">Log out</span>
-                        <LogOutIcon />
-                    </Button>
-                    <ConfirmDialog
-                        open={logoutOpen}
-                        onOpenChange={setLogoutOpen}
-                        title={logoutDialog.title}
-                        description={logoutDialog.description}
-                        confirmText="Log out"
-                        cancelText="Stay signed in"
-                        variant="destructive"
-                        isLoading={isLoggingOut}
-                        onConfirm={logout}
-                    />
+                    <UserProfileMenu />
                 </div>
             ) : (
                 <div className="flex items-center gap-2">

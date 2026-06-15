@@ -1,8 +1,14 @@
 import { z } from "zod";
+import { normalizeEmail } from "@/lib/email";
 
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 
-export const emailSchema = z.string().trim().email().max(254);
+export const emailSchema = z
+  .string()
+  .trim()
+  .email()
+  .max(254)
+  .transform((email) => normalizeEmail(email));
 
 export const passwordSchema = z.string().min(8).max(128);
 

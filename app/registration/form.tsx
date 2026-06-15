@@ -132,6 +132,9 @@ export default function RegistrationForm() {
 
         if (!res.ok || !data?.order_id) {
             alert(data?.error ?? "Registration failed. Please try again.");
+            if (res.status === 409 && data?.order_id) {
+                router.push(`/payment?order_id=${encodeURIComponent(data.order_id)}`);
+            }
             setIsSubmitting(false);
             return;
         }

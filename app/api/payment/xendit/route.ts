@@ -17,6 +17,7 @@ type RegistrationPaymentRow = {
     presentasi_riset: unknown;
     payment_status: string | null;
     xendit_external_id: string;
+    xendit_invoice_id: string | null;
     xendit_invoice_url: string | null;
     user_id: string | null;
 };
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
         const { data: order, error: lookupError } = await supabase
             .from("seminar_registrations")
             .select(
-                "email,status_akademika,presentasi_riset,payment_status,xendit_external_id,xendit_invoice_url,user_id"
+                "email,status_akademika,presentasi_riset,payment_status,xendit_external_id,xendit_invoice_id,xendit_invoice_url,user_id"
             )
             .eq("xendit_external_id", orderId)
             .maybeSingle<RegistrationPaymentRow>();
@@ -111,8 +112,10 @@ export async function POST(req: Request) {
         if (order.xendit_invoice_url) {
             return NextResponse.json({
                 external_id: order.xendit_external_id,
+                invoice_id: order.xendit_invoice_id,
                 invoice_url: order.xendit_invoice_url,
                 amount,
+                message: "A pending invoice already exists. Continue payment.",
             });
         }
 

@@ -6,16 +6,21 @@ const requiredText = (max: number) => z.string().trim().min(1).max(max);
 export const emailSchema = z
   .string()
   .trim()
-  .email()
-  .max(254)
+  .min(1, "Please enter your email.")
+  .email("Please enter a valid email address.")
+  .max(254, "Email is too long.")
   .transform((email) => normalizeEmail(email));
 
-export const passwordSchema = z.string().min(8).max(128);
+export const passwordSchema = z
+  .string()
+  .min(8, "Must be at least 8 characters long.")
+  .max(128, "Password is too long.");
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1).max(128),
+  password: z.string().min(1, "Please enter your password."),
 });
+export type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const signupSchema = z
   .object({
@@ -24,13 +29,15 @@ export const signupSchema = z
     confirmPassword: passwordSchema,
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Passwords do not match.",
     path: ["confirmPassword"],
   });
+export type RegisterFormValues = z.infer<typeof signupSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z
   .object({
@@ -38,7 +45,7 @@ export const resetPasswordSchema = z
     confirmPassword: passwordSchema,
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Passwords do not match.",
     path: ["confirmPassword"],
   });
 

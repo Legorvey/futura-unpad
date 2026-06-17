@@ -2,35 +2,49 @@
 
 import Link from "next/link";
 import GoogleLoginButton from "./google-login";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
+import { loginSchema, type LoginFormValues } from "@/lib/validation";
 
 export default function LoginForm() {
     const router = useRouter();
     const { refreshAuth } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
+
+    const onSubmit = async (values: LoginFormValues) => {
         setIsSubmitting(true);
+        setSubmitError("");
 
         const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(values),
         });
 
         if (!res.ok) {
             const data = await res.json().catch(() => null);
-            alert(data?.error ?? "Login failed.");
+            setSubmitError(data?.error ?? "Login failed.");
             setIsSubmitting(false);
             return;
         }
@@ -53,45 +67,49 @@ export default function LoginForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FieldGroup className="gap-6">
-                <Field className="gap-1">
+                <Field className="gap-2">
                     <FieldLabel htmlFor="email">Email</FieldLabel>
                     <Input
                         id="email"
                         type="email"
-                        className="h-11 rounded-xl"
-                        autoComplete="off"
+                        className="h-11 rounded-[8px]"
+                        autoComplete="email"
                         placeholder="e.g. johndoe@gmail.com"
-                        value={email}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setEmail(e.target.value)
-                        }
-                        required
+                        aria-invalid={!!errors.email}
+                        aria-describedby={errors.email ? "email-error" : undefined}
+                        {...register("email")}
                     />
+                    {errors.email ? (
+                        <FieldError id="email-error">{errors.email.message}</FieldError>
+                    ) : null}
                 </Field>
 
-                <Field className="gap-1">
+                <Field className="gap-2">
                     <FieldLabel htmlFor="password">Password</FieldLabel>
                     <Input
                         id="password"
                         type="password"
-                        className="h-11 rounded-xl"
-                        autoComplete="off"
+                        className="h-11 rounded-[8px]"
+                        autoComplete="current-password"
                         placeholder="Enter your password"
-                        value={password}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setPassword(e.target.value)
-                        }
-                        required
+                        aria-invalid={!!errors.password}
+                        aria-describedby={errors.password ? "password-error" : undefined}
+                        {...register("password")}
                     />
+                    {errors.password ? (
+                        <FieldError id="password-error">{errors.password.message}</FieldError>
+                    ) : null}
                     <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
                 </Field>
 
-                <Field className="gap-2 ">
+                {submitError && <FieldError>{submitError}</FieldError>}
+
+                <Field className="gap-2">
                     <Button
                         type="submit"
-                        className="h-11 rounded-xl cursor-pointer"
+                        className="h-11 rounded-[8px]"
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? "Signing in..." : "Log in"}

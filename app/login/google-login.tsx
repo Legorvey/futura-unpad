@@ -51,7 +51,7 @@ export default function GoogleLoginButton() {
         <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-xl cursor-pointer space-x-1"
+            className="h-11 rounded-[8px] cursor-pointer space-x-1"
             disabled={isLoading}
             onClick={loginWithGoogle}
         >

@@ -2,25 +2,38 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/lib/validation"
 
 export default function ForgotPasswordPage() {
-    const [email, setEmail] = useState("")
     const [message, setMessage] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const handleReset = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ForgotPasswordFormValues>({
+        resolver: zodResolver(forgotPasswordSchema),
+        defaultValues: {
+            email: "",
+        },
+    })
+
+    const onSubmit = async (values: ForgotPasswordFormValues) => {
         setIsSubmitting(true)
+        setMessage("")
 
         const res = await fetch("/api/auth/forgot-password", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify(values),
         })
 
         if (!res.ok) {
@@ -45,37 +58,40 @@ export default function ForgotPasswordPage() {
                 </p>
             </section>
 
-            <form onSubmit={handleReset}>
-                <FieldGroup className="gap-5">
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <FieldGroup className="gap-6">
                     <Field className="gap-2">
                         <FieldLabel htmlFor="email">Email</FieldLabel>
                         <Input
                             id="email"
                             type="email"
-                            className="h-11 rounded-xl"
+                            className="h-11 rounded-[8px]"
                             autoComplete="email"
                             placeholder="e.g. johndoe@gmail.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
+                            aria-invalid={!!errors.email}
+                            aria-describedby={errors.email ? "email-error" : undefined}
+                            {...register("email")}
                         />
+                        {errors.email ? (
+                            <FieldError id="email-error">{errors.email.message}</FieldError>
+                        ) : null}
                     </Field>
 
                     {message ? (
-                        <p className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                        <p className="rounded-[8px] border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                             {message}
                         </p>
                     ) : null}
 
-                    <Field className="gap-3">
+                    <Field className="gap-2">
                         <Button
                             type="submit"
-                            className="h-11 rounded-xl"
+                            className="h-11 rounded-[8px]"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Sending link..." : "Send reset link"}
                         </Button>
-                        <Button asChild variant="outline" className="h-11 rounded-xl">
+                        <Button asChild variant="outline" className="h-11 rounded-[8px]">
                             <Link href="/login">Back to login</Link>
                         </Button>
                     </Field>

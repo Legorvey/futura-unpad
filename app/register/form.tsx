@@ -1,30 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
+import { signupSchema, type RegisterFormValues } from "@/lib/validation";
+import { cn } from "@/lib/utils";
 
 export default function RegisterForm() {
     const router = useRouter();
     const { refreshAuth } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [conPassword, setConPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<RegisterFormValues>({
+        resolver: zodResolver(signupSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+            confirmPassword: "",
+        },
+    });
+
+    const passwordValue = watch("password");
+
+    const getPasswordStrength = (pwd: string) => {
+        if (!pwd) return 0;
+        let score = 0;
+        if (pwd.length > 0) score = 1; // Very Weak
+        if (pwd.length >= 6) score = 2; // Weak
+        if (pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /[0-9]/.test(pwd)) score = 3; // Strong
+        if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score = 4; // Very Strong
+        return score;
+    };
+
+    const passwordStrength = getPasswordStrength(passwordValue);
+
+    const onSubmit = async (values: RegisterFormValues) => {
         setIsSubmitting(true);
-
-        if (password !== conPassword) {
-            alert("Passwords do not match.");
-            setIsSubmitting(false);
-            return;
-        }
+        setSubmitError("");
+        setSuccessMessage("");
 
         const res = await fetch("/api/auth/register", {
             method: "POST",
@@ -32,16 +58,16 @@ export default function RegisterForm() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                email,
-                password,
-                confirmPassword: conPassword,
+                email: values.email,
+                password: values.password,
+                confirmPassword: values.confirmPassword,
             }),
         });
 
         const data = await res.json().catch(() => null);
 
         if (!res.ok) {
-            alert(data?.error ?? "Registration failed.");
+            setSubmitError(data?.error ?? "Registration failed.");
             setIsSubmitting(false);
             return;
         }
@@ -65,65 +91,104 @@ export default function RegisterForm() {
             return;
         }
 
-        alert("Registration successful. Please check your email if confirmation is required.");
+        setSuccessMessage("Registration successful. Please check your email if confirmation is required.");
         setIsSubmitting(false);
     };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <FieldGroup className="gap-6">
-            <Field className="gap-1">
+            <Field className="gap-2">
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                     id="email"
                     type="email"
-                    className="h-11 rounded-xl"
-                    autoComplete="off"
+                    className="h-11 rounded-[8px]"
+                    autoComplete="email"
                     placeholder="e.g. johndoe@gmail.com"
-                    value={email}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setEmail(e.target.value)
-                    }
-                    required
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : undefined}
+                    {...register("email")}
                 />
+                {errors.email ? (
+                    <FieldError id="email-error">{errors.email.message}</FieldError>
+                ) : null}
             </Field>
 
-            <Field className="gap-1">
+            <Field className="gap-2">
                 <FieldLabel htmlFor="password">Password</FieldLabel>
                 <Input
                     id="password"
                     type="password"
-                    className="h-11 rounded-xl"
-                    autoComplete="off"
+                    className="h-11 rounded-[8px]"
+                    autoComplete="new-password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setPassword(e.target.value)
-                    }
-                    required
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? "password-error" : undefined}
+                    {...register("password")}
                 />
+                
+                {/* Password Strength Indicator */}
+                <div className="mt-1 flex gap-1">
+                    {[1, 2, 3, 4].map((bar) => (
+                        <div
+                            key={bar}
+                            className={cn(
+                                "h-1 flex-1 rounded-full transition-all duration-300",
+                                passwordStrength >= bar
+                                    ? passwordStrength === 1
+                                        ? "bg-destructive"
+                                        : passwordStrength === 2
+                                        ? "bg-orange-500"
+                                        : passwordStrength === 3
+                                        ? "bg-yellow-500"
+                                        : "bg-emerald-500"
+                                    : "bg-muted"
+                            )}
+                        />
+                    ))}
+                </div>
+                {passwordStrength > 0 && (
+                    <p className={cn(
+                        "text-xs font-medium text-right transition-colors duration-300",
+                        passwordStrength === 1 ? "text-destructive" :
+                        passwordStrength === 2 ? "text-orange-500" :
+                        passwordStrength === 3 ? "text-yellow-500" :
+                        "text-emerald-500"
+                    )}>
+                        {passwordStrength === 1 ? "Very Weak" : passwordStrength === 2 ? "Weak" : passwordStrength === 3 ? "Strong" : "Very Strong"}
+                    </p>
+                )}
+
+                {errors.password ? (
+                    <FieldError id="password-error">{errors.password.message}</FieldError>
+                ) : null}
             </Field>
 
-            <Field className="gap-1">
-                <FieldLabel htmlFor="conpassword">Confirm Password</FieldLabel>
+            <Field className="gap-2">
+                <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
                 <Input
-                    id="conpassword"
+                    id="confirmPassword"
                     type="password"
-                    className="h-11 rounded-xl"
-                    autoComplete="off"
+                    className="h-11 rounded-[8px]"
+                    autoComplete="new-password"
                     placeholder="Confirm your password"
-                    value={conPassword}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setConPassword(e.target.value)
-                    }
-                    required
+                    aria-invalid={!!errors.confirmPassword}
+                    aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
+                    {...register("confirmPassword")}
                 />
+                {errors.confirmPassword ? (
+                    <FieldError id="confirmPassword-error">{errors.confirmPassword.message}</FieldError>
+                ) : null}
             </Field>
 
-            <Field className="gap-3">
+            {submitError && <FieldError>{submitError}</FieldError>}
+            {successMessage && <div className="text-sm font-medium text-emerald-600">{successMessage}</div>}
+
+            <Field className="gap-2">
                 <Button
                     type="submit"
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-[8px]"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? "Creating account..." : "Create Account"}

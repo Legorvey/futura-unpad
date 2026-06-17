@@ -2,14 +2,38 @@ import { redirect } from "next/navigation"
 import RegisterForm from "./form"
 import { createClient } from "@/utils/supabase/server"
 
-export default async function LoginPage(){
+type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
+
+const getSafeRedirectPath = (value: string | string[] | undefined) => {
+    const next = Array.isArray(value) ? value[0] : value
+
+    if (
+        !next ||
+        !next.startsWith("/") ||
+        next.startsWith("//") ||
+        next.startsWith("/login") ||
+        next.startsWith("/register") ||
+        next.startsWith("/auth/callback")
+    ) {
+        return "/admin"
+    }
+
+    return next
+}
+
+export default async function LoginPage({
+    searchParams,
+}: {
+    searchParams: LoginSearchParams
+}){
+    const params = await searchParams
     const supabase = await createClient()
     const {
         data: { user },
     } = await supabase.auth.getUser()
 
     if (user) {
-        redirect("/admin")
+        redirect(getSafeRedirectPath(params.next))
     }
 
     return (

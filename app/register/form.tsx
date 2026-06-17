@@ -47,8 +47,20 @@ export default function RegisterForm() {
         }
 
         if (data?.authenticated) {
+            const currentUrl = new URL(window.location.href);
+            const next = currentUrl.searchParams.get("next");
+            const safeNext =
+                next &&
+                next.startsWith("/") &&
+                !next.startsWith("//") &&
+                !next.startsWith("/login") &&
+                !next.startsWith("/register") &&
+                !next.startsWith("/auth/callback")
+                    ? next
+                    : "/admin";
+
             await refreshAuth();
-            router.replace("/admin");
+            router.replace(safeNext);
             router.refresh();
             return;
         }
@@ -118,7 +130,18 @@ export default function RegisterForm() {
                 </Button>
             </Field>
             <p className="text-center text-sm text-muted-foreground">
-                Already have an account? <Link href="/login" className="text-blue-600">Log in</Link>
+                Already have an account?{" "}
+                <Link
+                    href={
+                        typeof window !== "undefined" &&
+                        new URL(window.location.href).searchParams.get("next")
+                            ? `/login?next=${new URL(window.location.href).searchParams.get("next")}`
+                            : "/login"
+                    }
+                    className="text-blue-600"
+                >
+                    Log in
+                </Link>
             </p>
         </FieldGroup>
     </form>

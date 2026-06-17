@@ -1,22 +1,22 @@
-import SeminarRegistrationForm from "./form"
+import LKTIForm from "./form";
 
-export default function SeminarRegistrationPage() {
+export default function LKTIPage() {
     return (
         <main className="mx-auto w-full max-w-3xl items-start space-y-12 px-6 py-16 sm:px-8">
             <section>
                 <div className="space-y-2">
                     <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                        Futura Seminar Registration
+                        Lomba Karya Tulis Ilmiah
                     </h1>
                     <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-                        Reserve your seminar seat, verify the certificate
-                        identity details, then download your participant ticket.
+                        Daftarkan tim, lengkapi data karya tulis dan ketua tim,
+                        verifikasi, lalu lanjutkan ke pembayaran.
                     </p>
                 </div>
             </section>
 
             <section>
-                <SeminarRegistrationForm />
+                <LKTIForm />
             </section>
         </main>
     )

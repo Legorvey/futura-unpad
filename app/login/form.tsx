@@ -99,7 +99,18 @@ export default function LoginForm() {
                     <GoogleLoginButton />
                 </Field>
                 <p className="text-center text-sm text-muted-foreground">
-                    Do not have an account? <Link href="/register" className="text-blue-600">Register</Link>
+                    Do not have an account?{" "}
+                    <Link
+                        href={
+                            typeof window !== "undefined" &&
+                            new URL(window.location.href).searchParams.get("next")
+                                ? `/register?next=${new URL(window.location.href).searchParams.get("next")}`
+                                : "/register"
+                        }
+                        className="text-blue-600"
+                    >
+                        Register
+                    </Link>
                 </p>
             </FieldGroup>
         </form>

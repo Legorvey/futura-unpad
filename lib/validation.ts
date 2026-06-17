@@ -51,6 +51,39 @@ export const seminarRegistrationSchema = z.object({
   identity_confirmed: z.literal(true),
 });
 
+export const clientSeminarFormSchema = z.object({
+  nama: z
+    .string()
+    .trim()
+    .min(1, "Nama lengkap wajib diisi.")
+    .max(120, "Nama tidak boleh melebihi 120 karakter."),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email wajib diisi.")
+    .email("Format email tidak valid.")
+    .max(254, "Email terlalu panjang."),
+  telp: z
+    .string()
+    .trim()
+    .min(9, "Nomor WhatsApp minimal 9 karakter.")
+    .max(32, "Nomor WhatsApp terlalu panjang.")
+    .regex(/^[0-9+\-\s().]+$/, "Nomor WhatsApp hanya boleh berisi angka dan simbol +, -, spasi."),
+  institusi: z
+    .string()
+    .trim()
+    .min(1, "Asal institusi wajib diisi.")
+    .max(160, "Nama institusi terlalu panjang."),
+  status_akademika: z
+    .enum(["mahasiswa", "siswa", "dosen", "umum"])
+    .refine((v) => v.length > 0, { message: "Pilih status akademika." }),
+  identity_confirmed: z.boolean().refine((val) => val === true, {
+    message: "Please confirm if your details are correct for certificate records.",
+  }),
+});
+
+export type ClientSeminarFormValues = z.infer<typeof clientSeminarFormSchema>;
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -83,91 +116,6 @@ export const mechaturaMemberSchema = z.object({
     .transform((value) => value || null),
   is_leader: z.boolean(),
 });
-
-export const mechaturaRegistrationSchema = z
-  .object({
-    competition_type: z.enum(["sumo", "transporter"]),
-    team_name: requiredText(100),
-    institution: requiredText(160),
-    coach_name: requiredText(120),
-    robot_name: requiredText(100),
-    robot_weight: optionalText(80),
-    robot_dimensions: optionalText(80),
-    technical_description: z.string().trim().min(40).max(2000),
-    rules_agreed: z.literal(true),
-    members: z.array(mechaturaMemberSchema).min(1).max(3),
-  })
-  .superRefine((data, ctx) => {
-    const leaders = data.members.filter((member) => member.is_leader);
-
-    if (leaders.length !== 1) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Exactly one team leader is required",
-        path: ["members"],
-      });
-    }
-
-    const leader = leaders[0];
-
-    if (leader && !leader.email) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Leader email is required",
-        path: ["members"],
-      });
-    }
-
-    if (leader && (!leader.phone || !phoneSchema.safeParse(leader.phone).success)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Leader phone number is required",
-        path: ["members"],
-      });
-    }
-
-    const participantIds = data.members.map((member) =>
-      member.participant_id.toLowerCase()
-    );
-
-    if (new Set(participantIds).size !== participantIds.length) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Duplicate participant IDs are not allowed",
-        path: ["members"],
-      });
-    }
-
-    const emails = data.members
-      .map((member) => member.email)
-      .filter((email): email is string => Boolean(email));
-
-    if (new Set(emails).size !== emails.length) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Duplicate emails are not allowed within a team",
-        path: ["members"],
-      });
-    }
-
-    for (const [index, member] of data.members.entries()) {
-      if (member.email && !emailSchema.safeParse(member.email).success) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Invalid member email",
-          path: ["members", index, "email"],
-        });
-      }
-
-      if (member.phone && !phoneSchema.safeParse(member.phone).success) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Invalid member phone number",
-          path: ["members", index, "phone"],
-        });
-      }
-    }
-  });
 
 export const orderSchema = z.object({
   order_id: z.string().regex(/^FUTURA-\d{10,}-[a-zA-Z0-9-]+$/),

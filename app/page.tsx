@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import AboutSection from "@/components/landing/about-section"
 import { FAQSection } from "@/components/landing/faq-section"
 import { EventOverviewSection } from "@/components/landing/event-overview-section"
 import { Footer } from "@/components/landing/footer"
@@ -16,6 +17,7 @@ export default function Home() {
   return (
     <main className="bg-[#fbfbf8]">
       <HeroSection />
+      <AboutSection />
       <RegistrationCards />
       <EventOverviewSection />
       <FAQSection />

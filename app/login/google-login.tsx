@@ -15,7 +15,8 @@ export default function GoogleLoginButton() {
             !value.startsWith("/") ||
             value.startsWith("//") ||
             value.startsWith("/login") ||
-            value.startsWith("/register") ||
+            value === "/register" ||
+            value.startsWith("/register?") ||
             value.startsWith("/auth/callback")
         ) {
             return "/admin"

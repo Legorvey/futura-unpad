@@ -14,10 +14,10 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 border-t border-slate-200 pt-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <Link href="#home" className="font-heading text-5xl font-medium leading-none">
-            Futura
+            footer otw
           </Link>
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-500">
-            Technology, robotics, and research in one open university event.
+            saran teks bang
           </p>
         </div>
 

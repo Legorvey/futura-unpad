@@ -1,3 +1,5 @@
+import { CheckCircle2 } from "lucide-react"
+
 const points = [
   "Talks give context before the hype arrives.",
   "Competition turns theory into tradeoffs.",
@@ -7,15 +9,14 @@ const points = [
 
 export function EventOverviewSection() {
   return (
-    <section aria-labelledby="overview-heading" className="bg-[#fbfbf8] px-5 py-24 text-slate-950 sm:px-8">
-      <div className="mx-auto grid max-w-6xl gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+    <section id="programs" aria-labelledby="overview-heading" className="relative bg-[#fbfbf8] px-5 py-24 text-slate-950 sm:px-8">
+      <div className="absolute right-0 top-0 w-[30%] h-[30%] rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
+
+      <div className="relative mx-auto grid max-w-6xl gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start z-10">
         <div className="max-w-xl">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-sky-700">
-            Why it exists
-          </p>
           <h2
             id="overview-heading"
-            className="font-heading mt-6 text-5xl font-medium leading-[0.96] text-balance sm:text-7xl"
+            className="tracking-tighter mt-6 text-5xl leading-[1.1] text-balance sm:text-6xl lg:text-7xl"
           >
             Better technical instincts, without the noise.
           </h2>
@@ -23,12 +24,15 @@ export function EventOverviewSection() {
 
         <div className="grid gap-5">
           {points.map((point) => (
-            <p
+            <div
               key={point}
-              className="rounded-[8px] border border-slate-200 bg-white/70 p-5 text-sm leading-7 text-slate-600"
+              className="flex items-start gap-4 rounded-2xl border border-border/50 bg-white/80 backdrop-blur-sm p-6 transition-all hover:border-primary/30 hover:-translate-y-0.5"
             >
-              {point}
-            </p>
+              <CheckCircle2 className="h-6 w-6 shrink-0 text-primary mt-0.5" />
+              <p className="text-base leading-7 text-slate-700 font-medium">
+                {point}
+              </p>
+            </div>
           ))}
         </div>
       </div>

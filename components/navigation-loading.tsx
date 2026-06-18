@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const isMainClick = (event: MouseEvent) =>
   event.button === 0 &&
@@ -17,6 +18,18 @@ export default function NavigationLoading() {
   const routeKey = `${pathname}?${search}`;
   const previousRouteKey = useRef(routeKey);
   const [isLoading, setIsLoading] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 60);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (previousRouteKey.current === routeKey) {
@@ -87,7 +100,12 @@ export default function NavigationLoading() {
       }`}
       aria-hidden={!isLoading}
     >
-      <div className="h-full w-1/2 animate-[navigation-loading_1.1s_ease-in-out_infinite] rounded-r-full bg-foreground shadow-[0_0_18px_rgba(0,0,0,0.22)]" />
+      <div 
+        className={cn(
+          "h-full w-1/2 animate-[navigation-loading_1.1s_ease-in-out_infinite] rounded-r-full shadow-sm transition-colors duration-700 ease-in-out",
+          isScrolled ? "bg-black" : "bg-white"
+        )} 
+      />
     </div>
   );
 }

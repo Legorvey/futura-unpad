@@ -1,12 +1,18 @@
 import Link from "next/link"
+import Image from "next/image"
 import SponsorsSection from "./sponsors-section"
+import MediaPartnersSection from "./media-partners-section"
 
 export default function AboutSection() {
     return (
-        <section id="home" className="bg-[#fbfbf8] text-slate-950">
+        <section id="about" className="bg-[#fbfbf8] text-slate-950">
             <div className="mx-auto grid max-w-6xl content-center gap-16 px-5 py-20 sm:px-8 lg:py-28">
                 <div className="mx-auto max-w-4xl text-center">
-                    <h1 className="font-sans font-heading text-3xl tracking-tight leading-snug text-balance sm:text-4xl lg:text-5xl">
+                    <div className="flex items-center justify-center gap-12 mb-8">
+                        <Image src="/hmte-unpad.png" width={170} height={170} alt="hmte-unpad.png" />
+                        <Image src="/futura-logo-2025.png" alt="futura-logo-2025.png" width={250} height={250} />
+                    </div>
+                    <h1 className="font-sans text-3xl tracking-tighter leading-snug text-balance sm:text-4xl lg:text-5xl">
                         FUTURA by Himpunan Mahasiswa Teknik Elektro UNPAD
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-slate-600">
@@ -21,6 +27,9 @@ export default function AboutSection() {
                             Register now
                         </Link> */}
                         <SponsorsSection />
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                        <MediaPartnersSection />
                     </div>
                 </div>
             </div>

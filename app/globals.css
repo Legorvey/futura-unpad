@@ -150,6 +150,15 @@
   }
 }
 
+@keyframes sponsor-scroll-reverse {
+  from {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -181,6 +190,10 @@
 
 @utility animate-sponsor-scroll {
   animation: sponsor-scroll 28s linear infinite;
+}
+
+@utility animate-sponsor-scroll-reverse {
+  animation: sponsor-scroll-reverse 35s linear infinite;
 }
 
 @utility animate-fade-up {

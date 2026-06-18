@@ -117,6 +117,7 @@ export default function SeminarRegistrationForm() {
     formState: { errors },
   } = useForm<ClientSeminarFormValues>({
     resolver: zodResolver(clientSeminarFormSchema),
+    mode: "onChange",
     defaultValues: {
       nama: "",
       email: "",

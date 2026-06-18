@@ -30,7 +30,23 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
-  await supabase.auth.getClaims();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+  const isProtectedRoute = 
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/seminar-list') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/registration/lomba-kti');
+
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 };

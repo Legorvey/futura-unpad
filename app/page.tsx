@@ -6,6 +6,7 @@ import { EventOverviewSection } from "@/components/landing/event-overview-sectio
 import { Footer } from "@/components/landing/footer"
 import { HeroSection } from "@/components/landing/hero-section"
 import { RegistrationCards } from "@/components/landing/registration-cards"
+import HowToRegisterSection from "@/components/landing/how-to-register"
 
 export const metadata: Metadata = {
   title: "FUTURA 2026 | Technology, Robotics, and Research Event",
@@ -18,6 +19,7 @@ export default function Home() {
     <main className="bg-[#fbfbf8]">
       <HeroSection />
       <AboutSection />
+      <HowToRegisterSection />
       <RegistrationCards />
       <EventOverviewSection />
       <FAQSection />

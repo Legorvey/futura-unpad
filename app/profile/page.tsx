@@ -133,9 +133,6 @@ export default async function ProfilePage() {
             Manage your profile and track your Futura event registrations.
           </p>
         </div>
-        <Button asChild variant="outline" className="h-10 rounded-xl">
-          <Link href="/transactions">View all transactions</Link>
-        </Button>
       </section>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_2fr] items-start">

@@ -12,7 +12,8 @@ const getSafeRedirectPath = (value: string | string[] | undefined) => {
         !next.startsWith("/") ||
         next.startsWith("//") ||
         next.startsWith("/login") ||
-        next.startsWith("/register") ||
+        next === "/register" ||
+        next.startsWith("/register?") ||
         next.startsWith("/auth/callback")
     ) {
         return "/admin"

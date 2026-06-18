@@ -21,3 +21,16 @@ export const requireAdmin = async () => {
     isAdmin: !error && !!data,
   };
 };
+
+import { redirect } from "next/navigation";
+
+export const requireAdminOrRedirect = async () => {
+  const { user, isAdmin } = await requireAdmin();
+  if (!user) {
+    redirect("/login?next=/admin");
+  }
+  if (!isAdmin) {
+    redirect("/");
+  }
+  return { user };
+};

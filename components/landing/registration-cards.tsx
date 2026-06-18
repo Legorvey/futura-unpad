@@ -1,6 +1,11 @@
 import Link from "next/link"
+import Image from "next/image"
+import { ArrowUpRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { AuthGuardLink } from "@/components/auth-guard-link"
 
 type Program = {
+  image: string
   title: string
   label: string
   description: string
@@ -10,10 +15,12 @@ type Program = {
   format: string
   timeline: string
   action: string
+  featured?: boolean
 }
 
 const programs: Program[] = [
   {
+    image: "/teacher.gif",
     title: "Seminar",
     label: "Listen",
     description:
@@ -26,6 +33,7 @@ const programs: Program[] = [
     action: "Register",
   },
   {
+    image: "/bmo.gif",
     title: "Robotic Competition",
     label: "Build",
     description:
@@ -35,19 +43,20 @@ const programs: Program[] = [
     price: "Rp 250.000",
     format: "Team entry",
     timeline: "15 August 2026",
-    action: "View",
+    action: "Register",
   },
   {
-    title: "Research Dissemination",
+    image: "/paper.gif",
+    title: "Lomba Karya Tulis Ilmiah",
     label: "Present",
     description:
-      "Turn research into a clearer story and get useful feedback from peers.",
+      "Turn your academic research into a clear story, present it, and get useful feedback from peers.",
     outcomes: ["Research presentation", "Peer feedback", "Academic networking"],
-    href: "/registration?program=research-dissemination",
+    href: "/registration/lomba-kti",
     price: "Rp 150.000",
     format: "Presenter slot",
     timeline: "16 August 2026",
-    action: "View",
+    action: "Register",
   },
 ]
 
@@ -56,63 +65,57 @@ export function RegistrationCards() {
     <section
       id="programs"
       aria-labelledby="programs-heading"
-      className="bg-[#fbfbf8] px-5 py-24 text-slate-950 sm:px-8"
+      className="relative bg-[#fbfbf8] px-5 py-24 text-slate-950 sm:px-8"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-sky-700">
-            Tracks
-          </p>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[30%] bg-primary/5 blur-[120px] pointer-events-none rounded-[100%]" />
+
+      <div className="relative mx-auto max-w-6xl z-10">
+        <div className="max-w-2xl text-left">
           <h2
             id="programs-heading"
-            className="font-heading mt-6 text-5xl font-medium leading-[0.96] text-balance sm:text-7xl"
+            className="font-sans tracking-tighter mt-6 text-4xl leading-[1.1] text-balance sm:text-5xl"
           >
             Choose the way you want to participate.
           </h2>
         </div>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-3">
+        <div className="mt-16 grid gap-6 lg:grid-cols-3 items-stretch">
           {programs.map((program) => (
             <article
               key={program.title}
-              className="flex min-h-[460px] flex-col justify-between rounded-[8px] border border-slate-200 bg-white p-7"
+              className={cn(
+                "group relative flex flex-col justify-between rounded-3xl border bg-white/80 p-4 sm:p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1",
+                program.featured
+                  ? "border-primary/40 shadow-primary/5"
+                  : "border-border/50 hover:border-primary/30"
+              )}
             >
+              {program.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
+                  Most Popular
+                </div>
+              )}
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-                  {program.label}
-                </p>
-                <h3 className="font-heading mt-5 text-4xl font-medium leading-tight text-slate-950">
+                <Image src={program.image} width={200} height={200} alt={program.title} className="rounded-2xl mb-4" />
+                <h3 className="text-3xl tracking-tight font-medium leading-tight text-slate-950 group-hover:text-primary transition-colors">
                   {program.title}
                 </h3>
-                <p className="mt-5 text-sm leading-7 text-slate-600">
-                  {program.description}
-                </p>
               </div>
 
-              <div className="mt-10">
-                <p className="text-sm leading-7 text-slate-500">
-                  {program.outcomes.join(" / ")}
-                </p>
-                <dl className="mt-6 grid gap-3 border-t border-slate-100 pt-5 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-slate-400">Pass</dt>
-                    <dd className="font-medium text-slate-800">{program.price}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-slate-400">Format</dt>
-                    <dd className="font-medium text-slate-800">{program.format}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-slate-400">Date</dt>
-                    <dd className="font-medium text-slate-800">{program.timeline}</dd>
-                  </div>
-                </dl>
-                <Link
+              <div>
+                <AuthGuardLink
                   href={program.href}
-                  className="mt-7 inline-flex text-sm font-medium text-sky-700 transition hover:text-slate-950"
+                  requireAuth={program.href === "/registration/lomba-kti"}
+                  className={cn(
+                    "mt-8 flex w-full items-center justify-center gap-2 rounded-lg px-6 py-4 text-sm font-semibold transition-all",
+                    program.featured
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20"
+                      : "bg-black text-white hover:bg-gray-800 hover:cursor-pointer"
+                  )}
                 >
                   {program.action}
-                </Link>
+                  <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </AuthGuardLink>
               </div>
             </article>
           ))}

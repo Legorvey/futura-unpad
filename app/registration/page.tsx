@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { AuthGuardLink } from "@/components/auth-guard-link"
 
 type RegistrationProgram = {
     title: string
@@ -34,13 +35,14 @@ const programs: RegistrationProgram[] = [
         guidebook: true,
     },
     {
-        title: "Diseminasi Riset",
+        title: "Lomba Karya Tulis Ilmiah",
         mode: "Present",
         description:
             "Turn research into a clearer story and get useful feedback from peers.",
         date: "16 August 2026",
         price: "Rp 150.000",
         details: ["Research presentation", "Peer feedback", "Academic networking"],
+        href: "/registration/lomba-kti",
     },
 ]
 
@@ -49,10 +51,7 @@ export default function RegistrationPage() {
         <main className="min-h-[calc(100svh-65px)] bg-[#fbfbf8] px-5 py-20 text-slate-950 sm:px-8 lg:py-28">
             <section className="mx-auto max-w-6xl">
                 <div className="mx-auto max-w-3xl text-center">
-                    <p className="text-xs font-medium uppercase tracking-[0.22em] text-sky-700">
-                        Registration
-                    </p>
-                    <h1 className="font-heading mt-6 text-5xl font-medium leading-[0.96] text-balance sm:text-7xl">
+                    <h1 className="tracking-tighter text-5xl font-medium leading-[0.96] text-balance sm:text-6xl">
                         Choose the track that fits your way in.
                     </h1>
                     <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-600">
@@ -65,13 +64,10 @@ export default function RegistrationPage() {
                     {programs.map((program) => (
                         <article
                             key={program.title}
-                            className="flex min-h-[430px] flex-col justify-between rounded-[8px] border border-slate-200 bg-white p-7"
+                            className="flex min-h-[430px] flex-col justify-between rounded-[8px] bg-white p-7"
                         >
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-                                    {program.mode}
-                                </p>
-                                <h2 className="font-heading mt-5 text-4xl font-medium leading-tight text-slate-950">
+                                <h2 className="tracking-tight text-4xl font-medium leading-tight text-slate-950">
                                     {program.title}
                                 </h2>
                                 <p className="mt-5 text-sm leading-7 text-slate-600">
@@ -80,9 +76,6 @@ export default function RegistrationPage() {
                             </div>
 
                             <div className="mt-10">
-                                <p className="text-sm leading-7 text-slate-500">
-                                    {program.details.join(" / ")}
-                                </p>
                                 <dl className="mt-6 grid gap-3 border-t border-slate-100 pt-5 text-sm">
                                     <div className="flex justify-between gap-4">
                                         <dt className="text-slate-400">Date</dt>
@@ -94,18 +87,15 @@ export default function RegistrationPage() {
                                     </div>
                                 </dl>
 
-                                <div className="mt-7 flex flex-wrap gap-4">
+                                <div className="mt-7 flex flex-wrap items-center gap-4">
                                     {program.href ? (
-                                        <Link
+                                        <AuthGuardLink
                                             href={program.href}
-                                            className="text-sm font-medium text-sky-700 transition hover:text-slate-950"
+                                            requireAuth={program.href === "/registration/lomba-kti"}
+                                            className="text-sm font-medium rounded-lg bg-black px-4 py-2 text-white"
                                         >
-                                            {program.title === "Mechatura"
-                                                ? "Continue to team form"
-                                                : program.title === "Futura Seminar"
-                                                    ? "Continue to seminar form"
-                                                    : "Continue"}
-                                        </Link>
+                                            Continue to form
+                                        </AuthGuardLink>
                                     ) : (
                                         <span className="text-sm font-medium text-slate-400">
                                             Opening soon

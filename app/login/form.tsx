@@ -43,8 +43,16 @@ export default function LoginForm() {
         });
 
         if (!res.ok) {
-            const data = await res.json().catch(() => null);
-            setSubmitError(data?.error ?? "Login failed.");
+            console.error("Login response not ok:", res.status, res.statusText);
+            const text = await res.text().catch(() => null);
+            console.error("Login response text:", text);
+            let data = null;
+            try {
+                if (text) data = JSON.parse(text);
+            } catch (e) {
+                console.error("JSON parse error:", e);
+            }
+            setSubmitError(data?.error ?? `Login failed. Status: ${res.status} Text: ${text?.substring(0, 50)}`);
             setIsSubmitting(false);
             return;
         }
@@ -56,7 +64,8 @@ export default function LoginForm() {
                 next.startsWith("/") &&
                 !next.startsWith("//") &&
                 !next.startsWith("/login") &&
-                !next.startsWith("/register") &&
+                next !== "/register" &&
+                !next.startsWith("/register?") &&
                 !next.startsWith("/auth/callback")
                 ? next
                 : "/admin";

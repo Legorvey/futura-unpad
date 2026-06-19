@@ -3,7 +3,7 @@
 import Link from "next/link";
 import GoogleLoginButton from "./google-login";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { loginSchema, type LoginFormValues } from "@/lib/validation";
 
 export default function LoginForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { refreshAuth } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
@@ -57,8 +58,7 @@ export default function LoginForm() {
             return;
         }
 
-        const currentUrl = new URL(window.location.href);
-        const next = currentUrl.searchParams.get("next");
+        const next = searchParams.get("next");
         const safeNext =
             next &&
                 next.startsWith("/") &&
@@ -141,9 +141,8 @@ export default function LoginForm() {
                     Do not have an account?{" "}
                     <Link
                         href={
-                            typeof window !== "undefined" &&
-                                new URL(window.location.href).searchParams.get("next")
-                                ? `/register?next=${new URL(window.location.href).searchParams.get("next")}`
+                            searchParams.get("next")
+                                ? `/register?next=${searchParams.get("next")}`
                                 : "/register"
                         }
                         className="text-blue-600"

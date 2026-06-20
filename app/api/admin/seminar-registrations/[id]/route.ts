@@ -41,10 +41,25 @@ export async function DELETE(
     }
 
     const adminSupabase = createAdminClient()
-    const { error } = await adminSupabase
+    
+    // First find if this is a group registration to get the group_id
+    const { data: registration } = await adminSupabase
         .from("seminar_registrations")
-        .delete()
+        .select("group_id, is_main_contact")
         .eq("id", parsed.data.id)
+        .single()
+
+    let deleteQuery = adminSupabase.from("seminar_registrations").delete()
+
+    // If it's a main contact with a group, delete the whole group
+    if (registration?.group_id && registration.is_main_contact) {
+        deleteQuery = deleteQuery.eq("group_id", registration.group_id)
+    } else {
+        // Otherwise just delete the specific row
+        deleteQuery = deleteQuery.eq("id", parsed.data.id)
+    }
+
+    const { error } = await deleteQuery
 
     if (error) {
         console.error("Admin delete failed", error.message)

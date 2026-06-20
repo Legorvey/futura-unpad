@@ -39,6 +39,11 @@ export default async function SeminarList({
     const allParticipants = (data ?? []) as Participants[]
     
     const filteredParticipants = allParticipants.filter((participant) => {
+        // Only show individual registrations OR main contacts for group registrations
+        if (participant.is_main_contact === false) {
+            return false;
+        }
+
         const categoryMatches =
             categoryFilter === "all" ||
             participant.status_akademika === categoryFilter

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Mail, MoreHorizontal, Phone, Trash, User } from "lucide-react";
+import { Eye, Mail, MoreHorizontal, Phone, Trash, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/confirm-dialog";
 import {
@@ -23,6 +24,10 @@ export type Participants = {
     no_telepon: string;
     asal_institusi: string;
     status_akademika: string;
+    registration_type?: string;
+    created_at?: string;
+    is_main_contact?: boolean;
+    members?: { nama_lengkap: string; asal_institusi?: string }[];
 };
 
 const copyActions = [
@@ -55,7 +60,7 @@ const deleteParticipant = async (id: string) => {
     }
 };
 
-function ParticipantActions({ participant }: { participant: Participants }) {
+export function ParticipantActions({ participant, hideViewDetails }: { participant: Participants, hideViewDetails?: boolean }) {
     const router = useRouter();
     const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -76,6 +81,18 @@ function ParticipantActions({ participant }: { participant: Participants }) {
                 <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    
+                    {!hideViewDetails && (
+                        <>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/admin/seminar/${participant.id}`}>
+                                    <Eye className="h-4 w-4" />
+                                    View Details
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                        </>
+                    )}
 
                     <DropdownMenuGroup>
                         <DropdownMenuLabel>Copy</DropdownMenuLabel>
@@ -123,6 +140,13 @@ function ParticipantActions({ participant }: { participant: Participants }) {
 
 export const columns: ColumnDef<Participants>[] = [
     {
+        id: "index",
+        header: "#",
+        cell: ({ row }) => (
+            <div className="text-muted-foreground">{row.index + 1}</div>
+        ),
+    },
+    {
         accessorKey: "nama_lengkap",
         header: "Name",
         cell: ({ row }) => (
@@ -140,6 +164,19 @@ export const columns: ColumnDef<Participants>[] = [
     {
         accessorKey: "asal_institusi",
         header: "Institution",
+    },
+    {
+        accessorKey: "registration_type",
+        header: "Type",
+        cell: ({ row }) => {
+            const type = row.original.registration_type;
+            const isGroup = type === "group" || type === "grup";
+            return (
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ${isGroup ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                    {isGroup ? "Group" : "Individual"}
+                </span>
+            )
+        }
     },
     {
         accessorKey: "status_akademika",

@@ -216,9 +216,9 @@ export default function SeminarRegistrationForm() {
         asal_institusi: data.institusi,
         status_akademika: data.status_akademika,
         identity_confirmed: data.identity_confirmed,
-        members: data.members?.map((m: { nama: string; institusi?: string }) => ({ 
-          nama_lengkap: m.nama, 
-          asal_institusi: data.is_same_institution ? data.institusi : m.institusi 
+        members: data.members?.map((m: { nama: string; institusi?: string }) => ({
+          nama_lengkap: m.nama,
+          asal_institusi: data.is_same_institution ? data.institusi : m.institusi
         })),
       }),
     });
@@ -348,7 +348,7 @@ export default function SeminarRegistrationForm() {
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-full border text-xs font-medium",
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
                       isActive
                         ? "border-foreground bg-foreground text-background"
                         : "border-border bg-background"
@@ -356,14 +356,14 @@ export default function SeminarRegistrationForm() {
                   >
                     {index + 1}
                   </span>
-                  <span className="font-medium">{item.label}</span>
+                  <span className="hidden sm:inline font-medium">{item.label}</span>
                 </li>
               );
             })}
           </ol>
 
           <div
-            className="h-2 rounded-full bg-muted"
+            className="w-full h-2 rounded-full bg-muted"
             role="progressbar"
             aria-label="Seminar registration completion"
             aria-valuemin={1}
@@ -552,7 +552,7 @@ export default function SeminarRegistrationForm() {
                 <div className="space-y-4 pt-4 border-t border-border mt-2">
                   <div className="flex flex-col gap-4">
                     <h3 className="text-sm font-medium">Anggota Grup</h3>
-                    
+
                     <Field orientation="horizontal" className="items-center gap-2 rounded-[8px] border p-4 bg-muted/50">
                       <Controller
                         name="is_same_institution"
@@ -599,7 +599,7 @@ export default function SeminarRegistrationForm() {
                             <FieldError>{errors.members[index].nama.message}</FieldError>
                           ) : null}
                         </Field>
-                        
+
                         <Field className="gap-2">
                           <FieldLabel htmlFor={`members.${index}.institusi`}>
                             Asal Institusi {watchedValues.is_same_institution ? "(Sama dengan Kontak Utama)" : <span aria-hidden="true">*</span>}
@@ -642,7 +642,7 @@ export default function SeminarRegistrationForm() {
                 </div>
               )}
 
-              <Field>
+              <Field className="grid gap-3 sm:grid-cols-2">
                 <Button
                   type="button"
                   variant="outline"

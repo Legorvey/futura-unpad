@@ -45,15 +45,17 @@ export async function POST(request: Request) {
     data: { user },
   } = await authSupabase.auth.getUser();
   const adminSupabase = createAdminClient();
-  const existingBaseQuery = adminSupabase
+
+  // Check duplicate by name AND email
+  const existingQuery = adminSupabase
     .from("seminar_registrations")
-    .select("id,user_id,email");
-  const existingQuery = user
-    ? existingBaseQuery.or(`user_id.eq.${user.id},email.eq.${parsed.data.email}`)
-    : existingBaseQuery.eq("email", parsed.data.email);
-  const { data: existingRegistration, error: existingError } = user
-    ? await existingQuery.order("created_at", { ascending: false }).limit(1)
-    : await existingQuery.order("created_at", { ascending: false }).limit(1);
+    .select("id,user_id,email")
+    .eq("email", parsed.data.email)
+    .eq("nama_lengkap", parsed.data.nama_lengkap);
+
+  const { data: existingRegistration, error: existingError } = await existingQuery
+    .order("created_at", { ascending: false })
+    .limit(1);
 
   if (existingError) {
     console.error("Duplicate registration lookup failed", existingError.message);
@@ -64,53 +66,60 @@ export async function POST(request: Request) {
     return duplicateRegistrationResponse(existingRegistration[0] as ExistingRegistration);
   }
 
-  const { data: insertedRegistration, error } = await adminSupabase
-    .from("seminar_registrations")
-    .insert({
+  const isGroup = parsed.data.registration_type === "group";
+  const groupId = isGroup ? crypto.randomUUID() : null;
+
+  const inserts = [
+    {
       user_id: user?.id ?? null,
       nama_lengkap: parsed.data.nama_lengkap,
       email: parsed.data.email,
       no_telepon: parsed.data.no_telepon,
       asal_institusi: parsed.data.asal_institusi,
       status_akademika: parsed.data.status_akademika,
-    })
-    .select("id")
-    .single<{ id: string }>();
+      registration_type: parsed.data.registration_type,
+      group_id: groupId,
+      is_main_contact: true,
+    },
+  ];
+
+  if (isGroup && parsed.data.members) {
+    for (const member of parsed.data.members) {
+      inserts.push({
+        user_id: null,
+        nama_lengkap: member.nama_lengkap,
+        email: null,
+        no_telepon: null,
+        asal_institusi: member.asal_institusi || parsed.data.asal_institusi,
+        status_akademika: parsed.data.status_akademika,
+        registration_type: "group",
+        group_id: groupId,
+        is_main_contact: false,
+      });
+    }
+  }
+
+  const { data: insertedRegistrations, error } = await adminSupabase
+    .from("seminar_registrations")
+    .insert(inserts)
+    .select("id, is_main_contact");
 
   if (error) {
     if (isUniqueViolation(error)) {
-      const duplicateBaseQuery = adminSupabase
-        .from("seminar_registrations")
-        .select("id,user_id,email");
-      const duplicateQuery = user
-        ? duplicateBaseQuery.or(`user_id.eq.${user.id},email.eq.${parsed.data.email}`)
-        : duplicateBaseQuery.eq("email", parsed.data.email);
-      const { data: registration } = user
-        ? await duplicateQuery
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle<ExistingRegistration>()
-        : await duplicateQuery
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle<ExistingRegistration>();
-
-      if (registration) {
-        return duplicateRegistrationResponse(registration);
-      }
-
       return NextResponse.json(
         { error: "You already have a seminar registration." },
         { status: 409 }
       );
     }
-
     console.error("Seminar registration insert failed", error.message);
     return serverError();
   }
 
+  // Find the main contact record
+  const mainContact = insertedRegistrations?.find(r => r.is_main_contact) || insertedRegistrations?.[0];
+
   return NextResponse.json({
     success: true,
-    registration_id: insertedRegistration.id,
+    registration_id: mainContact?.id,
   });
 }

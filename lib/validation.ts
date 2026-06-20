@@ -50,15 +50,21 @@ export const resetPasswordSchema = z
   });
 
 export const seminarRegistrationSchema = z.object({
+  registration_type: z.enum(["individual", "group"]),
   nama_lengkap: requiredText(120),
-  email: emailSchema,
-  no_telepon: requiredText(32),
+  email: emailSchema.optional().nullable(),
+  no_telepon: z.string().trim().max(32).optional().nullable(),
   asal_institusi: requiredText(160),
   status_akademika: z.enum(["mahasiswa", "siswa", "dosen", "umum"]),
   identity_confirmed: z.literal(true),
+  members: z.array(z.object({
+    nama_lengkap: requiredText(120),
+    asal_institusi: z.string().trim().max(160).optional().nullable(),
+  })).optional(),
 });
 
 export const clientSeminarFormSchema = z.object({
+  registration_type: z.enum(["individu", "grup"]),
   nama: z
     .string()
     .trim()
@@ -87,6 +93,23 @@ export const clientSeminarFormSchema = z.object({
   identity_confirmed: z.boolean().refine((val) => val === true, {
     message: "Please confirm if your details are correct for certificate records.",
   }),
+  is_same_institution: z.boolean(),
+  members: z.array(z.object({
+    nama: z.string().trim().min(1, "Nama anggota wajib diisi.").max(120, "Nama terlalu panjang."),
+    institusi: z.string().trim().max(160, "Nama institusi terlalu panjang.").optional()
+  })).optional(),
+}).superRefine((data, ctx) => {
+  if (data.registration_type === "grup" && !data.is_same_institution && data.members) {
+    data.members.forEach((member, index) => {
+      if (!member.institusi || member.institusi.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Asal institusi anggota wajib diisi.",
+          path: ["members", index, "institusi"],
+        });
+      }
+    });
+  }
 });
 
 export type ClientSeminarFormValues = z.infer<typeof clientSeminarFormSchema>;

@@ -25,16 +25,15 @@ export async function POST(request: Request) {
 
   const requestUrl = new URL(request.url);
   const redirectUrl = new URL(
-    "/auth/callback",
+    "/auth/verify-reset",
     process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin
   );
-  redirectUrl.searchParams.set("next", "/reset-password");
 
   const { createAdminClient } = await import("@/utils/supabase/server");
   const adminSupabase = createAdminClient();
 
-  // 1. Check if user exists (throws 'user_not_found' if not)
-  const { error: generateError } = await adminSupabase.auth.admin.generateLink({
+  // 1. Generate the recovery link using the Admin client (bypasses standard limits)
+  const { data: linkData, error: generateError } = await adminSupabase.auth.admin.generateLink({
     type: "recovery",
     email: parsed.data.email,
     options: {
@@ -46,14 +45,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: generateError.message }, { status: 400 });
   }
 
-  // 2. Actually send the email (which generates the latest, valid token)
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: redirectUrl.toString(),
+  // 2. Send the email directly via Resend to bypass Supabase's 30/hr limit
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.error("RESEND_API_KEY is missing in environment variables.");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
+  const actionLink = linkData.properties.action_link;
+
+  const resendResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Futura Support <onboarding@resend.dev>",
+      to: parsed.data.email,
+      subject: "Reset Your Password",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>We received a request to reset your password. Click the button below to choose a new password:</p>
+          <a href="${actionLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; margin-top: 16px;">Reset Password</a>
+          <p style="margin-top: 32px; font-size: 14px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    }),
   });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (!resendResponse.ok) {
+    const errorData = await resendResponse.json().catch(() => null);
+    console.error("Resend error:", errorData);
+    return NextResponse.json(
+      { error: "Failed to send reset email via Resend" },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ ok: true });

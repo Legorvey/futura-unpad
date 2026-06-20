@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ error: "Registration failed" }, { status: 400 });
+    return NextResponse.json({ error: error.message || "Registration failed" }, { status: 400 });
   }
 
   if (isExistingAccountResponse(data)) {

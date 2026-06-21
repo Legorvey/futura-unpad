@@ -73,31 +73,31 @@ export default async function AccountPage() {
 
         <div className="space-y-6 text-sm max-w-sm mx-auto">
           <div className="flex items-center gap-4">
-            <Mail className="h-5 w-5 text-muted-foreground" />
+            <Mail className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div className="overflow-hidden">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Email</p>
               <p className="font-medium truncate mt-0.5 text-base">{user.email ?? "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <UserRound className="h-5 w-5 text-muted-foreground" />
-            <div>
+            <UserRound className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="overflow-hidden">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Display Name</p>
-              <p className="font-medium mt-0.5 text-base">{user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "-"}</p>
+              <p className="font-medium truncate mt-0.5 text-base">{user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <AtSign className="h-5 w-5 text-muted-foreground" />
-            <div>
+            <AtSign className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="overflow-hidden">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Username</p>
-              <p className="font-medium mt-0.5 text-base">{user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}</p>
+              <p className="font-medium truncate mt-0.5 text-base">{user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <CalendarDays className="h-5 w-5 text-muted-foreground" />
-            <div>
+            <CalendarDays className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="overflow-hidden">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Joined</p>
-              <p className="font-medium mt-0.5 text-base">{formatDate(user.created_at)}</p>
+              <p className="font-medium truncate mt-0.5 text-base">{formatDate(user.created_at)}</p>
             </div>
           </div>
         </div>

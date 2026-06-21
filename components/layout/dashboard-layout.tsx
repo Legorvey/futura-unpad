@@ -22,6 +22,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   @media (min-width: 768px) {
                     #dashboard-main {
                       margin-left: ${sidebarWidth}px;
+                      width: calc(100% - ${sidebarWidth}px);
                     }
                   }
                 `}</style>

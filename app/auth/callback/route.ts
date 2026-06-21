@@ -37,6 +37,22 @@ export async function GET(request: Request) {
         return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url))
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && !user.user_metadata?.username) {
+        const emailPrefix = user.email?.split("@")[0]
+        const googleName = user.user_metadata?.full_name || user.user_metadata?.name
+        const newDisplayName = googleName || emailPrefix || "User"
+
+        // Only update if they don't have a custom display name yet
+        if (!user.user_metadata?.display_name || user.user_metadata?.display_name === emailPrefix) {
+            if (user.user_metadata?.display_name !== newDisplayName) {
+                await supabase.auth.updateUser({
+                    data: { display_name: newDisplayName }
+                })
+            }
+        }
+    }
+
     const response = NextResponse.redirect(new URL(next, request.url))
 
     if (isPasswordRecoveryRedirect) {

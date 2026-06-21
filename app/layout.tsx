@@ -40,7 +40,7 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
   const initialUser: AuthUser | null = user
-    ? { id: user.id, email: user.email ?? null }
+    ? { id: user.id, email: user.email ?? null, user_metadata: user.user_metadata }
     : null;
   let initialIsAdmin = false;
 

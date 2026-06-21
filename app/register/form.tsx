@@ -28,6 +28,7 @@ export default function RegisterForm() {
     } = useForm<RegisterFormValues>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
+            username: "",
             email: "",
             password: "",
             confirmPassword: "",
@@ -59,6 +60,7 @@ export default function RegisterForm() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
+                username: values.username,
                 email: values.email,
                 password: values.password,
                 confirmPassword: values.confirmPassword,
@@ -99,6 +101,23 @@ export default function RegisterForm() {
     return (
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FieldGroup className="gap-6">
+                <Field className="gap-2">
+                    <FieldLabel htmlFor="username">Username</FieldLabel>
+                    <Input
+                        id="username"
+                        type="text"
+                        className="h-11 rounded-[8px]"
+                        autoComplete="username"
+                        placeholder="e.g. johndoe123"
+                        aria-invalid={!!errors.username}
+                        aria-describedby={errors.username ? "username-error" : undefined}
+                        {...register("username")}
+                    />
+                    {errors.username ? (
+                        <FieldError id="username-error">{errors.username.message}</FieldError>
+                    ) : null}
+                </Field>
+
                 <Field className="gap-2">
                     <FieldLabel htmlFor="email">Email</FieldLabel>
                     <Input

@@ -54,7 +54,8 @@ export function AuthProvider({
       const isSameUser =
         previousUser?.id === nextUser?.id &&
         previousUser?.email === nextUser?.email &&
-        previousUser?.user_metadata?.display_name === nextUser?.user_metadata?.display_name;
+        previousUser?.user_metadata?.display_name === nextUser?.user_metadata?.display_name &&
+        previousUser?.user_metadata?.username === nextUser?.user_metadata?.username;
 
       return isSameUser ? previousUser : nextUser;
     });

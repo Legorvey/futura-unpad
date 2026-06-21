@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { CalendarDays, Mail, UserRound } from "lucide-react"
+import { CalendarDays, Mail, UserRound, AtSign } from "lucide-react"
 
 import { createClient } from "@/utils/supabase/server"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
@@ -40,7 +40,7 @@ export default async function AccountPage() {
     redirect("/login?next=/profile/account")
   }
 
-  const initials = getInitials(user.user_metadata?.display_name, user.email)
+  const initials = getInitials(user.user_metadata?.display_name || user.user_metadata?.username, user.email)
 
   return (
     <div className="mx-auto w-full max-w-3xl">
@@ -57,7 +57,8 @@ export default async function AccountPage() {
 
       <div className="relative rounded-xl border border-border bg-card p-6 sm:p-10">
         <EditProfileDialog
-          initialDisplayName={user.user_metadata?.display_name || user.email?.split("@")[0] || ""}
+          initialDisplayName={user.user_metadata?.display_name || ""}
+          initialUsername={user.user_metadata?.username || ""}
           initialEmail={user.email || ""}
         />
         <div className="flex flex-col items-center text-center space-y-4 mb-10">
@@ -82,7 +83,14 @@ export default async function AccountPage() {
             <UserRound className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Display Name</p>
-              <p className="font-medium mt-0.5 text-base">{user.user_metadata?.display_name || user.email?.split("@")[0] || "-"}</p>
+              <p className="font-medium mt-0.5 text-base">{user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "-"}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <AtSign className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Username</p>
+              <p className="font-medium mt-0.5 text-base">{user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">

@@ -46,11 +46,25 @@ export async function POST(request: Request) {
   redirectUrl.searchParams.set("next", "/login?verified=1");
 
   const supabase = await createClient();
+  
+  const rawUsername = parsed.data.username;
+  const lowercaseUsername = rawUsername.toLowerCase();
+
+  // Check if username is taken
+  const { data: isTaken, error: takenError } = await supabase.rpc('is_username_taken', { p_username: lowercaseUsername });
+  if (isTaken || takenError) {
+    return NextResponse.json({ error: "This username is already taken." }, { status: 409 });
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       emailRedirectTo: redirectUrl.toString(),
+      data: {
+        username: lowercaseUsername,
+        display_name: "",
+      }
     },
   });
 

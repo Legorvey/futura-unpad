@@ -16,14 +16,29 @@ export const passwordSchema = z
   .min(8, "Must be at least 8 characters long.")
   .max(128, "Password is too long.");
 
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters.")
+  .max(20, "Username is too long.")
+  .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores.");
+
 export const loginSchema = z.object({
-  email: emailSchema,
+  identifier: z.string().trim().min(1, "Please enter your email or username."),
   password: z.string().min(1, "Please enter your password."),
 });
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+export const editProfileSchema = z.object({
+  username: z.union([usernameSchema, z.literal("")]).optional(),
+  display_name: z.string().trim().min(1, "Display name is required.").max(100, "Display name is too long."),
+  email: emailSchema,
+});
+export type EditProfileFormValues = z.infer<typeof editProfileSchema>;
+
 export const signupSchema = z
   .object({
+    username: usernameSchema,
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: passwordSchema,
@@ -109,7 +124,7 @@ export const clientSeminarFormSchema = z.object({
         path: ["group_name"],
       });
     }
-    
+
     if (!data.is_same_institution && data.members) {
       data.members.forEach((member, index) => {
         if (!member.institusi || member.institusi.trim() === "") {

@@ -22,7 +22,20 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  
+  let email = parsed.data.identifier;
+  if (!email.includes('@')) {
+    const { data: resolvedEmail } = await supabase.rpc('get_email_by_username', { p_username: parsed.data.identifier.toLowerCase() });
+    if (!resolvedEmail) {
+      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+    }
+    email = resolvedEmail;
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: parsed.data.password,
+  });
 
   if (error) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });

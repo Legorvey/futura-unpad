@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import { Pencil } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { editProfileSchema, type EditProfileFormValues } from "@/lib/validation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,30 +23,43 @@ import { useRouter } from "next/navigation"
 
 type EditProfileDialogProps = {
   initialDisplayName: string
+  initialUsername?: string
   initialEmail: string
 }
 
-export function EditProfileDialog({ initialDisplayName, initialEmail }: EditProfileDialogProps) {
+export function EditProfileDialog({ initialDisplayName, initialUsername = "", initialEmail }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false)
-  const [displayName, setDisplayName] = useState(initialDisplayName)
-  const [email, setEmail] = useState(initialEmail)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError: setFieldError,
+    formState: { errors },
+  } = useForm<EditProfileFormValues>({
+    resolver: zodResolver(editProfileSchema),
+    defaultValues: {
+      display_name: initialDisplayName,
+      username: initialUsername,
+      email: initialEmail,
+    },
+  })
+
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
     if (!newOpen) {
       // Reset state when closed
-      setDisplayName(initialDisplayName)
-      setEmail(initialEmail)
+      reset({ display_name: initialDisplayName, username: initialUsername, email: initialEmail })
       setError(null)
       setSuccessMessage(null)
     }
   }
 
-  const handleSave = async () => {
+  const onSubmit = async (values: EditProfileFormValues) => {
     setIsLoading(true)
     setError(null)
     setSuccessMessage(null)
@@ -51,13 +67,32 @@ export function EditProfileDialog({ initialDisplayName, initialEmail }: EditProf
     const supabase = createClient()
     const updates: any = {}
 
-    if (displayName !== initialDisplayName) {
-      updates.data = { display_name: displayName }
+    // Check username uniqueness
+    if (values.username !== undefined && values.username !== initialUsername) {
+      if (values.username !== "") {
+        const lowercaseUsername = values.username.toLowerCase();
+        const { data: isTaken, error: takenError } = await supabase.rpc('is_username_taken', { p_username: lowercaseUsername });
+        if (isTaken || takenError) {
+          setFieldError("username", { message: "This username is already taken." });
+          setIsLoading(false);
+          return;
+        }
+        if (!updates.data) updates.data = {}
+        updates.data.username = lowercaseUsername;
+      } else {
+        if (!updates.data) updates.data = {}
+        updates.data.username = "";
+      }
     }
 
-    const emailChanged = email !== initialEmail
+    if (values.display_name !== initialDisplayName) {
+      if (!updates.data) updates.data = {}
+      updates.data.display_name = values.display_name
+    }
+
+    const emailChanged = values.email !== initialEmail
     if (emailChanged) {
-      updates.email = email
+      updates.email = values.email
     }
 
     if (Object.keys(updates).length === 0) {
@@ -112,46 +147,69 @@ export function EditProfileDialog({ initialDisplayName, initialEmail }: EditProf
             Make changes to your profile here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Display Name</Label>
-            <Input
-              id="name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. John Doe"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              A confirmation link will be sent to your current and new email addresses to verify the change.
-            </p>
-          </div>
-
-          {error && (
-            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-              {error}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="display_name">Display Name</Label>
+              <Input
+                id="display_name"
+                placeholder="e.g. John Doe"
+                aria-invalid={!!errors.display_name}
+                {...register("display_name")}
+              />
+              {errors.display_name && (
+                <p className="text-sm text-destructive">{errors.display_name.message}</p>
+              )}
             </div>
-          )}
-
-          {successMessage && (
-            <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
-              {successMessage}
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="e.g. johndoe"
+                aria-invalid={!!errors.username}
+                {...register("username")}
+              />
+              {errors.username && (
+                <p className="text-sm text-destructive">{errors.username.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Your unique username to log in with.
+              </p>
             </div>
-          )}
-        </div>
-        <DialogFooter>
-          <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save changes"}
-          </Button>
-        </DialogFooter>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                aria-invalid={!!errors.email}
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                A confirmation link will be sent to your current and new email addresses to verify the change.
+              </p>
+            </div>
+
+            {error && (
+              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+                {successMessage}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

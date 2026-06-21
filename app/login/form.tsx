@@ -26,7 +26,7 @@ export default function LoginForm() {
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: "",
+            identifier: "",
             password: "",
         },
     });
@@ -79,19 +79,19 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FieldGroup className="gap-6">
                 <Field className="gap-2">
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <FieldLabel htmlFor="identifier">Email or Username</FieldLabel>
                     <Input
-                        id="email"
-                        type="email"
+                        id="identifier"
+                        type="text"
                         className="h-11 rounded-[8px]"
-                        autoComplete="email"
-                        placeholder="e.g. johndoe@gmail.com"
-                        aria-invalid={!!errors.email}
-                        aria-describedby={errors.email ? "email-error" : undefined}
-                        {...register("email")}
+                        autoComplete="username"
+                        placeholder="e.g. johndoe@gmail.com or johndoe"
+                        aria-invalid={!!errors.identifier}
+                        aria-describedby={errors.identifier ? "identifier-error" : undefined}
+                        {...register("identifier")}
                     />
-                    {errors.email ? (
-                        <FieldError id="email-error">{errors.email.message}</FieldError>
+                    {errors.identifier ? (
+                        <FieldError id="identifier-error">{errors.identifier.message}</FieldError>
                     ) : null}
                 </Field>
 

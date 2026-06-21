@@ -265,7 +265,7 @@ export default function Navbar() {
                             )}
                         >
                             <h3 className="text-3xl font-semibold tracking-tight text-foreground mb-3">
-                                Welcome back, <br /><span className="text-primary">{user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User'}</span>
+                                Welcome back, <br /><span className="text-primary">{user?.user_metadata?.display_name || user?.user_metadata?.username || user?.email?.split('@')[0] || 'User'}</span>
                             </h3>
                             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                                 Manage your registrations, view your transaction history, and stay updated with all your upcoming seminars and competitions.

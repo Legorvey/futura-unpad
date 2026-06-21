@@ -103,14 +103,14 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
                         className="flex items-center gap-3 mb-4 overflow-hidden rounded-lg p-2 transition-colors hover:bg-muted"
                     >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border font-semibold">
-                            {getInitials(user.user_metadata?.display_name, user.email)}
+                            {getInitials(user.user_metadata?.display_name || user.user_metadata?.username, user.email)}
                         </div>
                         <div className="flex flex-col overflow-hidden">
                             <span className="text-sm font-medium truncate">
-                                {user.user_metadata?.display_name || user.email?.split("@")[0]}
+                                {user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0]}
                             </span>
                             <span className="text-xs text-muted-foreground truncate">
-                                {user.email}
+                                {user.user_metadata?.username ? `@${user.user_metadata.username}` : user.email}
                             </span>
                         </div>
                     </Link>

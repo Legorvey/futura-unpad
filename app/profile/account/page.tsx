@@ -43,7 +43,7 @@ export default async function AccountPage() {
   const initials = getInitials(user.user_metadata?.display_name, user.email)
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:px-8">
+    <div className="mx-auto w-full max-w-3xl">
       <section className="flex flex-col gap-4 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div className="space-y-2">
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
@@ -94,6 +94,6 @@ export default async function AccountPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

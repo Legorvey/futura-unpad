@@ -69,7 +69,7 @@ export default async function SeminarRegistrationDetails({
     }
 
     return (
-        <main className="mx-auto w-full max-w-6xl space-y-10 px-6 py-10 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" asChild>
                     <Link href="/admin/seminar">
@@ -197,6 +197,6 @@ export default async function SeminarRegistrationDetails({
                     </TableBody>
                 </Table>
             </section>
-        </main>
+        </div>
     )
 }

@@ -73,7 +73,7 @@ export default async function AdminPage() {
     ).length
 
     return (
-        <main className="mx-auto w-full max-w-6xl space-y-10 px-6 py-10 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8">
             <section className="flex flex-col gap-5 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground">
@@ -192,6 +192,6 @@ export default async function AdminPage() {
                     </div>
                 </div>
             </section>
-        </main>
+        </div>
     )
 }

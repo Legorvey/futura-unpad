@@ -155,7 +155,7 @@ export default async function MechaturaAdminPage({
     ).length
 
     return (
-        <main className="mx-auto w-full max-w-6xl space-y-10 px-6 py-10 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8">
             <section className="rounded-xl bg-card">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
@@ -279,6 +279,6 @@ export default async function MechaturaAdminPage({
                     </div>
                 </div>
             </section>
-        </main>
+        </div>
     )
 }

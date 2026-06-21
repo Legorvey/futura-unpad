@@ -34,7 +34,7 @@ export default function SeminarListClient({
     const participants = initialData
 
     return (
-        <main className="mx-auto w-full max-w-6xl space-y-10 px-6 py-10 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8">
             <section className="rounded-xl bg-card">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
@@ -109,6 +109,6 @@ export default function SeminarListClient({
                     <DataTable columns={columns} data={participants} />
                 </div>
             </section>
-        </main>
+        </div>
     )
 }

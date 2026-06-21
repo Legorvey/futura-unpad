@@ -42,7 +42,7 @@ export default function ScannerPage() {
     }
 
     return (
-        <main className="mx-auto w-full max-w-2xl px-6 py-12 sm:px-8">
+        <div className="mx-auto w-full max-w-2xl">
             <div className="space-y-4 mb-8 text-center">
                 <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     QR Scanner
@@ -85,6 +85,6 @@ export default function ScannerPage() {
                     </div>
                 </div>
             )}
-        </main>
+        </div>
     )
 }

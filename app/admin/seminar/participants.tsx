@@ -28,7 +28,7 @@ export type Participants = {
     registration_type?: string;
     created_at?: string;
     is_main_contact?: boolean;
-    members?: { nama_lengkap: string; asal_institusi?: string }[];
+    members?: { id: string; nama_lengkap: string; asal_institusi?: string; attended?: boolean }[];
     attended?: boolean;
     check_in_time?: string | null;
 };
@@ -62,6 +62,126 @@ const deleteParticipant = async (id: string) => {
         throw new Error("Failed to delete participant.");
     }
 };
+
+import { Users } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+
+export function AttendanceCheckbox({ participant }: { participant: Participants }) {
+    const router = useRouter();
+    const [isPending, setIsPending] = useState(false);
+
+    const handleToggle = async (id: string, checked: boolean, bulk: boolean = false) => {
+        setIsPending(true);
+        try {
+            const res = await fetch("/api/admin/toggle-attendance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    registration_id: id,
+                    attended: checked,
+                    bulk
+                })
+            });
+
+            if (res.ok) {
+                router.refresh();
+            } else {
+                console.error("Failed to toggle attendance");
+            }
+        } catch (e) {
+            console.error("Error toggling attendance", e);
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    const isGroup = participant.members && participant.members.length > 0;
+    
+    let mainCheckboxState: boolean | "indeterminate" = !!participant.attended;
+    if (isGroup) {
+        const allGroupMembers = [participant, ...(participant.members || [])];
+        const checkedCount = allGroupMembers.filter(m => m.attended).length;
+        if (checkedCount === 0) mainCheckboxState = false;
+        else if (checkedCount === allGroupMembers.length) mainCheckboxState = true;
+        else mainCheckboxState = "indeterminate";
+    }
+
+    const handleMainToggle = (checked: boolean | "indeterminate") => {
+        // If it was true or indeterminate, we uncheck all. Otherwise check all.
+        const newChecked = checked === true;
+        handleToggle(participant.id, newChecked, isGroup);
+    };
+
+    return (
+        <div className="flex items-center gap-1">
+            <Checkbox 
+                checked={mainCheckboxState} 
+                onCheckedChange={handleMainToggle}
+                disabled={isPending}
+                aria-label="Attendance status"
+                className={isPending ? "opacity-50" : ""}
+            />
+            {isGroup && (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-6 w-6 ml-1 shrink-0" title="Manage Group Attendance">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Group Attendance</DialogTitle>
+                            <DialogDescription>
+                                Manage individual check-ins for the members of this group.
+                            </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="flex flex-col gap-3 py-4 max-h-[60vh] overflow-y-auto px-1">
+                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                <Checkbox 
+                                    id={`main-${participant.id}`}
+                                    checked={!!participant.attended}
+                                    disabled={isPending}
+                                    onCheckedChange={(c) => handleToggle(participant.id, !!c, false)}
+                                />
+                                <label 
+                                    htmlFor={`main-${participant.id}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
+                                >
+                                    {participant.nama_lengkap} <span className="text-xs text-muted-foreground ml-1 uppercase">(Main Contact)</span>
+                                </label>
+                            </div>
+                            
+                            {participant.members!.map(member => (
+                                <div key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                    <Checkbox 
+                                        id={`member-${member.id}`}
+                                        checked={!!member.attended}
+                                        disabled={isPending}
+                                        onCheckedChange={(c) => handleToggle(member.id, !!c, false)}
+                                    />
+                                    <label 
+                                        htmlFor={`member-${member.id}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
+                                    >
+                                        {member.nama_lengkap}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
+    );
+}
 
 export function ParticipantActions({ participant, hideViewDetails }: { participant: Participants, hideViewDetails?: boolean }) {
     const router = useRouter();
@@ -154,12 +274,7 @@ export const columns: ColumnDef<Participants>[] = [
         header: "Checked In",
         cell: ({ row }) => (
             <div className="flex items-center justify-center">
-                <Checkbox 
-                    checked={!!row.original.attended} 
-                    disabled 
-                    aria-label="Attendance status"
-                    className="cursor-default opacity-100 disabled:cursor-default disabled:opacity-100"
-                />
+                <AttendanceCheckbox participant={row.original} />
             </div>
         )
     },

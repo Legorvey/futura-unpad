@@ -47,7 +47,6 @@ export default async function SeminarList({
     }
     
     const filteredParticipants = allParticipants.filter((participant) => {
-        // Only show individual registrations OR main contacts for group registrations
         if (participant.is_main_contact === false) {
             return false;
         }
@@ -68,6 +67,11 @@ export default async function SeminarList({
                 .some((value) => value!.toLowerCase().includes(searchFilter))
 
         return categoryMatches && searchMatches
+    }).map((participant) => {
+        if ((participant.registration_type === "group" || participant.registration_type === "grup") && (participant as any).group_id) {
+            participant.members = allParticipants.filter(p => p.is_main_contact === false && (p as any).group_id === (participant as any).group_id);
+        }
+        return participant;
     })
 
     return (

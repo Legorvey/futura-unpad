@@ -31,6 +31,7 @@ export default async function SeminarList({
         .from("seminar_registrations")
         .select("*")
         .order("created_at", { ascending: true })
+        .order("nama_lengkap", { ascending: true })
 
     if (error) {
         throw new Error(error.message)

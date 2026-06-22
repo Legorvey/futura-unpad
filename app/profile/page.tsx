@@ -141,6 +141,7 @@ export default async function ProfilePage() {
       .eq("group_id", latestRegistration.group_id)
       .eq("is_main_contact", false)
       .order("created_at", { ascending: true })
+      .order("nama_lengkap", { ascending: true })
       
     if (membersData) {
       groupMembers = membersData as DownloadRegistrationData[]

@@ -59,17 +59,8 @@ export function TicketDownloadButton({
     const [isGenerating, setIsGenerating] = useState(false)
     const [showDialog, setShowDialog] = useState(false)
     const [ticketImages, setTicketImages] = useState<string[]>([])
-    const [initialMembersOrder] = useState(() => members.map(m => m.id))
     
-    // Ensure members stay in their initial order even if the DB returns them in a different physical order later
-    const sortedMembers = [...members].sort((a, b) => {
-        const indexA = initialMembersOrder.indexOf(a.id);
-        const indexB = initialMembersOrder.indexOf(b.id);
-        if (indexA === -1 || indexB === -1) return 0;
-        return indexA - indexB;
-    });
-
-    const allRegistrations = [mainContact, ...sortedMembers]
+    const allRegistrations = [mainContact, ...members]
     const isGroup = mainContact.registration_type === "group"
 
     const statusLabel = mainContact.status_akademika 

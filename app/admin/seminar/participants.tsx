@@ -76,6 +76,9 @@ import {
 export function AttendanceCheckbox({ participant }: { participant: Participants }) {
     const router = useRouter();
     const [isPending, setIsPending] = useState(false);
+    
+    // Capture the initial order of members to prevent jumping when the database physical order changes
+    const [initialMemberOrder] = useState(() => participant.members?.map(m => m.id) || []);
 
     const handleToggle = async (id: string, checked: boolean, bulk: boolean = false) => {
         setIsPending(true);
@@ -159,22 +162,26 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
                                 </label>
                             </div>
                             
-                            {participant.members!.map(member => (
-                                <div key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                                    <Checkbox 
-                                        id={`member-${member.id}`}
-                                        checked={!!member.attended}
-                                        disabled={isPending}
-                                        onCheckedChange={(c) => handleToggle(member.id, !!c, false)}
-                                    />
-                                    <label 
-                                        htmlFor={`member-${member.id}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
-                                    >
-                                        {member.nama_lengkap}
-                                    </label>
-                                </div>
-                            ))}
+                            {initialMemberOrder.map(memberId => {
+                                const member = participant.members?.find(m => m.id === memberId);
+                                if (!member) return null;
+                                return (
+                                    <div key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                        <Checkbox 
+                                            id={`member-${member.id}`}
+                                            checked={!!member.attended}
+                                            disabled={isPending}
+                                            onCheckedChange={(c) => handleToggle(member.id, !!c, false)}
+                                        />
+                                        <label 
+                                            htmlFor={`member-${member.id}`}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
+                                        >
+                                            {member.nama_lengkap}
+                                        </label>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </DialogContent>
                 </Dialog>

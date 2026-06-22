@@ -140,6 +140,7 @@ export default async function ProfilePage() {
       .select("id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_name,attended")
       .eq("group_id", latestRegistration.group_id)
       .eq("is_main_contact", false)
+      .order("created_at", { ascending: true })
       
     if (membersData) {
       groupMembers = membersData as DownloadRegistrationData[]

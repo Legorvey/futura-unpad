@@ -137,7 +137,7 @@ export default async function ProfilePage() {
   if (latestRegistration?.registration_type === "group" && latestRegistration.group_id) {
     const { data: membersData } = await adminSupabase
       .from("seminar_registrations")
-      .select("id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_name")
+      .select("id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_name,attended")
       .eq("group_id", latestRegistration.group_id)
       .eq("is_main_contact", false)
       
@@ -145,6 +145,9 @@ export default async function ProfilePage() {
       groupMembers = membersData as DownloadRegistrationData[]
     }
   }
+
+  const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
+  const checkedInCount = latestRegistration ? (latestRegistration.attended ? 1 : 0) + groupMembers.filter(m => m.attended).length : 0
 
   const academicStatus = isAcademicStatus(latestRegistration?.status_akademika)
     ? latestRegistration.status_akademika
@@ -191,9 +194,9 @@ export default async function ProfilePage() {
               </div>
               {latestRegistration && (
                 <div className="flex gap-2">
-                  <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${latestRegistration.attended ? 'border-border bg-background text-foreground' : 'border-border bg-muted text-muted-foreground'}`}>
-                    {latestRegistration.attended ? <CheckCircle2 className="w-3 h-3 mr-1.5 text-green-500" /> : <Clock className="w-3 h-3 mr-1.5 text-muted-foreground" />}
-                    {latestRegistration.attended ? "Checked In" : "Waiting to Check In"}
+                  <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${checkedInCount > 0 ? 'border-border bg-background text-foreground' : 'border-border bg-muted text-muted-foreground'}`}>
+                    {checkedInCount > 0 ? <CheckCircle2 className="w-3 h-3 mr-1.5 text-green-500" /> : <Clock className="w-3 h-3 mr-1.5 text-muted-foreground" />}
+                    {latestRegistration.registration_type === "group" ? `${checkedInCount}/${totalParticipants} Checked In` : (latestRegistration.attended ? "Checked In" : "Waiting to Check In")}
                   </span>
                   <span className="inline-flex items-center rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground">
                     <CheckCircle2 className="w-3 h-3 mr-1.5 text-muted-foreground" /> Active

@@ -128,6 +128,7 @@ export default function SeminarRegistrationForm() {
   const [registrationId, setRegistrationId] = useState("");
   const [allRegistrations, setAllRegistrations] = useState<{id: string, nama_lengkap: string, asal_institusi: string, is_main_contact: boolean}[]>([]);
   const [showAnonDialog, setShowAnonDialog] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
 
   const activeStepIndex = steps.findIndex((item) => item.id === step);
 
@@ -235,6 +236,7 @@ export default function SeminarRegistrationForm() {
     setRegistrationId(responseData.registration_id);
     setAllRegistrations(responseData.registrations || []);
     setStep("ticket");
+    setShowProfileDialog(true);
     setIsSubmitting(false);
   });
 
@@ -313,8 +315,11 @@ export default function SeminarRegistrationForm() {
 
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
         if (blob) {
-          const safeName = reg.nama_lengkap.replace(/[^a-z0-9]/gi, '_').toUpperCase();
-          zip.file(`${safeName}_${reg.id}.png`, blob);
+          const groupSegment = watchedValues.registration_type === "grup" && watchedValues.group_name ? watchedValues.group_name : "Individu";
+          const nameSegment = reg.nama_lengkap || "TICKET";
+          const instSegment = reg.asal_institusi || watchedValues.institusi || "Institusi";
+          const safeFileName = `${groupSegment}_${nameSegment}_${instSegment}_${reg.id}`.replace(/[^a-z0-9_]/gi, '_');
+          zip.file(`${safeFileName}.png`, blob);
         }
       }
 
@@ -391,8 +396,11 @@ export default function SeminarRegistrationForm() {
       }
 
       const link = document.createElement("a");
-      const safeName = watchedValues.nama.replace(/[^a-z0-9]/gi, '_').toUpperCase();
-      link.download = `${safeName}_${registrationId}.png`;
+      const groupSegment = "Individu";
+      const nameSegment = watchedValues.nama || "TICKET";
+      const instSegment = watchedValues.institusi || "Institusi";
+      const safeFileName = `${groupSegment}_${nameSegment}_${instSegment}_${registrationId}`.replace(/[^a-z0-9_]/gi, '_');
+      link.download = `${safeFileName}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     }
@@ -416,6 +424,27 @@ export default function SeminarRegistrationForm() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={() => router.push("/login?next=/registration/seminar")}>
               Log In
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Registration Successful!</AlertDialogTitle>
+            <AlertDialogDescription>
+              {user ? "You can also view and download your ticket(s) at any time from your Profile page." : "If you create an account with this email later, you can view and download your ticket(s) at any time from your Profile page."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {user && (
+              <AlertDialogCancel onClick={() => router.push("/profile")}>
+                Go to Profile
+              </AlertDialogCancel>
+            )}
+            <AlertDialogAction onClick={() => setShowProfileDialog(false)}>
+              Got it
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -4,7 +4,14 @@ import {
     PASSWORD_RECOVERY_MAX_AGE_SECONDS,
     passwordRecoveryCookieOptions,
 } from "@/lib/password-recovery"
+import {
+    AUTH_PERSISTENCE_COOKIE,
+    SESSION_AUTH_PERSISTENCE,
+    authPersistenceCookieOptions,
+    getAuthCookiePersistence,
+} from "@/utils/supabase/auth-cookies"
 import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 
 const getSafeRedirectPath = (value: string | null) => {
     if (
@@ -23,6 +30,8 @@ export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get("code")
     const next = getSafeRedirectPath(requestUrl.searchParams.get("next"))
+    const keepSignedInParam = requestUrl.searchParams.get("keep_signed_in")
+    const keepSignedIn = keepSignedInParam === null || keepSignedInParam === "1"
     const isPasswordRecoveryRedirect =
         new URL(next, requestUrl.origin).pathname === "/reset-password"
 
@@ -30,7 +39,9 @@ export async function GET(request: Request) {
         return NextResponse.redirect(new URL("/login?error=missing_code", request.url))
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient({
+        authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
+    })
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
@@ -51,6 +62,20 @@ export async function GET(request: Request) {
                 })
             }
         }
+    }
+
+    const cookieStore = await cookies()
+    if (keepSignedIn) {
+        cookieStore.set(AUTH_PERSISTENCE_COOKIE, "", {
+            ...authPersistenceCookieOptions,
+            maxAge: 0,
+        })
+    } else {
+        cookieStore.set(
+            AUTH_PERSISTENCE_COOKIE,
+            SESSION_AUTH_PERSISTENCE,
+            authPersistenceCookieOptions
+        )
     }
 
     const response = NextResponse.redirect(new URL(next, request.url))

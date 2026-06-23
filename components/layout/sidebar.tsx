@@ -5,21 +5,26 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { LayoutDashboard, Users, Trophy, Cpu, LogOut, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
-import { createClient } from "@/utils/supabase/client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { isMobileOpen: boolean, setIsMobileOpen: (open: boolean) => void, width: number, setWidth: (width: number) => void }) {
-    const { user, isAdmin } = useAuth()
+    const { user, isAdmin, signOut } = useAuth()
     const pathname = usePathname()
     const router = useRouter()
-    const supabase = createClient()
     const [isResizing, setIsResizing] = useState(false)
     const sidebarRef = useRef<HTMLDivElement>(null)
 
     const handleLogout = async () => {
-        await supabase.auth.signOut()
-        router.push("/")
+        const { error } = await signOut()
+
+        if (error) {
+            console.error(error)
+            return
+        }
+
+        router.replace("/")
+        router.refresh()
     }
 
     const startResizing = useCallback(() => {

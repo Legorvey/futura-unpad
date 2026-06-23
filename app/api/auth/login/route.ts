@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { invalidRequest, rateLimited } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/validation";
+import {
+  AUTH_PERSISTENCE_COOKIE,
+  SESSION_AUTH_PERSISTENCE,
+  authPersistenceCookieOptions,
+  getAuthCookiePersistence,
+} from "@/utils/supabase/auth-cookies";
 import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   const limit = await rateLimit(request, {
@@ -21,7 +28,11 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const supabase = await createClient();
+  const keepSignedIn = parsed.data.keepSignedIn ?? true;
+
+  const supabase = await createClient({
+    authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
+  });
   
   let email = parsed.data.identifier;
   if (!email.includes('@')) {
@@ -39,6 +50,21 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  }
+
+  const cookieStore = await cookies();
+
+  if (keepSignedIn) {
+    cookieStore.set(AUTH_PERSISTENCE_COOKIE, "", {
+      ...authPersistenceCookieOptions,
+      maxAge: 0,
+    });
+  } else {
+    cookieStore.set(
+      AUTH_PERSISTENCE_COOKIE,
+      SESSION_AUTH_PERSISTENCE,
+      authPersistenceCookieOptions
+    );
   }
 
   return NextResponse.json({ ok: true });

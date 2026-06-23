@@ -7,6 +7,10 @@ import {
 } from "@/lib/password-recovery";
 import { rateLimit } from "@/lib/rate-limit";
 import { resetPasswordSchema } from "@/lib/validation";
+import {
+  AUTH_PERSISTENCE_COOKIE,
+  authPersistenceCookieOptions,
+} from "@/utils/supabase/auth-cookies";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: Request) {
@@ -69,6 +73,10 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
     ...passwordRecoveryCookieOptions,
+    maxAge: 0,
+  });
+  response.cookies.set(AUTH_PERSISTENCE_COOKIE, "", {
+    ...authPersistenceCookieOptions,
     maxAge: 0,
   });
 

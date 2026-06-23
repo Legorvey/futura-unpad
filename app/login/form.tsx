@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
@@ -18,6 +19,7 @@ export default function LoginForm() {
     const { refreshAuth } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const [keepSignedIn, setKeepSignedIn] = useState(false);
 
     const {
         register,
@@ -40,7 +42,7 @@ export default function LoginForm() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(values),
+            body: JSON.stringify({ ...values, keepSignedIn }),
         });
 
         if (!res.ok) {
@@ -96,7 +98,11 @@ export default function LoginForm() {
                 </Field>
 
                 <Field className="gap-2">
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <div className="flex justify-between">
+                        <FieldLabel htmlFor="password">Password</FieldLabel>
+                        <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
+                    </div>
+                    
                     <Input
                         id="password"
                         type="password"
@@ -110,7 +116,22 @@ export default function LoginForm() {
                     {errors.password ? (
                         <FieldError id="password-error">{errors.password.message}</FieldError>
                     ) : null}
-                    <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
+
+                    <Field orientation="horizontal" className="items-center gap-2">
+                    <Checkbox
+                        id="keepSignedIn"
+                        checked={keepSignedIn}
+                        disabled={isSubmitting}
+                        onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
+                    />
+                    <FieldLabel
+                        htmlFor="keepSignedIn"
+                        className="cursor-pointer text-sm font-normal text-muted-foreground"
+                    >
+                            Keep me signed in
+                        </FieldLabel>
+                    </Field>
+                    
                 </Field>
 
                 {submitError && <FieldError>{submitError}</FieldError>}
@@ -135,7 +156,7 @@ export default function LoginForm() {
                         </div>
                     </div>
 
-                    <GoogleLoginButton />
+                    <GoogleLoginButton keepSignedIn={keepSignedIn} />
                 </Field>
                 <p className="text-center text-sm text-muted-foreground">
                     Do not have an account?{" "}

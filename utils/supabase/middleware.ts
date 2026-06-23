@@ -1,10 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  AUTH_PERSISTENCE_COOKIE,
+  isSessionAuthPersistence,
+} from "@/utils/supabase/auth-cookies";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const updateSession = async (request: NextRequest) => {
+  const sessionOnly = isSessionAuthPersistence(
+    request.cookies.get(AUTH_PERSISTENCE_COOKIE)?.value
+  );
+
   let supabaseResponse = NextResponse.next({
     request: {
       headers: request.headers,
@@ -16,16 +24,27 @@ export const updateSession = async (request: NextRequest) => {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
         supabaseResponse = NextResponse.next({
           request,
         });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+        Object.entries(headers).forEach(([key, value]) =>
+          supabaseResponse.headers.set(key, value)
         );
+        cookiesToSet.forEach(({ name, value, options }) => {
+          if (sessionOnly && value) {
+            const sessionOptions = { ...options };
+            delete sessionOptions.maxAge;
+            delete sessionOptions.expires;
+            supabaseResponse.cookies.set(name, value, sessionOptions);
+            return;
+          }
+
+          supabaseResponse.cookies.set(name, value, options);
+        });
       },
     },
   });

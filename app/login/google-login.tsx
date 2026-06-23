@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import Image from "next/image"
 
-export default function GoogleLoginButton() {
+export default function GoogleLoginButton({
+    keepSignedIn = true,
+    onBeforeLogin,
+}: {
+    keepSignedIn?: boolean
+    onBeforeLogin?: () => boolean
+}) {
     const supabase = createClient()
     const [isLoading, setIsLoading] = useState(false)
 
@@ -26,6 +32,10 @@ export default function GoogleLoginButton() {
     }
 
     const loginWithGoogle = async () => {
+        if (onBeforeLogin && !onBeforeLogin()) {
+            return
+        }
+
         setIsLoading(true)
 
         const currentUrl = new URL(window.location.href)
@@ -33,6 +43,7 @@ export default function GoogleLoginButton() {
         const next = currentUrl.searchParams.get("next") ?? "/admin"
 
         callbackUrl.searchParams.set("next", getSafeRedirectPath(next))
+        callbackUrl.searchParams.set("keep_signed_in", keepSignedIn ? "1" : "0")
 
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",

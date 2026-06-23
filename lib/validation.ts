@@ -26,6 +26,7 @@ export const usernameSchema = z
 export const loginSchema = z.object({
   identifier: z.string().trim().min(1, "Please enter your email or username."),
   password: z.string().min(1, "Please enter your password."),
+  keepSignedIn: z.boolean().optional(),
 });
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -42,6 +43,9 @@ export const signupSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: passwordSchema,
+    termsAccepted: z.boolean().refine((value) => value === true, {
+      message: "Please agree to the Terms and Privacy Policy.",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",

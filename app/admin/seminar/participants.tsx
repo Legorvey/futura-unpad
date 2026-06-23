@@ -26,6 +26,8 @@ export type Participants = {
     asal_institusi: string;
     status_akademika: string;
     registration_type?: string;
+    group_name?: string | null;
+    group_id?: string | null;
     created_at?: string;
     is_main_contact?: boolean;
     members?: { id: string; nama_lengkap: string; asal_institusi?: string; attended?: boolean }[];
@@ -103,7 +105,7 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
     };
 
     const isGroup = participant.members && participant.members.length > 0;
-    
+
     let mainCheckboxState: boolean | "indeterminate" = !!participant.attended;
     if (isGroup) {
         const allGroupMembers = [participant, ...(participant.members || [])];
@@ -121,8 +123,8 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
 
     return (
         <div className="flex items-center gap-1">
-            <Checkbox 
-                checked={mainCheckboxState} 
+            <Checkbox
+                checked={mainCheckboxState}
                 onCheckedChange={handleMainToggle}
                 disabled={isPending}
                 aria-label="Attendance status"
@@ -142,32 +144,32 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
                                 Manage individual check-ins for the members of this group.
                             </DialogDescription>
                         </DialogHeader>
-                        
+
                         <div className="flex flex-col gap-3 py-4 max-h-[60vh] overflow-y-auto px-1">
                             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                                <Checkbox 
+                                <Checkbox
                                     id={`main-${participant.id}`}
                                     checked={!!participant.attended}
                                     disabled={isPending}
                                     onCheckedChange={(c) => handleToggle(participant.id, !!c, false)}
                                 />
-                                <label 
+                                <label
                                     htmlFor={`main-${participant.id}`}
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
                                 >
                                     {participant.nama_lengkap} <span className="text-xs text-muted-foreground ml-1 uppercase">(Main Contact)</span>
                                 </label>
                             </div>
-                            
+
                             {participant.members!.map(member => (
                                 <div key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                                    <Checkbox 
+                                    <Checkbox
                                         id={`member-${member.id}`}
                                         checked={!!member.attended}
                                         disabled={isPending}
                                         onCheckedChange={(c) => handleToggle(member.id, !!c, false)}
                                     />
-                                    <label 
+                                    <label
                                         htmlFor={`member-${member.id}`}
                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
                                     >
@@ -204,7 +206,7 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
                 <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    
+
                     {!hideViewDetails && (
                         <>
                             <DropdownMenuItem asChild>
@@ -223,21 +225,21 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
                             const Icon = action.icon;
 
                             return (
-                            <DropdownMenuItem
-                                key={action.label}
-                                onClick={() =>
-                                navigator.clipboard.writeText(action.getValue(participant))
-                                }
-                            >
-                                <Icon className="h-4 w-4" />
-                                {action.label}
-                            </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    key={action.label}
+                                    onClick={() =>
+                                        navigator.clipboard.writeText(action.getValue(participant))
+                                    }
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    {action.label}
+                                </DropdownMenuItem>
                             );
                         })}
                     </DropdownMenuGroup>
 
                     <DropdownMenuSeparator />
-                    
+
                     <DropdownMenuItem
                         variant="destructive"
                         onClick={() => setDeleteOpen(true)}
@@ -281,9 +283,15 @@ export const columns: ColumnDef<Participants>[] = [
     {
         accessorKey: "nama_lengkap",
         header: "Name",
-        cell: ({ row }) => (
-        <div className="font-medium">{row.original.nama_lengkap}</div>
-        ),
+        cell: ({ row }) => {
+            const participant = row.original;
+            const isGroup = participant.registration_type === "group" || participant.registration_type === "grup";
+            const displayName = isGroup
+                ? participant.group_name?.trim() || participant.nama_lengkap
+                : participant.nama_lengkap;
+
+            return <div className="font-medium">{displayName}</div>;
+        },
     },
     {
         accessorKey: "email",
@@ -314,11 +322,10 @@ export const columns: ColumnDef<Participants>[] = [
         accessorKey: "status_akademika",
         header: "Status Civitas Akademika",
         cell: ({ row }) => (
-            <span 
+            <span
                 className={`
                     inline-flex rounded-full 
-                    ${
-                        row.original.status_akademika == "mahasiswa"
+                    ${row.original.status_akademika == "mahasiswa"
                         ? "bg-blue-100 text-blue-600"
                         : row.original.status_akademika == "siswa"
                             ? "bg-emerald-100 text-emerald-700"

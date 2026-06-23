@@ -269,11 +269,11 @@ export default function RegisterForm() {
                             >
                                 Privacy Policy
                             </button>
-                            {errors.termsAccepted ? (
-                                <FieldError id="termsAccepted-error">{errors.termsAccepted.message}</FieldError>
-                            ) : null}
+                            .
                         </p>
-                       
+                        {errors.termsAccepted ? (
+                            <FieldError id="termsAccepted-error">{errors.termsAccepted.message}</FieldError>
+                        ) : null}
                     </div>
                 </Field>
 

@@ -32,7 +32,6 @@ const seminarListColumns = [
     "check_in_time",
 ].join(",")
 const seminarStatsColumns = [
-    "id",
     "is_main_contact",
     "registration_type",
     "attended",
@@ -88,8 +87,7 @@ const getSeminarStats = (allParticipants: Participants[]) => {
     const mainRegistrations = allParticipants.filter((p) => p.is_main_contact !== false)
 
     return {
-        totalRegistrations: mainRegistrations.length,
-        totalAttendees: allParticipants.length,
+        totalRegistrations: allParticipants.length,
         checkedInAttendees: allParticipants.filter((p) => p.attended).length,
         groupRegistrations: mainRegistrations.filter(isGroupRegistration).length,
         individualRegistrations: mainRegistrations.filter((p) => !isGroupRegistration(p)).length,
@@ -379,8 +377,7 @@ export default async function SeminarList({
         })
 
     const stats = {
-        totalRegistrations: allParticipants.filter((p) => p.is_main_contact !== false).length,
-        totalAttendees: allParticipants.length,
+        totalRegistrations: allParticipants.length,
         checkedInAttendees: allParticipants.filter((p) => p.attended).length,
         groupRegistrations: allParticipants
             .filter((p) => p.is_main_contact !== false)

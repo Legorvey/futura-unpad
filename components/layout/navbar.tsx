@@ -177,8 +177,8 @@ export default function Navbar() {
                                                 <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Robotic Competition</span>
                                                 <span className="text-xs text-muted-foreground">Test & iterate quickly.</span>
                                             </Link>
-                                            <AuthGuardLink href="/registration/lomba-kti" requireAuth className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Lomba Karya Tulis Ilmiah (LKTI)</span>
+                                            <AuthGuardLink href="/registration/lomba-essay" requireAuth className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
+                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Lomba Essay</span>
                                                 <span className="text-xs text-muted-foreground">Clearer story & feedback.</span>
                                             </AuthGuardLink>
                                         </div>

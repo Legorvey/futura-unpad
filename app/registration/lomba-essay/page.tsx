@@ -6,10 +6,10 @@ export default function LKTIPage() {
             <section>
                 <div className="space-y-2">
                     <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                        Lomba Karya Tulis Ilmiah
+                        Lomba Essay
                     </h1>
                     <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-                        Daftarkan tim, lengkapi data karya tulis dan ketua tim,
+                        Daftarkan tim, lengkapi data essay dan ketua tim,
                         verifikasi, lalu lanjutkan ke pembayaran.
                     </p>
                 </div>

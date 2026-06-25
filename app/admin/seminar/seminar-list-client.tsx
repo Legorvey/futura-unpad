@@ -64,7 +64,6 @@ export default function SeminarListClient({
     }
     stats: {
         totalRegistrations: number
-        totalAttendees: number
         checkedInAttendees: number
         groupRegistrations: number
         individualRegistrations: number
@@ -79,10 +78,6 @@ export default function SeminarListClient({
 
     const metrics = [
         {
-            label: "On page",
-            value: participants.length,
-        },
-        {
             label: "Total",
             value: stats.totalRegistrations,
         },
@@ -91,8 +86,12 @@ export default function SeminarListClient({
             value: stats.checkedInAttendees,
         },
         {
-            label: "Groups",
+            label: "Group",
             value: stats.groupRegistrations,
+        },
+        {
+            label: "Individual",
+            value: stats.individualRegistrations,
         },
     ]
     const buildPageHref = (page: number, nextPageSize = pageSize) => {

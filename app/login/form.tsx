@@ -74,7 +74,6 @@ export default function LoginForm() {
 
         await refreshAuth();
         router.replace(safeNext);
-        router.refresh();
     };
 
     return (

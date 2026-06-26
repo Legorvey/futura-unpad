@@ -94,8 +94,6 @@ export function UserProfileDropdown({ onClose }: { onClose?: () => void }) {
       router.replace("/login")
       return
     }
-
-    router.refresh()
   }
 
   return (

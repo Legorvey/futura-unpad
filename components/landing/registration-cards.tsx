@@ -1,4 +1,3 @@
-import Link from "next/link"
 import Image from "next/image"
 import { ArrowUpRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -34,7 +33,7 @@ const programs: Program[] = [
   },
   {
     image: "/bmo.gif",
-    title: "Robotic Competition",
+    title: "Mechatura",
     label: "Build",
     description:
       "Test decisions, iterate quickly, and see how a robot performs under pressure.",

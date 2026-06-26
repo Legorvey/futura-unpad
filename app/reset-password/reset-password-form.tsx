@@ -56,7 +56,6 @@ export default function ResetPasswordForm() {
         setMessage("Password updated successfully. Please sign in with your new password.")
         setIsSubmitting(false)
         router.replace("/login")
-        router.refresh()
     }
 
     return (

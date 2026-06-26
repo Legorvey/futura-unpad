@@ -9,7 +9,7 @@ import { RegistrationCards } from "@/components/landing/registration-cards"
 import HowToRegisterSection from "@/components/landing/how-to-register"
 
 export const metadata: Metadata = {
-  title: "FUTURA 2026 | Technology, Robotics, and Research Event",
+  title: "Coming Soon!",
   description:
     "Register for Futura 2026, a university technology event featuring seminars, robotic competition, and research dissemination.",
 }

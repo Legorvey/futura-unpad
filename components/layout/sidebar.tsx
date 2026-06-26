@@ -24,7 +24,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
         }
 
         router.replace("/")
-        router.refresh()
     }
 
     const startResizing = useCallback(() => {

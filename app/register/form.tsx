@@ -108,7 +108,6 @@ export default function RegisterForm() {
 
             await refreshAuth();
             router.replace(safeNext);
-            router.refresh();
             return;
         }
 

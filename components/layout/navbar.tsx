@@ -169,7 +169,7 @@ export default function Navbar() {
                                                 <span className="text-xs text-muted-foreground">Applied technology talks.</span>
                                             </Link>
                                             <Link href="/registration/mechatura" className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Robotic Competition</span>
+                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Mechatura</span>
                                                 <span className="text-xs text-muted-foreground">Test & iterate quickly.</span>
                                             </Link>
                                             <AuthGuardLink href="/registration/lomba-essay" requireAuth className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
@@ -324,7 +324,7 @@ export default function Navbar() {
                                         Seminar
                                     </Link>
                                     <Link href="/registration/mechatura" className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                        Robotic Competition
+                                        Mechatura
                                     </Link>
                                     <AuthGuardLink href="/registration/lomba-kti" requireAuth className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
                                         Research Dissemination

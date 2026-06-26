@@ -105,7 +105,6 @@ export default function HowToRegisterSection() {
                         <div className="relative w-full aspect-square rounded-[2rem] bg-white border border-slate-200 overflow-hidden flex items-center justify-center">
                             {steps.map((step) => {
                                 const isActive = activeStep === step.id
-                                const Icon = step.icon
                                 return (
                                     <div
                                         key={step.id}

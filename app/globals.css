@@ -170,6 +170,12 @@
   }
 }
 
+@keyframes gradient-border-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes accordion-down {
   from {
     height: 0;
@@ -200,6 +206,10 @@
   animation: fade-up 0.7s ease both;
 }
 
+@utility animate-gradient-border {
+  animation: gradient-border-spin 7s linear infinite;
+}
+
 @utility animate-accordion-down {
   animation: accordion-down 0.22s ease-out;
 }
@@ -211,6 +221,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-sponsor-scroll,
   .animate-fade-up,
+  .animate-gradient-border,
   .animate-accordion-down,
   .animate-accordion-up {
     animation: none;

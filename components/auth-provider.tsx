@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 export type AuthUser = {
@@ -45,7 +44,6 @@ export function AuthProvider({
   initialUser: AuthUser | null;
   initialIsAdmin: boolean;
 }) {
-  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(initialUser);
   const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
   const [isLoading, setIsLoading] = useState(false);
@@ -127,8 +125,6 @@ export function AuthProvider({
       const previousUserId = currentUser.current?.id ?? null;
       const nextUserId = nextUser?.id ?? null;
       const userChanged = previousUserId !== nextUserId;
-      const shouldRefreshServerState =
-        event === "SIGNED_OUT" || userChanged || event === "USER_UPDATED";
 
       if (!isMounted) {
         return;
@@ -151,16 +147,13 @@ export function AuthProvider({
         });
       }
 
-      if (shouldRefreshServerState) {
-        router.refresh();
-      }
     });
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [checkAdmin, router, setAuthUser]);
+  }, [checkAdmin, setAuthUser]);
 
   const value = useMemo(
     () => ({

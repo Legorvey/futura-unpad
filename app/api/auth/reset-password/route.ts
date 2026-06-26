@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { invalidRequest, rateLimited } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
 import {
   PASSWORD_RECOVERY_COOKIE,
   passwordRecoveryCookieOptions,
@@ -24,9 +24,13 @@ export async function POST(request: Request) {
     return rateLimited(limit.retryAfter);
   }
 
-  const parsed = resetPasswordSchema.safeParse(
-    await request.json().catch(() => null)
-  );
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = resetPasswordSchema.safeParse(body.data);
 
   if (!parsed.success) {
     return invalidRequest();

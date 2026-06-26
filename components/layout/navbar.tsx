@@ -42,12 +42,7 @@ export default function Navbar() {
         }
     }
 
-    useEffect(() => {
-        if (!user) {
-            if (activeDropdown === "user") setActiveDropdown(null)
-            if (isMobileUserOpen) setIsMobileUserOpen(false)
-        }
-    }, [user, activeDropdown, isMobileUserOpen])
+    const visibleActiveDropdown = !user && activeDropdown === "user" ? null : activeDropdown
 
     useEffect(() => {
         const handleScroll = () => {
@@ -84,7 +79,7 @@ export default function Navbar() {
                                 isMobileMenuOpen ? "rounded-3xl" : "rounded-3xl md:rounded-[2rem]"
                             )
                             : "w-full max-w-full rounded-none border border-transparent border-b-border/70 bg-background/95 backdrop-blur-xl px-4 pt-3 pb-0 sm:px-8",
-                        (isMobileMenuOpen || activeDropdown) && !isScrolled ? "bg-background/95 border-b-border/70" : ""
+                        (isMobileMenuOpen || visibleActiveDropdown) && !isScrolled ? "bg-background/95 border-b-border/70" : ""
                     )}
                     onMouseLeave={() => setActiveDropdown(null)}
                 >
@@ -118,7 +113,7 @@ export default function Navbar() {
                                 onMouseEnter={() => handleHover("faq")}
                                 onClick={() => setActiveDropdown(activeDropdown === "faq" ? null : "faq")}
                             >
-                                FAQ <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", activeDropdown === "faq" && "rotate-180")} />
+                                FAQ <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "faq" && "rotate-180")} />
                             </button>
 
                             <button
@@ -127,14 +122,14 @@ export default function Navbar() {
                                 onMouseEnter={() => handleHover("registration")}
                                 onClick={() => setActiveDropdown(activeDropdown === "registration" ? null : "registration")}
                             >
-                                Registration <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", activeDropdown === "registration" && "rotate-180")} />
+                                Registration <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "registration" && "rotate-180")} />
                             </button>
 
                             {/* Sliding Dropdown Content */}
                             <div
                                 className={cn(
                                     "absolute top-full mt-8 transition-all duration-500 ease-out z-50",
-                                    (activeDropdown === "faq" || activeDropdown === "registration") ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                                    (visibleActiveDropdown === "faq" || visibleActiveDropdown === "registration") ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                                 )}
                                 style={{
                                     transform: `translateX(calc(${dropdownStyle.left}px - 1rem))`,
@@ -146,7 +141,7 @@ export default function Navbar() {
                                     <div
                                         className={cn(
                                             "absolute top-0 left-0 w-full transition-all duration-300 ease-out",
-                                            activeDropdown === "faq" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 -translate-x-2 pointer-events-none"
+                                            visibleActiveDropdown === "faq" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 -translate-x-2 pointer-events-none"
                                         )}
                                     >
                                         <div className="flex flex-col gap-2 pt-2 px-2">
@@ -165,7 +160,7 @@ export default function Navbar() {
                                     <div
                                         className={cn(
                                             "absolute top-0 left-0 w-full transition-all duration-300 ease-out",
-                                            activeDropdown === "registration" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-2 pointer-events-none"
+                                            visibleActiveDropdown === "registration" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-2 pointer-events-none"
                                         )}
                                     >
                                         <div className="flex flex-col gap-2 pt-2 px-2">
@@ -210,7 +205,7 @@ export default function Navbar() {
                                             <div
                                                 className={cn(
                                                     "absolute right-0 top-full mt-8 w-[280px] transition-all duration-300 ease-out z-50",
-                                                    activeDropdown === "user" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none"
+                                                    visibleActiveDropdown === "user" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none"
                                                 )}
                                             >
                                                 <UserProfileDropdown onClose={() => setActiveDropdown(null)} />
@@ -252,16 +247,16 @@ export default function Navbar() {
                     <div
                         className={cn(
                             "hidden md:block w-full transition-all duration-500 ease-out pointer-events-none relative",
-                            activeDropdown === "registration" ? "h-[260px] opacity-100 border-t border-border/50" :
-                                activeDropdown === "faq" ? "h-[180px] opacity-100 border-t border-border/50" :
-                                    activeDropdown === "user" ? (isAdmin ? "h-[460px]" : "h-[420px]") + " opacity-100 border-t border-border/50" :
+                            visibleActiveDropdown === "registration" ? "h-[260px] opacity-100 border-t border-border/50" :
+                                visibleActiveDropdown === "faq" ? "h-[180px] opacity-100 border-t border-border/50" :
+                                    visibleActiveDropdown === "user" ? (isAdmin ? "h-[460px]" : "h-[420px]") + " opacity-100 border-t border-border/50" :
                                         "h-0 opacity-0 border-t border-transparent"
                         )}
                     >
                         <div
                             className={cn(
                                 "absolute left-8 top-10 max-w-md transition-all duration-500 delay-100 ease-out",
-                                activeDropdown === "user" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+                                visibleActiveDropdown === "user" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
                             )}
                         >
                             <h3 className="text-3xl font-semibold tracking-tight text-foreground mb-3">

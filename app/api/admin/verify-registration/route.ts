@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { invalidRequest, rateLimited, serverError } from "@/lib/http"
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http"
 import { rateLimit } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -30,7 +30,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const parsed = verifyRegistrationSchema.safeParse(await request.json().catch(() => null))
+    const body = await readJsonBody(request)
+
+    if (!body.ok) {
+        return body.response
+    }
+
+    const parsed = verifyRegistrationSchema.safeParse(body.data)
 
     if (!parsed.success) {
         return invalidRequest()

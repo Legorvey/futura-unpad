@@ -4,6 +4,12 @@ import { useRef, useState } from "react"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { CheckCircle2, XCircle } from "lucide-react"
 
+const hasRawValue = (value: unknown): value is { rawValue: string } =>
+    typeof value === "object" &&
+    value !== null &&
+    "rawValue" in value &&
+    typeof value.rawValue === "string"
+
 export default function ScannerPage() {
     const [scanResult, setScanResult] = useState<{ success: boolean; message: string; name?: string } | null>(null)
     const isScanningRef = useRef(false)
@@ -30,7 +36,7 @@ export default function ScannerPage() {
             } else {
                 setScanResult({ success: false, message: data.error || "Verification failed" })
             }
-        } catch (error) {
+        } catch {
             setScanResult({ success: false, message: "Network error. Please try again." })
         } finally {
             isScanningRef.current = false
@@ -57,8 +63,8 @@ export default function ScannerPage() {
                     onScan={(result) => {
                         if (Array.isArray(result) && result.length > 0) {
                             onScanSuccess(result[0].rawValue)
-                        } else if (typeof result === 'object' && result !== null && 'rawValue' in result) {
-                            onScanSuccess((result as any).rawValue)
+                        } else if (hasRawValue(result)) {
+                            onScanSuccess(result.rawValue)
                         } else if (typeof result === 'string') {
                             onScanSuccess(result)
                         }

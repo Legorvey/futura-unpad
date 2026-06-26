@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
-import { invalidRequest, rateLimited, serverError } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import {
     getXenditPaidAt,
     mechaturaPaymentAmount,
@@ -76,9 +76,13 @@ export async function POST(req: Request) {
             );
         }
 
-        const parsed = xenditWebhookSchema.safeParse(
-            await req.json().catch(() => null)
-        );
+        const bodyResult = await readJsonBody(req, 32_768);
+
+        if (!bodyResult.ok) {
+            return bodyResult.response;
+        }
+
+        const parsed = xenditWebhookSchema.safeParse(bodyResult.data);
 
         if (!parsed.success) {
             return invalidRequest();

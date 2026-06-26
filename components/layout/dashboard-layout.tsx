@@ -15,8 +15,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             
             <div className="flex flex-col flex-1 w-full transition-all" id="dashboard-main">
                 {/* 
-                  Instead of static md:ml-[260px], we use an inline style for margin-left on medium screens and above.
-                  Since we can't easily do a pure inline media query, we use a wrapper.
+                  instead of static md:ml-[260px],inline style for margin-left on medium screens and above.
+                  can't easily do a pure inline media query.
                 */}
                 <style>{`
                   @media (min-width: 768px) {
@@ -43,14 +43,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     {children}
                 </main>
             </div>
-            
-            {/* 
-              Hack to keep the desktop main content synced with the resizer width:
-              We'll just rely on CSS flex-1 to fill the remaining space on desktop.
-              Wait, since Sidebar is 'fixed' on desktop, we need 'md:ml-[260px]' which is static in tailwind.
-              If it's resizable, we should actually pass the width to the main content's margin-left.
-              Let's update this to be truly responsive to the resize.
-            */}
+
         </div>
     )
 }

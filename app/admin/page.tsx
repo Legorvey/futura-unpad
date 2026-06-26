@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
 
-import { redirect } from "next/navigation"
 import {
     CheckCircle2,
     Clock3,
@@ -9,68 +8,57 @@ import {
 } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase-admin"
 import { requireAdminOrRedirect } from "@/lib/auth"
-import {
-    isPaymentStatus,
-} from "@/lib/payment"
-
-type AdminRegistration = {
-    status_akademika: string | null
-    created_at: string | null
-}
-
-type AdminMechaturaSummary = {
-    competition_type: unknown
-    payment_status: string | null
-    created_at: string | null
-}
-
-const completedStatuses = new Set(["paid", "settled"])
-
-const getStatus = (status: string | null) =>
-    isPaymentStatus(status) ? status : "unpaid"
 
 export default async function AdminPage() {
     const { user } = await requireAdminOrRedirect()
 
     const adminSupabase = createAdminClient()
-    const [{ data, error }, { data: mechaturaData, error: mechaturaError }] =
-        await Promise.all([
-            adminSupabase
-                .from("seminar_registrations")
-                .select("status_akademika,created_at")
-                .order("created_at", { ascending: false }),
-            adminSupabase
-                .from("mechatura_registrations")
-                .select(
-                    "competition_type,payment_status,created_at"
-                )
-                .order("created_at", { ascending: false })
-                .returns<AdminMechaturaSummary[]>(),
-        ])
+    const [
+        seminarTotal,
+        seminarMahasiswa,
+        seminarSiswa,
+        seminarDosen,
+        seminarUmum,
+        mechaturaTotal,
+        mechaturaPaid,
+        mechaturaSumo,
+        mechaturaTransporter,
+    ] = await Promise.all([
+        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }),
+        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "mahasiswa"),
+        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "siswa"),
+        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "dosen"),
+        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "umum"),
+        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }),
+        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).in("payment_status", ["paid", "settled"]),
+        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).eq("competition_type", "sumo"),
+        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).eq("competition_type", "transporter"),
+    ])
+    const failedCount = [
+        seminarTotal,
+        seminarMahasiswa,
+        seminarSiswa,
+        seminarDosen,
+        seminarUmum,
+        mechaturaTotal,
+        mechaturaPaid,
+        mechaturaSumo,
+        mechaturaTransporter,
+    ].find((result) => result.error)
 
-    if (error || mechaturaError) {
-        throw new Error(error?.message ?? mechaturaError?.message)
+    if (failedCount?.error) {
+        throw new Error(failedCount.error.message)
     }
 
-    const registrations = (data ?? []) as AdminRegistration[]
-    const totalRegistrations = registrations.length
-    const mahasiswaCount = registrations.filter(
-        (registration) => registration.status_akademika === "mahasiswa"
-    ).length
-    const siswaCount = registrations.filter(
-        (registration) => registration.status_akademika === "siswa"
-    ).length
-    const dosenCount = registrations.filter(
-        (registration) => registration.status_akademika === "dosen"
-    ).length
-    const umumCount = registrations.filter(
-        (registration) => registration.status_akademika === "umum"
-    ).length
-
-    const mechaturaRegistrations = mechaturaData ?? []
-    const mechaturaPaidCount = mechaturaRegistrations.filter((registration) =>
-        completedStatuses.has(getStatus(registration.payment_status))
-    ).length
+    const totalRegistrations = seminarTotal.count ?? 0
+    const mahasiswaCount = seminarMahasiswa.count ?? 0
+    const siswaCount = seminarSiswa.count ?? 0
+    const dosenCount = seminarDosen.count ?? 0
+    const umumCount = seminarUmum.count ?? 0
+    const totalMechaturaCount = mechaturaTotal.count ?? 0
+    const mechaturaPaidCount = mechaturaPaid.count ?? 0
+    const sumoCount = mechaturaSumo.count ?? 0
+    const transporterCount = mechaturaTransporter.count ?? 0
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-8">
@@ -142,7 +130,7 @@ export default async function AdminPage() {
                     <div className="rounded-xl border border-border p-5">
                         <p className="text-sm text-muted-foreground">Total Teams</p>
                         <p className="mt-4 text-3xl font-semibold tracking-tight">
-                            {mechaturaRegistrations.length}
+                            {totalMechaturaCount}
                         </p>
                     </div>
                     <div className="rounded-xl border border-border p-5">
@@ -154,22 +142,13 @@ export default async function AdminPage() {
                     <div className="rounded-xl border border-border p-5">
                         <p className="text-sm text-muted-foreground">Robot Sumo</p>
                         <p className="mt-4 text-3xl font-semibold tracking-tight">
-                            {
-                                mechaturaRegistrations.filter(
-                                    (registration) => registration.competition_type === "sumo"
-                                ).length
-                            }
+                            {sumoCount}
                         </p>
                     </div>
                     <div className="rounded-xl border border-border p-5">
                         <p className="text-sm text-muted-foreground">Robot Transporter</p>
                         <p className="mt-4 text-3xl font-semibold tracking-tight">
-                            {
-                                mechaturaRegistrations.filter(
-                                    (registration) =>
-                                        registration.competition_type === "transporter"
-                                ).length
-                            }
+                            {transporterCount}
                         </p>
                     </div>
                 </div>

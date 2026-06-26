@@ -27,6 +27,14 @@ type EditProfileDialogProps = {
   initialEmail: string
 }
 
+type ProfileUpdates = {
+  email?: string
+  data?: {
+    username?: string
+    display_name?: string
+  }
+}
+
 export function EditProfileDialog({ initialDisplayName, initialUsername = "", initialEmail }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -65,7 +73,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
     setSuccessMessage(null)
 
     const supabase = createClient()
-    const updates: any = {}
+    const updates: ProfileUpdates = {}
 
     // Check username uniqueness
     if (values.username !== undefined && values.username !== initialUsername) {
@@ -102,7 +110,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
     }
 
     try {
-      const { data, error: updateError } = await supabase.auth.updateUser(updates)
+      const { error: updateError } = await supabase.auth.updateUser(updates)
 
       if (updateError) {
         throw updateError
@@ -115,8 +123,9 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
         router.refresh()
         setOpen(false)
       }
-    } catch (err: any) {
-      let errorMessage = err.message || "Failed to update profile."
+    } catch (err: unknown) {
+      let errorMessage =
+        err instanceof Error ? err.message : "Failed to update profile."
       if (errorMessage.toLowerCase().includes("invalid email")) {
         errorMessage = "Please enter a valid email address."
       } else if (errorMessage.toLowerCase().includes("already registered") || errorMessage.toLowerCase().includes("already exists")) {
@@ -144,7 +153,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
+            Make changes to your profile here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>

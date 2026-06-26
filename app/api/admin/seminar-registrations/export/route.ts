@@ -4,6 +4,51 @@ import { createAdminClient } from "@/lib/supabase-admin"
 
 export const dynamic = "force-dynamic"
 
+type SeminarExportRegistration = {
+    id: string
+    registration_type: string | null
+    nama_lengkap: string | null
+    email: string | null
+    no_telepon: string | null
+    asal_institusi: string | null
+    status_akademika: string | null
+    created_at: string | null
+    group_id: string | null
+    is_main_contact: boolean | null
+}
+
+type GroupedRegistration = {
+    main: SeminarExportRegistration | null
+    members: SeminarExportRegistration[]
+}
+
+type CompleteGroupedRegistration = {
+    main: SeminarExportRegistration
+    members: SeminarExportRegistration[]
+}
+
+const exportColumns = [
+    "id",
+    "registration_type",
+    "nama_lengkap",
+    "email",
+    "no_telepon",
+    "asal_institusi",
+    "status_akademika",
+    "created_at",
+    "group_id",
+    "is_main_contact",
+].join(",")
+
+const escapeCSV = (field: string | null | undefined) => {
+    if (!field) return ""
+    const stringField = String(field)
+    if (stringField.includes(",") || stringField.includes('"') || stringField.includes("\n")) {
+        return `"${stringField.replace(/"/g, '""')}"`
+    }
+    return stringField
+}
+
 export async function GET() {
     const { user, isAdmin } = await requireAdmin()
 
@@ -12,30 +57,43 @@ export async function GET() {
     }
 
     const adminSupabase = createAdminClient()
-    
-    // Fetch all registrations, order by group_id so members are next to their main contact
-    // then by created_at
-    const { data: registrations, error } = await adminSupabase
-        .from("seminar_registrations")
-        .select("*")
-        .order("group_id", { ascending: true })
-        .order("is_main_contact", { ascending: false })
-        .order("created_at", { ascending: true })
+    const registrations: SeminarExportRegistration[] = []
+    const batchSize = 1000
+    let offset = 0
 
-    if (error) {
-        return NextResponse.json({ error: "Failed to fetch registrations" }, { status: 500 })
+    while (true) {
+        const { data, error } = await adminSupabase
+            .from("seminar_registrations")
+            .select(exportColumns)
+            .order("group_id", { ascending: true })
+            .order("is_main_contact", { ascending: false })
+            .order("created_at", { ascending: true })
+            .range(offset, offset + batchSize - 1)
+            .returns<SeminarExportRegistration[]>()
+
+        if (error) {
+            return NextResponse.json({ error: "Failed to fetch registrations" }, { status: 500 })
+        }
+
+        registrations.push(...(data ?? []))
+
+        if (!data || data.length < batchSize) {
+            break
+        }
+
+        offset += batchSize
     }
 
     // Group registrations by group_id so each submission is exactly 1 row
-    const groupedRegistrations = new Map<string, any>()
-    const individualRegistrations: any[] = []
+    const groupedRegistrations = new Map<string, GroupedRegistration>()
+    const individualRegistrations: GroupedRegistration[] = []
 
     for (const reg of registrations) {
         if (reg.group_id) {
             if (!groupedRegistrations.has(reg.group_id)) {
                 groupedRegistrations.set(reg.group_id, { main: null, members: [] })
             }
-            const group = groupedRegistrations.get(reg.group_id)
+            const group = groupedRegistrations.get(reg.group_id)!
             if (reg.is_main_contact) {
                 group.main = reg
             } else {
@@ -47,8 +105,12 @@ export async function GET() {
     }
 
     // Combine them into a single array, filtering out any anomalous groups without a main contact
-    const allGrouped = [...individualRegistrations, ...Array.from(groupedRegistrations.values())]
-        .filter(g => g.main !== null)
+    const allGrouped: CompleteGroupedRegistration[] = [
+        ...individualRegistrations,
+        ...Array.from(groupedRegistrations.values()),
+    ].flatMap((group) =>
+        group.main ? [{ main: group.main, members: group.members }] : []
+    )
 
     // CSV Header
     const headers = [
@@ -70,19 +132,9 @@ export async function GET() {
 
         // Format members into a clean, numbered list separated by newlines
         // Example: "1. John Doe (Telkom University)\n2. Jane Doe (ITB)"
-        const membersString = members.map((m: any, i: number) => 
+        const membersString = members.map((m, i) =>
             `${i + 1}. ${m.nama_lengkap} (${m.asal_institusi || "-"})`
         ).join("\n")
-
-        // Escape fields that might contain commas or newlines
-        const escapeCSV = (field: string | null | undefined) => {
-            if (!field) return ""
-            const stringField = String(field)
-            if (stringField.includes(",") || stringField.includes('"') || stringField.includes("\n")) {
-                return `"${stringField.replace(/"/g, '""')}"`
-            }
-            return stringField
-        }
 
         return [
             escapeCSV(main.id),

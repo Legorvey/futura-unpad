@@ -15,7 +15,11 @@ import { createClient } from "@/utils/supabase/client";
 export type AuthUser = {
   id: string;
   email: string | null;
-  user_metadata?: Record<string, any>;
+  user_metadata?: {
+    display_name?: string;
+    username?: string;
+    [key: string]: unknown;
+  };
 };
 
 type AuthContextValue = {
@@ -29,7 +33,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const supabase = createClient();
 
-const toAuthUser = (user: { id: string; email?: string | null; user_metadata?: Record<string, any> } | null) =>
+const toAuthUser = (user: { id: string; email?: string | null; user_metadata?: AuthUser["user_metadata"] } | null) =>
   user ? { id: user.id, email: user.email ?? null, user_metadata: user.user_metadata } : null;
 
 export function AuthProvider({

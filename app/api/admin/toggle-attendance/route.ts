@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { invalidRequest, serverError } from "@/lib/http"
+import { invalidRequest, readJsonBody, serverError } from "@/lib/http"
 import { z } from "zod"
 
 const toggleSchema = z.object({
@@ -21,7 +21,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const parsed = toggleSchema.safeParse(await request.json().catch(() => null))
+    const body = await readJsonBody(request)
+
+    if (!body.ok) {
+        return body.response
+    }
+
+    const parsed = toggleSchema.safeParse(body.data)
 
     if (!parsed.success) {
         return invalidRequest()

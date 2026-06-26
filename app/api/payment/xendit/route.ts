@@ -4,7 +4,7 @@ import {
     normalizeXenditInvoiceStatus,
 } from "@/lib/payment";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { invalidRequest, rateLimited, serverError } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { orderSchema } from "@/lib/validation";
 import { createClient } from "@/utils/supabase/server";
@@ -126,7 +126,13 @@ export async function POST(req: Request) {
             return rateLimited(limit.retryAfter);
         }
 
-        const parsed = orderSchema.safeParse(await req.json().catch(() => null));
+        const body = await readJsonBody(req);
+
+        if (!body.ok) {
+            return body.response;
+        }
+
+        const parsed = orderSchema.safeParse(body.data);
 
         if (!parsed.success) {
             return invalidRequest();

@@ -62,7 +62,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
         ...(isAdmin ? [
             { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
             { href: "/admin/seminar", label: "Seminar", icon: Users },
-            { href: "/admin/lomba-kti", label: "LKTI", icon: Trophy },
+            { href: "/admin/lomba-essay", label: "Lomba Essay", icon: Trophy },
             { href: "/admin/mechatura", label: "Mechatura", icon: Cpu },
         ] : []),
         { href: "/profile", label: "Your Profile", icon: Users },

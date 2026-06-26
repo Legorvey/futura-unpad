@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { invalidRequest, rateLimited } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { signupSchema } from "@/lib/validation";
 import { createClient } from "@/utils/supabase/server";
@@ -35,7 +35,13 @@ export async function POST(request: Request) {
     return rateLimited(limit.retryAfter);
   }
 
-  const parsed = signupSchema.safeParse(await request.json().catch(() => null));
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = signupSchema.safeParse(body.data);
 
   if (!parsed.success) {
     return invalidRequest();

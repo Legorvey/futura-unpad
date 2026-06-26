@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { invalidRequest, rateLimited, serverError } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { seminarRegistrationSchema } from "@/lib/validation";
 import { createClient } from "@/utils/supabase/server";
@@ -32,9 +32,13 @@ export async function POST(request: Request) {
     return rateLimited(limit.retryAfter);
   }
 
-  const parsed = seminarRegistrationSchema.safeParse(
-    await request.json().catch(() => null)
-  );
+  const body = await readJsonBody(request, 24_576);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = seminarRegistrationSchema.safeParse(body.data);
 
   if (!parsed.success) {
     return invalidRequest();

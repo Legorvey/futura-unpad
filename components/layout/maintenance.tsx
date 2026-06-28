@@ -8,7 +8,7 @@ export default function MaintenancePlaceholder() {
                 <Image src="/under-construction.gif" alt="Under Construction" width={300} height={300} />
 
                 <h1 className="mt-10 tracking-tight text-3xl md:text-4xl font-medium mb-4 text-slate-900">
-                    Work in Progress
+                    Work in Bismillah
                 </h1>
 
                 <p className="text-slate-600 text-base md:text-lg max-w-md mb-10 leading-relaxed">

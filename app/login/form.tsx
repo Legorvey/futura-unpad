@@ -4,14 +4,15 @@ import Link from "next/link";
 import GoogleLoginButton from "./google-login";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+
 import { useAuth } from "@/components/auth-provider";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
+import { FormTextField } from "@/components/form/form-text-field";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -21,17 +22,14 @@ export default function LoginForm() {
     const [submitError, setSubmitError] = useState("");
     const [keepSignedIn, setKeepSignedIn] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<LoginFormValues>({
+    const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
             identifier: "",
             password: "",
         },
     });
+    const { handleSubmit } = form;
 
     const onSubmit = async (values: LoginFormValues) => {
         setIsSubmitting(true);
@@ -77,100 +75,86 @@ export default function LoginForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <FieldGroup className="gap-6">
-                <Field className="gap-2">
-                    <FieldLabel htmlFor="identifier">Email or Username</FieldLabel>
-                    <Input
-                        id="identifier"
-                        type="text"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="username"
+        <FormProvider {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <FieldGroup className="gap-6">
+                    <FormTextField<LoginFormValues>
+                        name="identifier"
+                        label="Email or Username"
                         placeholder="e.g. johndoe@gmail.com or johndoe"
-                        aria-invalid={!!errors.identifier}
-                        aria-describedby={errors.identifier ? "identifier-error" : undefined}
-                        {...register("identifier")}
+                        autoComplete="username"
                     />
-                    {errors.identifier ? (
-                        <FieldError id="identifier-error">{errors.identifier.message}</FieldError>
-                    ) : null}
-                </Field>
 
-                <Field className="gap-2">
-                    <div className="flex justify-between">
-                        <FieldLabel htmlFor="password">Password</FieldLabel>
-                        <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
-                    </div>
-                    
-                    <Input
-                        id="password"
-                        type="password"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="current-password"
-                        placeholder="Enter your password"
-                        aria-invalid={!!errors.password}
-                        aria-describedby={errors.password ? "password-error" : undefined}
-                        {...register("password")}
-                    />
-                    {errors.password ? (
-                        <FieldError id="password-error">{errors.password.message}</FieldError>
-                    ) : null}
+                    <Field className="gap-2">
+                        <FormTextField<LoginFormValues>
+                            name="password"
+                            label={
+                                <div className="flex justify-between w-full">
+                                    <span>Password</span>
+                                    <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
+                                </div>
+                            }
+                            type="password"
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            fieldClassName="gap-0 w-full"
+                        />
 
-                    <Field orientation="horizontal" className="items-center gap-2">
-                    <Checkbox
-                        id="keepSignedIn"
-                        checked={keepSignedIn}
-                        disabled={isSubmitting}
-                        onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
-                    />
-                    <FieldLabel
-                        htmlFor="keepSignedIn"
-                        className="cursor-pointer text-sm font-normal text-muted-foreground"
-                    >
-                            Keep me signed in
-                        </FieldLabel>
+                        <Field orientation="horizontal" className="items-center gap-2 mt-2">
+                            <Checkbox
+                                id="keepSignedIn"
+                                checked={keepSignedIn}
+                                disabled={isSubmitting}
+                                onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
+                            />
+                            <FieldLabel
+                                htmlFor="keepSignedIn"
+                                className="cursor-pointer text-sm font-normal text-muted-foreground"
+                            >
+                                Keep me signed in
+                            </FieldLabel>
+                        </Field>
                     </Field>
-                    
-                </Field>
 
-                {submitError && <FieldError>{submitError}</FieldError>}
+                    {submitError && <FieldError>{submitError}</FieldError>}
 
-                <Field className="gap-2">
-                    <Button
-                        type="submit"
-                        className="h-11 rounded-[8px]"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? "Signing in..." : "Log in"}
-                    </Button>
+                    <Field className="gap-2">
+                        <Button
+                            type="submit"
+                            className="h-11 rounded-[8px]"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? "Signing in..." : "Log in"}
+                        </Button>
 
-                    <div className="relative my-0.5">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-border" />
+                        <div className="relative my-0.5">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-border" />
+                            </div>
+                            <div className="relative flex justify-center text-sm lowercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                    Or continue with
+                                </span>
+                            </div>
                         </div>
-                        <div className="relative flex justify-center text-sm lowercase">
-                            <span className="bg-background px-2 text-muted-foreground">
-                                Or continue with
-                            </span>
-                        </div>
-                    </div>
 
-                    <GoogleLoginButton keepSignedIn={keepSignedIn} />
-                </Field>
-                <p className="text-center text-sm text-muted-foreground">
-                    Do not have an account?{" "}
-                    <Link
-                        href={
-                            searchParams.get("next")
-                                ? `/register?next=${searchParams.get("next")}`
-                                : "/register"
-                        }
-                        className="text-blue-600"
-                    >
-                        Register
-                    </Link>
-                </p>
-            </FieldGroup>
-        </form>
+                        <GoogleLoginButton keepSignedIn={keepSignedIn} />
+                    </Field>
+                    <p className="text-center text-sm text-muted-foreground">
+                        Do not have an account?{" "}
+                        <Link
+                            href={
+                                searchParams.get("next")
+                                    ? `/register?next=${searchParams.get("next")}`
+                                    : "/register"
+                            }
+                            className="text-blue-600"
+                        >
+                            Register
+                        </Link>
+                    </p>
+                </FieldGroup>
+            </form>
+        </FormProvider>
     );
 }

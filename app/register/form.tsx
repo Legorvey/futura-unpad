@@ -4,7 +4,7 @@ import Link from "next/link";
 import GoogleLoginButton from "../login/google-login";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,11 +16,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldError, FieldGroup } from "@/components/ui/field";
+
 import { useAuth } from "@/components/auth-provider";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { FormTextField } from "@/components/form/form-text-field";
 
 type LegalDialogType = "terms" | "privacy";
 
@@ -32,15 +33,7 @@ export default function RegisterForm() {
     const [successMessage, setSuccessMessage] = useState("");
     const [legalDialog, setLegalDialog] = useState<LegalDialogType | null>(null);
 
-    const {
-        setValue,
-        setError,
-        clearErrors,
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors },
-    } = useForm<RegisterFormValues>({
+    const form = useForm<RegisterFormValues>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
             username: "",
@@ -50,6 +43,15 @@ export default function RegisterForm() {
             termsAccepted: false,
         },
     });
+
+    const {
+        setValue,
+        setError,
+        clearErrors,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = form;
 
     const passwordValue = watch("password");
     const termsAccepted = watch("termsAccepted");
@@ -129,108 +131,74 @@ export default function RegisterForm() {
 
     return (
         <>
-            <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                <FieldGroup className="gap-6">
-                <Field className="gap-2">
-                    <FieldLabel htmlFor="username">Username</FieldLabel>
-                    <Input
-                        id="username"
-                        type="text"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="username"
+            <FormProvider {...form}>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                    <FieldGroup className="gap-6">
+                    <FormTextField<RegisterFormValues>
+                        name="username"
+                        label="Username"
                         placeholder="e.g. johndoe123"
-                        aria-invalid={!!errors.username}
-                        aria-describedby={errors.username ? "username-error" : undefined}
-                        {...register("username")}
+                        autoComplete="username"
                     />
-                    {errors.username ? (
-                        <FieldError id="username-error">{errors.username.message}</FieldError>
-                    ) : null}
-                </Field>
 
-                <Field className="gap-2">
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
-                    <Input
-                        id="email"
+                    <FormTextField<RegisterFormValues>
+                        name="email"
+                        label="Email"
                         type="email"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="email"
                         placeholder="e.g. johndoe@gmail.com"
-                        aria-invalid={!!errors.email}
-                        aria-describedby={errors.email ? "email-error" : undefined}
-                        {...register("email")}
-                    />
-                    {errors.email ? (
-                        <FieldError id="email-error">{errors.email.message}</FieldError>
-                    ) : null}
-                </Field>
-
-                <Field className="gap-2">
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input
-                        id="password"
-                        type="password"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="new-password"
-                        placeholder="Enter your password"
-                        aria-invalid={!!errors.password}
-                        aria-describedby={errors.password ? "password-error" : undefined}
-                        {...register("password")}
+                        autoComplete="email"
                     />
 
-                    {/* Password Strength Indicator */}
-                    <div className="mt-1 flex gap-1">
-                        {[1, 2, 3, 4].map((bar) => (
-                            <div
-                                key={bar}
-                                className={cn(
-                                    "h-1 flex-1 rounded-full transition-all duration-300",
-                                    passwordStrength >= bar
-                                        ? passwordStrength === 1
-                                            ? "bg-destructive"
-                                            : passwordStrength === 2
-                                                ? "bg-orange-500"
-                                                : passwordStrength === 3
-                                                    ? "bg-yellow-500"
-                                                    : "bg-emerald-500"
-                                        : "bg-muted-foreground/20"
-                                )}
-                            />
-                        ))}
-                    </div>
-                    {passwordStrength > 0 && (
-                        <p className={cn(
-                            "text-xs font-medium text-right transition-colors duration-300",
-                            passwordStrength === 1 ? "text-destructive" :
-                                passwordStrength === 2 ? "text-orange-500" :
-                                    passwordStrength === 3 ? "text-yellow-500" :
-                                        "text-emerald-500"
-                        )}>
-                            {passwordStrength === 1 ? "Very Weak" : passwordStrength === 2 ? "Weak" : passwordStrength === 3 ? "Strong" : "Very Strong"}
-                        </p>
-                    )}
+                    <Field className="gap-2">
+                        <FormTextField<RegisterFormValues>
+                            name="password"
+                            label="Password"
+                            type="password"
+                            placeholder="Enter your password"
+                            autoComplete="new-password"
+                            fieldClassName="gap-0" // prevent double gap if wrapping in field
+                        />
 
-                    {errors.password ? (
-                        <FieldError id="password-error">{errors.password.message}</FieldError>
-                    ) : null}
-                </Field>
+                        {/* Password Strength Indicator */}
+                        <div className="mt-1 flex gap-1">
+                            {[1, 2, 3, 4].map((bar) => (
+                                <div
+                                    key={bar}
+                                    className={cn(
+                                        "h-1 flex-1 rounded-full transition-all duration-300",
+                                        passwordStrength >= bar
+                                            ? passwordStrength === 1
+                                                ? "bg-destructive"
+                                                : passwordStrength === 2
+                                                    ? "bg-orange-500"
+                                                    : passwordStrength === 3
+                                                        ? "bg-yellow-500"
+                                                        : "bg-emerald-500"
+                                            : "bg-muted-foreground/20"
+                                    )}
+                                />
+                            ))}
+                        </div>
+                        {passwordStrength > 0 && (
+                            <p className={cn(
+                                "text-xs font-medium text-right transition-colors duration-300",
+                                passwordStrength === 1 ? "text-destructive" :
+                                    passwordStrength === 2 ? "text-orange-500" :
+                                        passwordStrength === 3 ? "text-yellow-500" :
+                                            "text-emerald-500"
+                            )}>
+                                {passwordStrength === 1 ? "Very Weak" : passwordStrength === 2 ? "Weak" : passwordStrength === 3 ? "Strong" : "Very Strong"}
+                            </p>
+                        )}
+                    </Field>
 
-                <Field className="gap-2">
-                    <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
-                    <Input
-                        id="confirmPassword"
+                    <FormTextField<RegisterFormValues>
+                        name="confirmPassword"
+                        label="Confirm Password"
                         type="password"
-                        className="h-11 rounded-[8px]"
-                        autoComplete="new-password"
                         placeholder="Confirm your password"
-                        aria-invalid={!!errors.confirmPassword}
-                        aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
-                        {...register("confirmPassword")}
+                        autoComplete="new-password"
                     />
-                    {errors.confirmPassword ? (
-                        <FieldError id="confirmPassword-error">{errors.confirmPassword.message}</FieldError>
-                    ) : null}
-                </Field>
 
                 <Field orientation="horizontal" className="items-start gap-3">
                     <Checkbox
@@ -316,7 +284,8 @@ export default function RegisterForm() {
                     </Link>
                 </p>
                 </FieldGroup>
-            </form>
+                </form>
+            </FormProvider>
 
             <LegalDialog
                 type={legalDialog ?? "terms"}

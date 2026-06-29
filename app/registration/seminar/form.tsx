@@ -2,14 +2,9 @@
 
 import { useRouter } from "next/navigation";
 
-import { useEffect, useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
-import JSZip from "jszip";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, PencilLine, Plus, Trash2, Download } from "lucide-react";
-import { QRCodeCanvas } from "qrcode.react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,127 +15,37 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldTitle,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/components/auth-provider";
+import StepProgress from "@/components/registration/step-progress";
 import {
   clientSeminarFormSchema,
   type ClientSeminarFormValues,
-} from "@/lib/validation";
-import { cn } from "@/lib/utils";
-
-type SeminarStep = "registration-option" | "details" | "verification" | "ticket";
-
-const steps: Array<{ id: SeminarStep; label: string }> = [
-  { id: "registration-option", label: "Registration Option" },
-  { id: "details", label: "Details" },
-  { id: "verification", label: "Verify" },
-  { id: "ticket", label: "Ticket" },
-];
-
-const statusOptions = [
-  {
-    id: "mahasiswa" as const,
-    title: "Mahasiswa",
-    description: "Peserta dari perguruan tinggi.",
-  },
-  {
-    id: "siswa" as const,
-    title: "Siswa",
-    description: "Peserta dari sekolah menengah.",
-  },
-  {
-    id: "dosen" as const,
-    title: "Dosen",
-    description: "Tenaga pendidik perguruan tinggi.",
-  },
-  {
-    id: "umum" as const,
-    title: "Umum",
-    description: "Peserta umum atau profesional.",
-  },
-];
-
-const registrationOption = [
-  {
-    id: "individu" as const,
-    title: "Individu",
-    description: "Daftar sebagai Individu",
-  },
-  {
-    id: "grup" as const,
-    title: "Grup",
-    description: "Daftar seminar hanya melalui satu orang dengan mendaftar banyak orang",
-  },
-]
-
-function drawWrappedText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number
-) {
-  const words = text.split(" ");
-  let line = "";
-  let currentY = y;
-
-  for (const word of words) {
-    const nextLine = line ? `${line} ${word}` : word;
-
-    if (ctx.measureText(nextLine).width > maxWidth && line) {
-      ctx.fillText(line, x, currentY);
-      line = word;
-      currentY += lineHeight;
-    } else {
-      line = nextLine;
-    }
-  }
-
-  ctx.fillText(line, x, currentY);
-}
+} from "@/lib/validation/seminar";
+import { useRegistrationStep } from "@/hooks/use-registration-step";
+import { seminarStatusOptions } from "../../../lib/seminar/seminar-options";
+import {
+  downloadSeminarTickets,
+  type SeminarTicketRegistration,
+} from "../../../lib/seminar/seminar-ticket-download";
+import SeminarDetailsStep from "../../../components/registration/seminar/seminar-details-step";
+import SeminarRegistrationOptionStep from "../../../components/registration/seminar/seminar-registration-option-step";
+import SeminarTicketStep from "../../../components/registration/seminar/seminar-ticket-step";
+import SeminarVerificationStep from "../../../components/registration/seminar/seminar-verification-step";
 
 export default function SeminarRegistrationForm() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-  const [step, setStep] = useState<SeminarStep>("registration-option");
+  const { step, setStep, steps } = useRegistrationStep("seminar");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [flashDoneButton, setFlashDoneButton] = useState(false);
   const [registrationId, setRegistrationId] = useState("");
-  const [allRegistrations, setAllRegistrations] = useState<{id: string, nama_lengkap: string, asal_institusi: string, is_main_contact: boolean}[]>([]);
-  const [showAnonDialog, setShowAnonDialog] = useState(false);
+  const [allRegistrations, setAllRegistrations] = useState<
+    SeminarTicketRegistration[]
+  >([]);
+  const [showAnonDialog, setShowAnonDialog] = useState(true);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
 
-  const activeStepIndex = steps.findIndex((item) => item.id === step);
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    trigger,
-    formState: { errors },
-  } = useForm<ClientSeminarFormValues>({
+  const form = useForm<ClientSeminarFormValues>({
     resolver: zodResolver(clientSeminarFormSchema),
     mode: "onChange",
     defaultValues: {
@@ -155,36 +60,28 @@ export default function SeminarRegistrationForm() {
       members: [],
     },
   });
+  const { handleSubmit, setValue, trigger } = form;
 
-  const { fields: memberFields, append: appendMember, remove: removeMember } = useFieldArray({
-    control,
-    name: "members",
+  const statusAkademika = useWatch({
+    control: form.control,
+    name: "status_akademika",
   });
-
-  const watchedValues = watch();
   const statusLabel = useMemo(
     () =>
-      statusOptions.find((o) => o.id === watchedValues.status_akademika)
+      seminarStatusOptions.find((o) => o.id === statusAkademika)
         ?.title ?? "-",
-    [watchedValues.status_akademika]
+    [statusAkademika]
   );
 
-  const [hasPrefilled, setHasPrefilled] = useState(false);
+  const hasPrefilled = useRef(false);
 
   // Pre-fill email from logged-in user
   useEffect(() => {
-    if (!user?.email || hasPrefilled) return;
-    
-    setValue("email", user.email, { shouldValidate: false });
-    setHasPrefilled(true);
-  }, [user?.email, setValue, hasPrefilled]);
+    if (!user?.email || hasPrefilled.current) return;
 
-  // Show anonymous dialog if not logged in
-  useEffect(() => {
-    if (!isLoading && !user) {
-      setShowAnonDialog(true);
-    }
-  }, [isLoading, user]);
+    setValue("email", user.email, { shouldValidate: false });
+    hasPrefilled.current = true;
+  }, [user?.email, setValue]);
 
   const goToDetails = async (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
@@ -241,175 +138,20 @@ export default function SeminarRegistrationForm() {
     setIsSubmitting(false);
   });
 
-  const downloadTicket = async () => {
-    if (allRegistrations.length > 1) {
-      const zip = new JSZip();
-
-      for (const reg of allRegistrations) {
-        const canvas = document.createElement("canvas");
-        canvas.width = 1200;
-        canvas.height = 720;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) continue;
-
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = "#111111";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
-
-        ctx.fillStyle = "#111111";
-        ctx.font = "700 54px Arial";
-        ctx.fillText(`Futura Seminar (${watchedValues.group_name || "Group"})`, 90, 140);
-
-        ctx.font = "400 24px Arial";
-        ctx.fillStyle = "#666666";
-        ctx.fillText("Futura Seminar", 90, 180);
-
-        ctx.fillStyle = "#111111";
-        ctx.font = "700 46px Arial";
-        drawWrappedText(ctx, reg.nama_lengkap, 90, 285, 680, 56);
-
-        // For members we don't have individual emails/telps in the UI state
-        // We just print the main contact's contact info or leave blank
-        ctx.font = "400 24px Arial";
-        ctx.fillStyle = "#666666";
-        ctx.fillText(watchedValues.email, 90, 350);
-        ctx.fillText(watchedValues.telp, 90, 388);
-
-        ctx.strokeStyle = "#d4d4d4";
-        ctx.setLineDash([12, 12]);
-        ctx.beginPath();
-        ctx.moveTo(820, 95);
-        ctx.lineTo(820, canvas.height - 95);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        const rows = [
-          ["Institution", reg.asal_institusi || "-"],
-          ["Status", statusLabel],
-          ["Registration ID", reg.id],
-          ["Total Participants", `${allRegistrations.length} People`]
-        ];
-
-        let y = 150;
-        for (const [label, value] of rows) {
-          ctx.fillStyle = "#777777";
-          ctx.font = "400 20px Arial";
-          ctx.fillText(label, 870, y);
-
-          ctx.fillStyle = "#111111";
-          ctx.font = "700 24px Arial";
-          drawWrappedText(ctx, value || "-", 870, y + 34, 245, 30);
-          y += 110;
-        }
-
-        ctx.fillStyle = "#666666";
-        ctx.font = "400 22px Arial";
-        ctx.fillText("Show this ticket during seminar check-in.", 90, 650);
-
-        const qrCanvas = document.getElementById(`qr-canvas-${reg.id}`) as HTMLCanvasElement;
-        if (qrCanvas) {
-          ctx.drawImage(qrCanvas, 90, 410, 200, 200);
-        }
-
-        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-        if (blob) {
-          const groupSegment = watchedValues.registration_type === "grup" && watchedValues.group_name ? watchedValues.group_name : "Individu";
-          const nameSegment = reg.nama_lengkap || "TICKET";
-          const instSegment = reg.asal_institusi || watchedValues.institusi || "Institusi";
-          const safeFileName = `${groupSegment}_${nameSegment}_${instSegment}_${reg.id}`.replace(/[^a-z0-9_]/gi, '_');
-          zip.file(`${safeFileName}.png`, blob);
-        }
-      }
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const link = document.createElement("a");
-      link.download = `Futura_Group_Tickets.zip`;
-      link.href = URL.createObjectURL(zipBlob);
-      link.click();
-    } else {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1200;
-      canvas.height = 720;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.strokeStyle = "#111111";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
-
-      ctx.fillStyle = "#111111";
-      ctx.font = "700 54px Arial";
-      ctx.fillText(`Futura Seminar`, 90, 140);
-
-      ctx.font = "400 24px Arial";
-      ctx.fillStyle = "#666666";
-      ctx.fillText("Futura Seminar", 90, 180);
-
-      ctx.fillStyle = "#111111";
-      ctx.font = "700 46px Arial";
-      drawWrappedText(ctx, watchedValues.nama, 90, 285, 680, 56);
-
-      ctx.font = "400 24px Arial";
-      ctx.fillStyle = "#666666";
-      ctx.fillText(watchedValues.email, 90, 350);
-      ctx.fillText(watchedValues.telp, 90, 388);
-
-      ctx.strokeStyle = "#d4d4d4";
-      ctx.setLineDash([12, 12]);
-      ctx.beginPath();
-      ctx.moveTo(820, 95);
-      ctx.lineTo(820, canvas.height - 95);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      const rows = [
-        ["Institution", watchedValues.institusi],
-        ["Status", statusLabel],
-        ["Registration ID", registrationId],
-      ];
-
-      let y = 150;
-      for (const [label, value] of rows) {
-        ctx.fillStyle = "#777777";
-        ctx.font = "400 20px Arial";
-        ctx.fillText(label, 870, y);
-
-        ctx.fillStyle = "#111111";
-        ctx.font = "700 24px Arial";
-        drawWrappedText(ctx, value || "-", 870, y + 34, 245, 30);
-        y += 110;
-      }
-
-      ctx.fillStyle = "#666666";
-      ctx.font = "400 22px Arial";
-      ctx.fillText("Show this ticket during seminar check-in.", 90, 650);
-
-      const qrCanvas = document.getElementById("qr-canvas") as HTMLCanvasElement;
-      if (qrCanvas) {
-        ctx.drawImage(qrCanvas, 90, 410, 200, 200);
-      }
-
-      const link = document.createElement("a");
-      const groupSegment = "Individu";
-      const nameSegment = watchedValues.nama || "TICKET";
-      const instSegment = watchedValues.institusi || "Institusi";
-      const safeFileName = `${groupSegment}_${nameSegment}_${instSegment}_${registrationId}`.replace(/[^a-z0-9_]/gi, '_');
-      link.download = `${safeFileName}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    }
-  };
+  const downloadTicket = () =>
+    downloadSeminarTickets({
+      registrations: allRegistrations,
+      registrationId,
+      statusLabel,
+      values: form.getValues(),
+    });
 
   return (
     <>
-      <AlertDialog open={showAnonDialog} onOpenChange={setShowAnonDialog}>
+      <AlertDialog
+        open={!isLoading && !user && showAnonDialog}
+        onOpenChange={setShowAnonDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Register as Anonymous?</AlertDialogTitle>
@@ -451,720 +193,49 @@ export default function SeminarRegistrationForm() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <section className="space-y-8">
-        <nav aria-label="Seminar registration progress" className="space-y-3">
-          <ol className="flex items-center justify-between gap-3 text-xs sm:text-sm">
-            {steps.map((item, index) => {
-              const isActive = index <= activeStepIndex;
+      <FormProvider {...form}>
+        <section className="space-y-8">
+          <StepProgress
+            steps={steps}
+            currentStep={step}
+            ariaLabel="Seminar registration progress"
+          />
 
-              return (
-                <li
-                  key={item.id}
-                  className={cn(
-                    "flex items-center gap-2",
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  )}
-                  aria-current={index === activeStepIndex ? "step" : undefined}
-                >
-                  <span
-                    className={cn(
-                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
-                      isActive
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border bg-background"
-                    )}
-                  >
-                    {index + 1}
-                  </span>
-                  <span className="hidden sm:inline font-medium">{item.label}</span>
-                </li>
-              );
-            })}
-          </ol>
+          {step === "registration-option" ? (
+            <SeminarRegistrationOptionStep onSubmit={goToDetails} />
+          ) : null}
 
-          <div
-            className="w-full h-2 rounded-full bg-muted"
-            role="progressbar"
-            aria-label="Seminar registration completion"
-            aria-valuemin={1}
-            aria-valuemax={steps.length}
-            aria-valuenow={activeStepIndex + 1}
-          >
-            <div
-              className="h-full rounded-full bg-foreground transition-all"
-              style={{
-                width: `${((activeStepIndex + 1) / steps.length) * 100}%`,
+          {step === "details" ? (
+            <SeminarDetailsStep
+              isSubmitting={isSubmitting}
+              onSubmit={goToVerification}
+              onBack={() => {
+                setSubmitError("");
+                setStep("registration-option");
               }}
             />
-          </div>
-        </nav>
-
-        {step === "registration-option" ? (
-          <form onSubmit={goToDetails}>
-            <FieldGroup>
-              <Field className="gap-3">
-                <FieldLabel>
-                  Pilih Opsi Pendaftaran <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Controller
-                  name="registration_type"
-                  control={control}
-                  render={({ field }) => (
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={(val) => {
-                        field.onChange(val);
-                        if (val === "individu") {
-                          setValue("members", []);
-                        } else if (val === "grup" && memberFields.length === 0) {
-                          appendMember({ nama: "" });
-                        }
-                      }}
-                    >
-                      {registrationOption.map((option) => (
-                        <FieldLabel
-                          key={option.id}
-                          htmlFor={`reg-option-${option.id}`}
-                          className="has-[>[data-slot=field]]:rounded-[8px]"
-                        >
-                          <Field orientation="horizontal" className="py-4">
-                            <FieldContent>
-                              <FieldTitle>{option.title}</FieldTitle>
-                              <FieldDescription>
-                                {option.description}
-                              </FieldDescription>
-                            </FieldContent>
-                            <RadioGroupItem
-                              id={`reg-option-${option.id}`}
-                              value={option.id}
-                            />
-                          </Field>
-                        </FieldLabel>
-                      ))}
-                    </RadioGroup>
-                  )}
-                />
-                {errors.registration_type ? (
-                  <FieldError>{errors.registration_type.message}</FieldError>
-                ) : null}
-              </Field>
-              <Button type="submit" className="h-11 rounded-[8px] mt-4">
-                Continue
-              </Button>
-            </FieldGroup>
-          </form>
-        ) : null}
-
-        {step === "details" ? (
-          <form onSubmit={goToVerification} noValidate>
-            <FieldGroup className="gap-6">
-              
-              {watchedValues.registration_type === "grup" && (
-                <Field className="gap-2">
-                  <FieldLabel htmlFor="group_name">
-                    Nama Grup/Tim <span aria-hidden="true">*</span>
-                  </FieldLabel>
-                  <Input
-                    id="group_name"
-                    className="h-11 rounded-[8px]"
-                    placeholder="Masukkan nama grup atau komunitas Anda"
-                    aria-describedby={errors.group_name ? "group-name-error" : undefined}
-                    aria-invalid={!!errors.group_name}
-                    {...register("group_name")}
-                  />
-                  {errors.group_name ? (
-                    <FieldError id="group-name-error">{errors.group_name.message}</FieldError>
-                  ) : null}
-                </Field>
-              )}
-
-              {/* Nama Lengkap */}
-              <Field className="gap-2">
-                <FieldLabel htmlFor="nama">
-                  Nama Lengkap {watchedValues.registration_type === "grup" && "(Kontak Utama)"} <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  id="nama"
-                  className="h-11 rounded-[8px]"
-                  placeholder="Nama sesuai identitas"
-                  autoComplete="name"
-                  aria-describedby={errors.nama ? "nama-error" : undefined}
-                  aria-invalid={!!errors.nama}
-                  {...register("nama")}
-                />
-                {errors.nama ? (
-                  <FieldError id="nama-error">{errors.nama.message}</FieldError>
-                ) : null}
-              </Field>
-
-              {/* Email */}
-              <Field className="gap-2">
-                <FieldLabel htmlFor="email">
-                  Email {watchedValues.registration_type === "grup" && "(Kontak Utama)"} <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  className="h-11 rounded-[8px]"
-                  placeholder="nama@email.com"
-                  autoComplete="email"
-                  aria-describedby={errors.email ? "email-error" : undefined}
-                  aria-invalid={!!errors.email}
-                  {...register("email")}
-                />
-                {errors.email ? (
-                  <FieldError id="email-error">{errors.email.message}</FieldError>
-                ) : null}
-              </Field>
-
-              {/* Nomor WhatsApp */}
-              <Field className="gap-2">
-                <FieldLabel htmlFor="telp">
-                  Nomor WhatsApp {watchedValues.registration_type === "grup" && "(Kontak Utama)"} <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  id="telp"
-                  className="h-11 rounded-[8px]"
-                  placeholder="+62 8XX-XXXX-XXXX"
-                  autoComplete="tel"
-                  aria-describedby={errors.telp ? "telp-error" : undefined}
-                  aria-invalid={!!errors.telp}
-                  {...register("telp")}
-                />
-                {errors.telp ? (
-                  <FieldError id="telp-error">{errors.telp.message}</FieldError>
-                ) : null}
-              </Field>
-
-              {/* Asal Institusi */}
-              <Field className="gap-2">
-                <FieldLabel htmlFor="institusi">
-                  Asal Institusi {watchedValues.registration_type === "grup" && "(Kontak Utama)"} <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  id="institusi"
-                  className="h-11 rounded-[8px]"
-                  placeholder="Nama sekolah, kampus, instansi, atau komunitas"
-                  autoComplete="organization"
-                  aria-describedby={
-                    errors.institusi ? "institusi-error" : undefined
-                  }
-                  aria-invalid={!!errors.institusi}
-                  {...register("institusi")}
-                />
-                {errors.institusi ? (
-                  <FieldError id="institusi-error">
-                    {errors.institusi.message}
-                  </FieldError>
-                ) : null}
-              </Field>
-
-              {/* Status Akademika */}
-              <Field className="gap-3">
-                <FieldLabel>
-                  Status Akademika <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Controller
-                  name="status_akademika"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger className="h-11 rounded-[8px]">
-                        <SelectValue placeholder="Pilih status akademika" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.status_akademika ? (
-                  <FieldError>{errors.status_akademika.message}</FieldError>
-                ) : null}
-              </Field>
-
-              {watchedValues.registration_type === "grup" && (
-                <div className="space-y-4 pt-4 border-t border-border mt-2">
-                  <div className="flex flex-col gap-4">
-                    <h3 className="text-sm font-medium">Anggota Grup</h3>
-
-                    <Field orientation="horizontal" className="items-center gap-2 rounded-[8px] border p-4 bg-muted/50">
-                      <Controller
-                        name="is_same_institution"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id="is_same_institution"
-                            checked={field.value}
-                            onCheckedChange={(val) => {
-                              field.onChange(val);
-                              // clear member institusi values if checking true
-                              if (val) {
-                                memberFields.forEach((_, i) => {
-                                  setValue(`members.${i}.institusi`, "", { shouldValidate: true });
-                                });
-                              }
-                            }}
-                          />
-                        )}
-                      />
-                      <FieldContent>
-                        <FieldLabel htmlFor="is_same_institution" className="font-normal cursor-pointer">
-                          Seluruh anggota berasal dari institusi yang sama dengan Kontak Utama
-                        </FieldLabel>
-                      </FieldContent>
-                    </Field>
-                  </div>
-
-                  {memberFields.map((field, index) => (
-                    <div key={field.id} className="flex items-start gap-3">
-                      <div className="flex-1 grid gap-4 sm:grid-cols-2">
-                        <Field className="gap-2">
-                          <FieldLabel htmlFor={`members.${index}.nama`}>
-                            Nama Anggota {index + 1} <span aria-hidden="true">*</span>
-                          </FieldLabel>
-                          <Input
-                            id={`members.${index}.nama`}
-                            className="h-11 rounded-[8px]"
-                            placeholder="Nama sesuai identitas"
-                            {...register(`members.${index}.nama` as const)}
-                            aria-invalid={!!errors.members?.[index]?.nama}
-                          />
-                          {errors.members?.[index]?.nama ? (
-                            <FieldError>{errors.members[index].nama.message}</FieldError>
-                          ) : null}
-                        </Field>
-
-                        <Field className="gap-2">
-                          <FieldLabel htmlFor={`members.${index}.institusi`}>
-                            Asal Institusi {watchedValues.is_same_institution ? "(Sama dengan Kontak Utama)" : <span aria-hidden="true">*</span>}
-                          </FieldLabel>
-                          <Input
-                            id={`members.${index}.institusi`}
-                            className="h-11 rounded-[8px]"
-                            placeholder="Nama institusi"
-                            {...register(`members.${index}.institusi` as const)}
-                            disabled={watchedValues.is_same_institution}
-                            value={watchedValues.is_same_institution ? watchedValues.institusi : watchedValues.members?.[index]?.institusi || ""}
-                            aria-invalid={!!errors.members?.[index]?.institusi}
-                          />
-                          {errors.members?.[index]?.institusi ? (
-                            <FieldError>{errors.members[index].institusi.message}</FieldError>
-                          ) : null}
-                        </Field>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="mt-[28px] h-11 w-11 shrink-0 rounded-[8px] text-destructive hover:bg-destructive hover:text-white"
-                        onClick={() => removeMember(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 rounded-[8px] border-dashed"
-                    onClick={() => appendMember({ nama: "", institusi: "" })}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Anggota
-                  </Button>
-                </div>
-              )}
-
-              <Field className="grid gap-3 sm:grid-cols-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 rounded-[8px]"
-                  onClick={() => {
-                    if (isEditing) {
-                      setFlashDoneButton(true);
-                      setTimeout(() => setFlashDoneButton(false), 500);
-                    } else {
-                      setSubmitError("");
-                      setStep("registration-option");
-                    }
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Back
-                </Button>
-                <Button type="submit" className="h-11 rounded-[8px]">
-                  Continue to identity check
-                </Button>
-              </Field>
-            </FieldGroup>
-          </form>
-        ) : null}
-
-        {step === "verification" ? (
-          <FieldGroup className="gap-6">
-            <div className="rounded-[8px] border border-border bg-card p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    Verify certificate identity
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Your name and institution will be used for seminar records and
-                    certificate preparation. Check spelling and capitalization
-                    carefully.
-                  </p>
-                </div>
-                {isEditing ? null : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-fit rounded-[8px]"
-                    onClick={() => {
-                      setIsEditing(true);
-                      setSubmitError("");
-                    }}
-                  >
-                    <PencilLine className="h-4 w-4" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-
-              {isEditing ? (
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <Field className="gap-2">
-                    <FieldLabel htmlFor="verify-nama">Nama Lengkap</FieldLabel>
-                    <Input
-                      id="verify-nama"
-                      className="h-9 rounded-[8px]"
-                      aria-invalid={!!errors.nama}
-                      aria-describedby={errors.nama ? "verify-nama-error" : undefined}
-                      {...register("nama")}
-                    />
-                    {errors.nama ? <FieldError id="verify-nama-error">{errors.nama.message}</FieldError> : null}
-                  </Field>
-                  <Field className="gap-2">
-                    <FieldLabel htmlFor="verify-email">Email</FieldLabel>
-                    <Input
-                      id="verify-email"
-                      type="email"
-                      className="h-9 rounded-[8px]"
-                      aria-invalid={!!errors.email}
-                      aria-describedby={errors.email ? "verify-email-error" : undefined}
-                      {...register("email")}
-                    />
-                    {errors.email ? <FieldError id="verify-email-error">{errors.email.message}</FieldError> : null}
-                  </Field>
-                  <Field className="gap-2">
-                    <FieldLabel htmlFor="verify-telp">Nomor WhatsApp</FieldLabel>
-                    <Input
-                      id="verify-telp"
-                      className="h-9 rounded-[8px]"
-                      aria-invalid={!!errors.telp}
-                      aria-describedby={errors.telp ? "verify-telp-error" : undefined}
-                      {...register("telp")}
-                    />
-                    {errors.telp ? <FieldError id="verify-telp-error">{errors.telp.message}</FieldError> : null}
-                  </Field>
-                  <Field className="gap-2">
-                    <FieldLabel htmlFor="verify-institusi">Asal Institusi</FieldLabel>
-                    <Input
-                      id="verify-institusi"
-                      className="h-9 rounded-[8px]"
-                      aria-invalid={!!errors.institusi}
-                      aria-describedby={errors.institusi ? "verify-institusi-error" : undefined}
-                      {...register("institusi")}
-                    />
-                    {errors.institusi ? <FieldError id="verify-institusi-error">{errors.institusi.message}</FieldError> : null}
-                  </Field>
-                  <Field className="gap-2">
-                    <FieldLabel>Status Akademika</FieldLabel>
-                    <Controller
-                      name="status_akademika"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger className="h-9 rounded-[8px]">
-                            <SelectValue placeholder="Pilih status akademika" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                {option.title}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors.status_akademika ? (
-                      <FieldError>{errors.status_akademika.message}</FieldError>
-                    ) : null}
-                  </Field>
-                  {watchedValues.registration_type === "grup" && memberFields.length > 0 && (
-                    <div className="sm:col-span-2 space-y-4 pt-4 border-t border-border mt-2">
-                      <h3 className="text-sm font-medium">Anggota Grup</h3>
-                      {memberFields.map((field, index) => (
-                        <div key={field.id} className="grid gap-4 sm:grid-cols-2">
-                          <Field className="gap-2">
-                            <FieldLabel htmlFor={`verify-members.${index}.nama`}>Nama Anggota {index + 1}</FieldLabel>
-                            <Input
-                              id={`verify-members.${index}.nama`}
-                              className="h-9 rounded-[8px]"
-                              {...register(`members.${index}.nama` as const)}
-                              aria-invalid={!!errors.members?.[index]?.nama}
-                            />
-                            {errors.members?.[index]?.nama ? <FieldError>{errors.members[index].nama.message}</FieldError> : null}
-                          </Field>
-                          <Field className="gap-2">
-                            <FieldLabel htmlFor={`verify-members.${index}.institusi`}>
-                              Asal Institusi {!watchedValues.is_same_institution ? "" : "(Sama)"}
-                            </FieldLabel>
-                            <Input
-                              id={`verify-members.${index}.institusi`}
-                              className="h-9 rounded-[8px]"
-                              {...register(`members.${index}.institusi` as const)}
-                              disabled={watchedValues.is_same_institution}
-                              value={watchedValues.is_same_institution ? watchedValues.institusi : watchedValues.members?.[index]?.institusi || ""}
-                              aria-invalid={!!errors.members?.[index]?.institusi}
-                            />
-                            {errors.members?.[index]?.institusi ? <FieldError>{errors.members[index].institusi.message}</FieldError> : null}
-                          </Field>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="sm:col-span-2 pt-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className={cn(
-                        "rounded-[8px] transition-colors duration-300",
-                        flashDoneButton &&
-                        "bg-destructive/80 text-white hover:bg-destructive/90"
-                      )}
-                      onClick={async () => {
-                        const isValid = await trigger(["nama", "email", "telp", "institusi", "status_akademika", "members"]);
-                        if (isValid) setIsEditing(false);
-                      }}
-                    >
-                      Done Editing
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-                    <div>
-                      <dt className="text-muted-foreground">Nama Lengkap</dt>
-                      <dd className="mt-1 font-medium">{watchedValues.nama}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Email</dt>
-                      <dd className="mt-1 break-all font-medium">
-                        {watchedValues.email}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Nomor WhatsApp</dt>
-                      <dd className="mt-1 font-medium">{watchedValues.telp}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Asal Institusi</dt>
-                      <dd className="mt-1 font-medium">{watchedValues.institusi}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Status Akademika</dt>
-                      <dd className="mt-1 font-medium">{statusLabel}</dd>
-                    </div>
-                  </dl>
-
-                  {watchedValues.registration_type === "grup" && watchedValues.members && watchedValues.members.length > 0 && (
-                    <div className="border-t border-border pt-4">
-                      <h3 className="text-sm font-medium mb-3">Anggota Grup</h3>
-                      <ul className="space-y-2 text-sm">
-                        {watchedValues.members.map((m, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-muted-foreground">{idx + 1}.</span>
-                            <span className="font-medium">
-                              {m.nama || "-"}
-                              {!watchedValues.is_same_institution && m.institusi ? (
-                                <span className="text-muted-foreground font-normal ml-1">({m.institusi})</span>
-                              ) : null}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <Field
-              orientation="horizontal"
-              className="items-start rounded-[8px] border p-4"
-            >
-              <Controller
-                name="identity_confirmed"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    id="identity-confirmed"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    aria-invalid={!!errors.identity_confirmed}
-                    aria-describedby={
-                      errors.identity_confirmed
-                        ? "identity-confirmed-error"
-                        : undefined
-                    }
-                  />
-                )}
-              />
-              <FieldContent>
-                <FieldLabel htmlFor="identity-confirmed">
-                  I confirm these details are correct for certificate records.
-                </FieldLabel>
-                <FieldDescription>
-                  If the name or institution is misspelled here, the certificate
-                  may use the same spelling.
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-
-            {errors.identity_confirmed ? (
-              <FieldError id="identity-confirmed-error">
-                {errors.identity_confirmed.message}
-              </FieldError>
-            ) : null}
-            {submitError ? <FieldError>{submitError}</FieldError> : null}
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 rounded-[8px]"
-                onClick={() => {
-                  if (isEditing) {
-                    setFlashDoneButton(true);
-                    setTimeout(() => setFlashDoneButton(false), 500);
-                  } else {
-                    setSubmitError("");
-                    setStep("details");
-                  }
-                }}
-                disabled={isSubmitting}
-              >
-                Back
-              </Button>
-              <Button
-                type="button"
-                className="h-11 rounded-[8px]"
-                onClick={submitRegistration}
-                disabled={isSubmitting || isEditing}
-              >
-                {isSubmitting ? "Saving..." : "Confirm and get ticket"}
-              </Button>
-            </div>
-          </FieldGroup>
-        ) : null}
-
-        {step === "ticket" ? (
-          <FieldGroup className="gap-6">
-            <section className="rounded-[8px] border border-border bg-card p-6">
-              <div className="flex items-start gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted">
-                  <CheckCircle2 className="h-5 w-5 text-foreground" />
-                </span>
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    Your seminar ticket is ready
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Your Futura seminar registration is saved. Download your
-                    ticket or keep the registration ID for check-in.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-[8px] border border-dashed border-border p-5">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      Futura Seminar
-                    </p>
-                    <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-                      {watchedValues.nama}
-                    </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {watchedValues.institusi} / {statusLabel}
-                    </p>
-                  </div>
-                  {watchedValues.registration_type !== "grup" && (
-                    <div className="rounded-[8px] bg-white border border-border p-4 flex flex-col items-center shrink-0">
-                      <QRCodeCanvas id="qr-canvas" value={registrationId} size={160} />
-                      <p className="mt-3 text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">Ticket QR</p>
-                    </div>
-                  )}
-                </div>
-                <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm sm:grid-cols-2">
-                  <div>
-                    <dt className="text-muted-foreground">Email</dt>
-                    <dd className="mt-1 break-all font-medium">
-                      {watchedValues.email}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">WhatsApp</dt>
-                    <dd className="mt-1 font-medium">{watchedValues.telp}</dd>
-                  </div>
-                  {watchedValues.registration_type === "grup" ? (
-                    <div>
-                      <dt className="text-muted-foreground">Total Participants</dt>
-                      <dd className="mt-1 font-medium">{(watchedValues.members?.length || 0) + 1} People</dd>
-                    </div>
-                  ) : (
-                    <div>
-                      <dt className="text-muted-foreground">Fee</dt>
-                      <dd className="mt-1 font-medium">—</dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-muted-foreground">Status</dt>
-                    <dd className="mt-1 font-medium">Registered</dd>
-                  </div>
-                </dl>
-              </div>
-            </section>
-
-            <Button
-              type="button"
-              className="h-11 rounded-[8px]"
-              onClick={downloadTicket}
-            >
-              <Download className="h-4 w-4" />
-              {allRegistrations.length > 1 ? "Download group tickets (ZIP)" : "Download ticket"}
-            </Button>
-            
-            {/* Hidden canvases for generating all member QR codes in zip */}
-            <div style={{ display: 'none' }}>
-               {allRegistrations.length > 1 && allRegistrations.map(reg => (
-                 <QRCodeCanvas key={reg.id} id={`qr-canvas-${reg.id}`} value={reg.id} size={200} />
-               ))}
-            </div>
-          </FieldGroup>
-        ) : null}
-      </section>
+          ) : null}
+          {step === "verification" ? (
+            <SeminarVerificationStep
+              isSubmitting={isSubmitting}
+              statusLabel={statusLabel}
+              submitError={submitError}
+              submitRegistration={submitRegistration}
+              onClearSubmitError={() => setSubmitError("")}
+              onBack={() => setStep("details")}
+            />
+          ) : null}
+          {step === "ticket" ? (
+            <SeminarTicketStep
+              registrations={allRegistrations}
+              registrationId={registrationId}
+              statusLabel={statusLabel}
+              values={form.getValues()}
+              onDownload={downloadTicket}
+            />
+          ) : null}
+        </section>
+      </FormProvider>
     </>
   );
 }

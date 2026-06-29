@@ -1,6 +1,6 @@
-import LKTIForm from "./form";
+import EssayRegistrationForm from "./form";
 
-export default function LKTIPage() {
+export default function EssayRegistrationPage() {
     return (
         <main className="mx-auto w-full max-w-3xl items-start space-y-12 px-6 py-16 sm:px-8">
             <section>
@@ -16,7 +16,7 @@ export default function LKTIPage() {
             </section>
 
             <section>
-                <LKTIForm />
+                <EssayRegistrationForm />
             </section>
         </main>
     )

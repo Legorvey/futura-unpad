@@ -46,7 +46,7 @@ const programs: Program[] = [
   },
   {
     image: "/paper.gif",
-    title: "Lomba Karya Tulis Ilmiah",
+    title: "Lomba Essay",
     label: "Present",
     description:
       "Turn your academic research into a clear story, present it, and get useful feedback from peers.",

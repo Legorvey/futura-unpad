@@ -35,7 +35,7 @@ const programs: RegistrationProgram[] = [
         guidebook: true,
     },
     {
-        title: "Lomba Karya Tulis Ilmiah",
+        title: "Lomba Essay",
         mode: "Present",
         description:
             "Turn research into a clearer story and get useful feedback from peers.",

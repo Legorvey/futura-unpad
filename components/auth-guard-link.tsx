@@ -56,7 +56,7 @@ export function AuthGuardLink({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Sign in Required</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Please log in or create a new account to continue to the Lomba Karya Tulis registration form.
+                            Please log in or create a new account to continue to the Lomba Essay registration form.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-4">

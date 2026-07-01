@@ -156,7 +156,6 @@ export default function RegisterForm() {
                             type="password"
                             placeholder="Enter your password"
                             autoComplete="new-password"
-                            fieldClassName="gap-0" // prevent double gap if wrapping in field
                         />
 
                         {/* Password Strength Indicator */}

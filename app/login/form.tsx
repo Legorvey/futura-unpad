@@ -89,7 +89,7 @@ export default function LoginForm() {
                         <FormTextField<LoginFormValues>
                             name="password"
                             label={
-                                <div className="flex justify-between w-full">
+                                <div className="flex justify-between w-full mb-1.5">
                                     <span>Password</span>
                                     <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
                                 </div>

@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/confirm-dialog";
 import {
+    useDeleteSeminarRegistrationMutation,
+    useToggleSeminarAttendanceMutation,
+} from "@/hooks/mutations/use-admin-mutations";
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup,
@@ -53,18 +57,6 @@ const copyActions = [
     },
 ];
 
-const deleteParticipant = async (id: string) => {
-    const res = await fetch(`/api/admin/seminar-registrations/${id}`, {
-        method: "DELETE",
-    });
-
-    if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        console.error(data?.error ?? "Delete failed");
-        throw new Error("Failed to delete participant.");
-    }
-};
-
 import { Users } from "lucide-react";
 import {
     Dialog,
@@ -77,30 +69,18 @@ import {
 
 export function AttendanceCheckbox({ participant }: { participant: Participants }) {
     const router = useRouter();
-    const [isPending, setIsPending] = useState(false);
+    const toggleAttendance = useToggleSeminarAttendanceMutation();
 
     const handleToggle = async (id: string, checked: boolean, bulk: boolean = false) => {
-        setIsPending(true);
         try {
-            const res = await fetch("/api/admin/toggle-attendance", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    registration_id: id,
-                    attended: checked,
-                    bulk
-                })
+            await toggleAttendance.mutateAsync({
+                registration_id: id,
+                attended: checked,
+                bulk
             });
-
-            if (res.ok) {
-                router.refresh();
-            } else {
-                console.error("Failed to toggle attendance");
-            }
+            router.refresh();
         } catch (e) {
             console.error("Error toggling attendance", e);
-        } finally {
-            setIsPending(false);
         }
     };
 
@@ -126,9 +106,9 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
             <Checkbox
                 checked={mainCheckboxState}
                 onCheckedChange={handleMainToggle}
-                disabled={isPending}
+                disabled={toggleAttendance.isPending}
                 aria-label="Attendance status"
-                className={isPending ? "opacity-50" : ""}
+                className={toggleAttendance.isPending ? "opacity-50" : ""}
             />
             {isGroup && (
                 <Dialog>
@@ -150,7 +130,7 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
                                 <Checkbox
                                     id={`main-${participant.id}`}
                                     checked={!!participant.attended}
-                                    disabled={isPending}
+                                    disabled={toggleAttendance.isPending}
                                     onCheckedChange={(c) => handleToggle(participant.id, !!c, false)}
                                 />
                                 <label
@@ -166,7 +146,7 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
                                     <Checkbox
                                         id={`member-${member.id}`}
                                         checked={!!member.attended}
-                                        disabled={isPending}
+                                        disabled={toggleAttendance.isPending}
                                         onCheckedChange={(c) => handleToggle(member.id, !!c, false)}
                                     />
                                     <label
@@ -187,10 +167,11 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
 
 export function ParticipantActions({ participant, hideViewDetails }: { participant: Participants, hideViewDetails?: boolean }) {
     const router = useRouter();
+    const deleteParticipant = useDeleteSeminarRegistrationMutation();
     const [deleteOpen, setDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
-        await deleteParticipant(participant.id);
+        await deleteParticipant.mutateAsync(participant.id);
         router.refresh();
     };
 

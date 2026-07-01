@@ -6,16 +6,13 @@ import {
     getMechaturaRegistrationStepHref,
     isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
+import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { createClient } from "@/utils/supabase/server";
 import ExpiredRegistrationDialog from "./expired-registration-dialog";
 import MechaturaRegistrationForm from "./form";
 
 export default async function MechaturaPage() {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getCachedAuth();
 
     if (!user) {
         redirect("/login?next=/registration/mechatura");

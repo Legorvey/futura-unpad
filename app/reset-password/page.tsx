@@ -2,7 +2,7 @@ import Link from "next/link"
 import { cookies } from "next/headers"
 import { Button } from "@/components/ui/button"
 import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery"
-import { createClient } from "@/utils/supabase/server"
+import { getCachedAuth } from "@/lib/auth"
 import ResetPasswordForm from "./reset-password-form"
 
 function ExpiredResetLink() {
@@ -31,10 +31,7 @@ export default async function ResetPasswordPage() {
         return <ExpiredResetLink />
     }
 
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const { user } = await getCachedAuth()
 
     if (!user) {
         return <ExpiredResetLink />

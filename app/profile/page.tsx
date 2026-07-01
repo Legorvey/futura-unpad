@@ -12,8 +12,8 @@ import {
   paymentStatusLabels,
   statusLabels,
 } from "@/lib/payment"
+import { getCachedAuth } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { createClient } from "@/utils/supabase/server"
 import { QRCodeSVG } from "qrcode.react"
 import { TicketDownloadButton, type DownloadRegistrationData } from "./ticket-download-button"
 
@@ -65,10 +65,7 @@ const isProfileGroupRegistration = (registration: ProfileRegistration | null | u
   registration?.registration_type === "group" || registration?.registration_type === "grup"
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user } = await getCachedAuth()
 
   if (!user) {
     redirect("/login?next=/profile")

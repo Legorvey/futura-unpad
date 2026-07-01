@@ -10,7 +10,9 @@ import { FormProvider, useForm } from "react-hook-form";
 import MechaturaIdentityStep from "@/components/registration/mechatura/mechatura-identity-step";
 import StepProgress from "@/components/registration/step-progress";
 import { clearFormDraft, useFormDraft } from "@/hooks/use-form-draft";
+import { useCreateMechaturaRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
 import { useRegistrationStep } from "@/hooks/use-registration-step";
+import { ApiError } from "@/lib/query/fetch-json";
 import {
   createMechaturaSchema,
   MECHATURA_ATTACHMENT_FIELDS,
@@ -47,7 +49,7 @@ const mechaturaDraftOmittedFields = [
 export default function MechaturaRegistrationForm() {
   const router = useRouter();
   const { step, setStep, steps } = useRegistrationStep("mechatura");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createRegistration = useCreateMechaturaRegistrationMutation();
   const [submitError, setSubmitError] = useState("");
   const form = useForm<MechaturaFormValues>({
     resolver: zodResolver(mechaturaSchema),
@@ -160,32 +162,38 @@ export default function MechaturaRegistrationForm() {
       formData.append("robot_document", robotDocument);
     }
 
-    setIsSubmitting(true);
     setSubmitError("");
 
-    const response = await fetch("/api/mechatura-registrations", {
-      method: "POST",
-      body: formData,
+    const data = await createRegistration.mutateAsync(formData).catch((error) => {
+      if (error instanceof ApiError) {
+        const body = error.body;
+
+        if (
+          body &&
+          typeof body === "object" &&
+          "payment_url" in body &&
+          typeof body.payment_url === "string"
+        ) {
+          return { payment_url: body.payment_url };
+        }
+
+        if (error.status === 401) {
+          router.push("/login?next=/registration/mechatura");
+          return null;
+        }
+      }
+
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please check your data and try again."
+      );
+      return null;
     });
-    const data = await response.json().catch(() => null);
 
     if (data?.payment_url) {
       clearFormDraft(MECHATURA_DRAFT_STORAGE_KEY);
       router.push(data.payment_url);
-      return;
-    }
-
-    if (response.status === 401) {
-      router.push("/login?next=/registration/mechatura");
-      return;
-    }
-
-    if (!response.ok || !data?.payment_url) {
-      setSubmitError(
-        data?.error ?? "Registration failed. Please check your data and try again."
-      );
-      setIsSubmitting(false);
-      return;
     }
   };
 
@@ -221,7 +229,7 @@ export default function MechaturaRegistrationForm() {
         {step === "verifikasi" ? (
           <MechaturaVerificationStep
             documentMaxSizeInBytes={MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES}
-            isSubmitting={isSubmitting}
+            isSubmitting={createRegistration.isPending}
             onBack={() => setStep("lampiran")}
             onSubmit={submitVerification}
             submitError={submitError}

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { CalendarDays, Mail, UserRound, AtSign } from "lucide-react"
 
-import { createClient } from "@/utils/supabase/server"
+import { getCachedAuth } from "@/lib/auth"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 
 const getInitials = (displayName: string | null | undefined, email: string | null | undefined) => {
@@ -31,10 +31,7 @@ const formatDate = (value?: string | null) => {
 }
 
 export default async function AccountPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user } = await getCachedAuth()
 
   if (!user) {
     redirect("/login?next=/profile/account")

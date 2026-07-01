@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import LoginForm from "./form"
-import { createClient } from "@/utils/supabase/server"
+import { getCachedAuth } from "@/lib/auth"
 
 type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -28,10 +28,7 @@ export default async function LoginPage({
     searchParams: LoginSearchParams
 }){
     const params = await searchParams
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const { user } = await getCachedAuth()
 
     if (user) {
         redirect(getSafeRedirectPath(params.next))

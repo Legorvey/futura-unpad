@@ -27,6 +27,7 @@ import {
     type PaymentStatus,
 } from "@/lib/payment";
 import { formatMechaturaDateTime } from "@/lib/mechatura/format";
+import { useDeleteMechaturaRegistrationMutation } from "@/hooks/mutations/use-admin-mutations";
 import { Eye, Mail, MoreHorizontal, Phone, Tags, Trash, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -67,18 +68,6 @@ const copyText = async (value: string | null | undefined) => {
     await navigator.clipboard.writeText(value);
 };
 
-const deleteTeam = async (id: string) => {
-    const res = await fetch(`/api/admin/mechatura-registrations/${id}`, {
-        method: "DELETE",
-    });
-
-    if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        console.error(data?.error ?? "Delete failed");
-        throw new Error("Failed to delete team.");
-    }
-};
-
 type MechaturaTableProps = {
     registrations: AdminMechaturaRegistration[];
     leaderByRegistrationId: Map<string, AdminMechaturaLeader>;
@@ -92,10 +81,11 @@ function TeamActions({
     leader?: AdminMechaturaLeader;
 }) {
     const router = useRouter();
+    const deleteTeam = useDeleteMechaturaRegistrationMutation();
     const [deleteOpen, setDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
-        await deleteTeam(registration.id);
+        await deleteTeam.mutateAsync(registration.id);
         router.refresh();
     };
 

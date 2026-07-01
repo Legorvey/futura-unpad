@@ -13,8 +13,8 @@ import {
   findMechaturaPaymentOrder,
   syncMechaturaPaymentStatus,
 } from "@/lib/mechatura/payment";
+import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { createClient } from "@/utils/supabase/server";
 import ReceiptImage, { type ReceiptData } from "./receipt-image";
 
 type SuccessSearchParams = Promise<
@@ -91,10 +91,7 @@ async function verifyPayment(orderId: string) {
   }
 
   if (order.userId) {
-    const authSupabase = await createClient();
-    const {
-      data: { user },
-    } = await authSupabase.auth.getUser();
+    const { user } = await getCachedAuth();
 
     if (order.userId !== user?.id) {
       return { status: "invalid" as const };

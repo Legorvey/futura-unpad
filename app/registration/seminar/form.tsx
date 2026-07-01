@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/components/auth-provider";
+import { useCreateSeminarRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
 import StepProgress from "@/components/registration/step-progress";
 import { useFormDraft } from "@/hooks/use-form-draft";
 import {
@@ -39,7 +40,7 @@ export default function SeminarRegistrationForm() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const { step, setStep, steps } = useRegistrationStep("seminar");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createRegistration = useCreateSeminarRegistrationMutation();
   const [submitError, setSubmitError] = useState("");
   const [registrationId, setRegistrationId] = useState("");
   const [allRegistrations, setAllRegistrations] = useState<
@@ -111,33 +112,27 @@ export default function SeminarRegistrationForm() {
   };
 
   const submitRegistration = handleSubmit(async (data) => {
-    setIsSubmitting(true);
     setSubmitError("");
 
-    const res = await fetch("/api/seminar-registrations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const responseData = await createRegistration.mutateAsync({
         registration_type: data.registration_type === "grup" ? "group" : "individual",
         nama_lengkap: data.nama,
         email: data.email,
         no_telepon: data.telp,
         asal_institusi: data.institusi,
         status_akademika: data.status_akademika,
-        identity_confirmed: data.identity_confirmed,
+        identity_confirmed: true,
         group_name: data.registration_type === "grup" ? data.group_name : null,
         members: data.members?.map((m: { nama: string; institusi?: string }) => ({
           nama_lengkap: m.nama,
           asal_institusi: data.is_same_institution ? data.institusi : m.institusi
         })),
-      }),
+    }).catch((error) => {
+      setSubmitError(error instanceof Error ? error.message : "Registration failed. Please try again.");
+      return null;
     });
 
-    const responseData = await res.json().catch(() => null);
-
-    if (!res.ok || !responseData?.registration_id) {
-      setSubmitError(responseData?.error ?? "Registration failed. Please try again.");
-      setIsSubmitting(false);
+    if (!responseData?.registration_id) {
       return;
     }
 
@@ -145,7 +140,6 @@ export default function SeminarRegistrationForm() {
     setAllRegistrations(responseData.registrations || []);
     setStep("ticket");
     setShowProfileDialog(true);
-    setIsSubmitting(false);
   });
 
   const downloadTicket = () =>
@@ -217,7 +211,7 @@ export default function SeminarRegistrationForm() {
 
           {step === "details" ? (
             <SeminarDetailsStep
-              isSubmitting={isSubmitting}
+              isSubmitting={createRegistration.isPending}
               onSubmit={goToVerification}
               onBack={() => {
                 setSubmitError("");
@@ -227,7 +221,7 @@ export default function SeminarRegistrationForm() {
           ) : null}
           {step === "verification" ? (
             <SeminarVerificationStep
-              isSubmitting={isSubmitting}
+              isSubmitting={createRegistration.isPending}
               statusLabel={statusLabel}
               submitError={submitError}
               submitRegistration={submitRegistration}

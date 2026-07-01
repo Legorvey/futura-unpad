@@ -9,56 +9,53 @@ import {
 import { createAdminClient } from "@/lib/supabase-admin"
 import { requireAdminOrRedirect } from "@/lib/auth"
 
+type SeminarDashboardRow = {
+    status_akademika: string | null
+}
+
+type MechaturaDashboardRow = {
+    payment_status: string | null
+    competition_type: string | null
+}
+
+const countBy = <TRow,>(
+    rows: TRow[],
+    predicate: (row: TRow) => boolean
+) => rows.reduce((count, row) => count + (predicate(row) ? 1 : 0), 0)
+
 export default async function AdminPage() {
     const { user } = await requireAdminOrRedirect()
 
     const adminSupabase = createAdminClient()
     const [
-        seminarTotal,
-        seminarMahasiswa,
-        seminarSiswa,
-        seminarDosen,
-        seminarUmum,
-        mechaturaTotal,
-        mechaturaPaid,
-        mechaturaSumo,
-        mechaturaTransporter,
+        { data: seminarRows, error: seminarError },
+        { data: mechaturaRows, error: mechaturaError },
     ] = await Promise.all([
-        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }),
-        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "mahasiswa"),
-        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "siswa"),
-        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "dosen"),
-        adminSupabase.from("seminar_registrations").select("id", { count: "exact", head: true }).eq("status_akademika", "umum"),
-        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }),
-        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).in("payment_status", ["paid", "settled"]),
-        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).eq("competition_type", "sumo"),
-        adminSupabase.from("mechatura_registrations").select("id", { count: "exact", head: true }).eq("competition_type", "transporter"),
+        adminSupabase
+            .from("seminar_registrations")
+            .select("status_akademika")
+            .returns<SeminarDashboardRow[]>(),
+        adminSupabase
+            .from("mechatura_registrations")
+            .select("payment_status,competition_type")
+            .returns<MechaturaDashboardRow[]>(),
     ])
-    const failedCount = [
-        seminarTotal,
-        seminarMahasiswa,
-        seminarSiswa,
-        seminarDosen,
-        seminarUmum,
-        mechaturaTotal,
-        mechaturaPaid,
-        mechaturaSumo,
-        mechaturaTransporter,
-    ].find((result) => result.error)
 
-    if (failedCount?.error) {
-        throw new Error(failedCount.error.message)
+    if (seminarError || mechaturaError) {
+        throw new Error(seminarError?.message ?? mechaturaError?.message)
     }
 
-    const totalRegistrations = seminarTotal.count ?? 0
-    const mahasiswaCount = seminarMahasiswa.count ?? 0
-    const siswaCount = seminarSiswa.count ?? 0
-    const dosenCount = seminarDosen.count ?? 0
-    const umumCount = seminarUmum.count ?? 0
-    const totalMechaturaCount = mechaturaTotal.count ?? 0
-    const mechaturaPaidCount = mechaturaPaid.count ?? 0
-    const sumoCount = mechaturaSumo.count ?? 0
-    const transporterCount = mechaturaTransporter.count ?? 0
+    const seminarRegistrations = seminarRows ?? []
+    const mechaturaRegistrations = mechaturaRows ?? []
+    const totalRegistrations = seminarRegistrations.length
+    const mahasiswaCount = countBy(seminarRegistrations, (row) => row.status_akademika === "mahasiswa")
+    const siswaCount = countBy(seminarRegistrations, (row) => row.status_akademika === "siswa")
+    const dosenCount = countBy(seminarRegistrations, (row) => row.status_akademika === "dosen")
+    const umumCount = countBy(seminarRegistrations, (row) => row.status_akademika === "umum")
+    const totalMechaturaCount = mechaturaRegistrations.length
+    const mechaturaPaidCount = countBy(mechaturaRegistrations, (row) => row.payment_status === "paid" || row.payment_status === "settled")
+    const sumoCount = countBy(mechaturaRegistrations, (row) => row.competition_type === "sumo")
+    const transporterCount = countBy(mechaturaRegistrations, (row) => row.competition_type === "transporter")
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-8">

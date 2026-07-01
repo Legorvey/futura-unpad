@@ -7,12 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { useForgotPasswordMutation } from "@/hooks/mutations/use-auth-mutations"
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/lib/validation"
 
 export default function ForgotPasswordPage() {
     const [successMessage, setSuccessMessage] = useState("")
     const [errorMessage, setErrorMessage] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const forgotPassword = useForgotPasswordMutation()
 
     const {
         register,
@@ -26,27 +27,17 @@ export default function ForgotPasswordPage() {
     })
 
     const onSubmit = async (values: ForgotPasswordFormValues) => {
-        setIsSubmitting(true)
         setSuccessMessage("")
         setErrorMessage("")
 
-        const res = await fetch("/api/auth/forgot-password", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(values),
-        })
-
-        if (!res.ok) {
-            const data = await res.json().catch(() => null)
-            setErrorMessage(data?.error ?? "Please try again later.")
-            setIsSubmitting(false)
+        try {
+            await forgotPassword.mutateAsync(values)
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : "Please try again later.")
             return
         }
 
         setSuccessMessage(`Email has been successfully sent to ${values.email}`)
-        setIsSubmitting(false)
     }
 
     return (
@@ -97,9 +88,9 @@ export default function ForgotPasswordPage() {
                         <Button
                             type="submit"
                             className="h-11 rounded-[8px]"
-                            disabled={isSubmitting}
+                            disabled={forgotPassword.isPending}
                         >
-                            {isSubmitting ? "Sending link..." : "Send reset link"}
+                            {forgotPassword.isPending ? "Sending link..." : "Send reset link"}
                         </Button>
                         <Button asChild variant="outline" className="h-11 rounded-[8px]">
                             <Link href="/login">Back to login</Link>

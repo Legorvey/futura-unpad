@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCreateMidtransPaymentMutation } from "@/hooks/mutations/use-payment-mutations";
+import { ApiError } from "@/lib/query/fetch-json";
 
 type PaymentActionsProps = {
   orderId: string;
@@ -11,31 +13,33 @@ type PaymentActionsProps = {
 
 export default function PaymentActions({ orderId }: PaymentActionsProps) {
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const createPayment = useCreateMidtransPaymentMutation();
 
   const handlePay = async () => {
-    setIsLoading(true);
     setErrorMessage("");
 
-    const response = await fetch("/api/payment/midtrans", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: orderId }),
+    const data = await createPayment.mutateAsync({ order_id: orderId }).catch((error) => {
+      if (error instanceof ApiError) {
+        const body = error.body;
+
+        if (
+          body &&
+          typeof body === "object" &&
+          "redirect_url" in body &&
+          typeof body.redirect_url === "string"
+        ) {
+          return { redirect_url: body.redirect_url };
+        }
+      }
+
+      setErrorMessage(error instanceof Error ? error.message : "Unable to start payment. Please try again.");
+      return null;
     });
-    const data = await response.json().catch(() => null);
 
     if (data?.redirect_url) {
       window.location.assign(data.redirect_url);
       return;
     }
-
-    if (!response.ok || !data?.redirect_url) {
-      setErrorMessage(data?.error ?? "Unable to start payment. Please try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    window.location.assign(data.redirect_url);
   };
 
   return (
@@ -55,9 +59,9 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
         <Button
           onClick={handlePay}
           className="h-11 rounded-xl"
-          disabled={isLoading}
+          disabled={createPayment.isPending}
         >
-          {isLoading ? "Preparing payment..." : "Continue Payment"}
+          {createPayment.isPending ? "Preparing payment..." : "Continue Payment"}
         </Button>
       </div>
     </section>

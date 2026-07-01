@@ -19,6 +19,7 @@ import {
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 
 import { useAuth } from "@/components/auth-provider";
+import { useRegisterMutation } from "@/hooks/mutations/use-auth-mutations";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import { FormTextField } from "@/components/form/form-text-field";
@@ -28,7 +29,7 @@ type LegalDialogType = "terms" | "privacy";
 export default function RegisterForm() {
     const router = useRouter();
     const { refreshAuth } = useAuth();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const registerAccount = useRegisterMutation();
     const [submitError, setSubmitError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [legalDialog, setLegalDialog] = useState<LegalDialogType | null>(null);
@@ -69,29 +70,21 @@ export default function RegisterForm() {
     const passwordStrength = getPasswordStrength(passwordValue);
 
     const onSubmit = async (values: RegisterFormValues) => {
-        setIsSubmitting(true);
         setSubmitError("");
         setSuccessMessage("");
 
-        const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
+        const data = await registerAccount.mutateAsync({
                 username: values.username,
                 email: values.email,
                 password: values.password,
                 confirmPassword: values.confirmPassword,
                 termsAccepted: values.termsAccepted,
-            }),
+        }).catch((error) => {
+            setSubmitError(error instanceof Error ? error.message : "Registration failed.");
+            return null;
         });
 
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok) {
-            setSubmitError(data?.error ?? "Registration failed.");
-            setIsSubmitting(false);
+        if (!data) {
             return;
         }
 
@@ -114,7 +107,6 @@ export default function RegisterForm() {
         }
 
         setSuccessMessage("Registration successful. Please check your email if confirmation is required.");
-        setIsSubmitting(false);
     };
 
     const requireLegalAgreement = () => {
@@ -250,9 +242,9 @@ export default function RegisterForm() {
                     <Button
                         type="submit"
                         className="h-11 rounded-[8px]"
-                        disabled={isSubmitting}
+                        disabled={registerAccount.isPending}
                     >
-                        {isSubmitting ? "Creating account..." : "Create Account"}
+                        {registerAccount.isPending ? "Creating account..." : "Create Account"}
                     </Button>
 
                     <div className="relative my-0.5">

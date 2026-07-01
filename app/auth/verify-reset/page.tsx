@@ -2,10 +2,12 @@
 
 import { useEffect, Suspense, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSetRecoveryCookieMutation } from "@/hooks/mutations/use-auth-mutations";
 import { createClient } from "@/utils/supabase/client";
 
 function VerifyResetContent() {
     const router = useRouter();
+    const { mutateAsync: setRecoveryCookie } = useSetRecoveryCookieMutation();
     const hasFired = useRef(false);
 
     useEffect(() => {
@@ -15,7 +17,7 @@ function VerifyResetContent() {
             if (hasFired.current) return;
             hasFired.current = true;
             
-            fetch("/api/auth/set-recovery-cookie", { method: "POST" })
+            setRecoveryCookie()
                 .then(() => router.push("/reset-password"))
                 .catch(() => router.push("/login?error=recovery_failed"));
         };
@@ -33,7 +35,7 @@ function VerifyResetContent() {
         });
 
         return () => subscription.unsubscribe();
-    }, [router]);
+    }, [router, setRecoveryCookie]);
 
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center p-8">

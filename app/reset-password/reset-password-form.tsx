@@ -7,14 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
+import { useResetPasswordMutation } from "@/hooks/mutations/use-auth-mutations"
 
 export default function ResetPasswordForm() {
     const router = useRouter()
     const { refreshAuth } = useAuth()
+    const resetPassword = useResetPasswordMutation()
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [message, setMessage] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false)
     const [isComplete, setIsComplete] = useState(false)
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -31,30 +32,19 @@ export default function ResetPasswordForm() {
             return
         }
 
-        setIsSubmitting(true)
-
-        const res = await fetch("/api/auth/reset-password", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
+        try {
+            await resetPassword.mutateAsync({
                 password,
                 confirmPassword,
-            }),
-        })
-
-        if (!res.ok) {
-            const data = await res.json().catch(() => null)
-            setMessage(data?.error ?? "Password update failed. Please request a new reset link.")
-            setIsSubmitting(false)
+            })
+        } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Password update failed. Please request a new reset link.")
             return
         }
 
         await refreshAuth()
         setIsComplete(true)
         setMessage("Password updated successfully. Please sign in with your new password.")
-        setIsSubmitting(false)
         router.replace("/login")
     }
 
@@ -118,9 +108,9 @@ export default function ResetPasswordForm() {
                             <Button
                                 type="submit"
                                 className="h-11 rounded-xl"
-                                disabled={isSubmitting}
+                                disabled={resetPassword.isPending}
                             >
-                                {isSubmitting ? "Updating password..." : "Update password"}
+                                {resetPassword.isPending ? "Updating password..." : "Update password"}
                             </Button>
                         )}
                     </Field>

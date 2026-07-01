@@ -11,7 +11,6 @@ import {
     type AdminSearchParams,
     applyMechaturaFilters,
     categoryFilters,
-    completedPaymentStatuses,
     firstParam,
     mechaturaRegistrationColumns,
     normalizeFilter,
@@ -20,6 +19,16 @@ import {
     paymentFilters,
     toSearchPattern,
 } from "./_lib/mechatura-utils";
+
+type MechaturaStatsRow = {
+    payment_status: string | null;
+    competition_type: string | null;
+};
+
+const countBy = <TRow,>(
+    rows: TRow[],
+    predicate: (row: TRow) => boolean
+) => rows.reduce((count, row) => count + (predicate(row) ? 1 : 0), 0);
 
 export default async function MechaturaAdminPage({
     searchParams,
@@ -78,10 +87,7 @@ export default async function MechaturaAdminPage({
 
     const [
         { data: requestedPageData, error: pageError, count },
-        totalCountResult,
-        paidCountResult,
-        sumoCountResult,
-        transporterCountResult,
+        { data: statsRows, error: statsError },
     ] = await Promise.all([
         buildFilteredRegistrationQuery(mechaturaRegistrationColumns, { count: "exact" })
             .order("created_at", { ascending: false })
@@ -90,37 +96,15 @@ export default async function MechaturaAdminPage({
             .returns<AdminMechaturaRegistration[]>(),
         adminSupabase
             .from("mechatura_registrations")
-            .select("id", { count: "exact", head: true }),
-        adminSupabase
-            .from("mechatura_registrations")
-            .select("id", { count: "exact", head: true })
-            .in("payment_status", completedPaymentStatuses),
-        adminSupabase
-            .from("mechatura_registrations")
-            .select("id", { count: "exact", head: true })
-            .eq("competition_type", "sumo"),
-        adminSupabase
-            .from("mechatura_registrations")
-            .select("id", { count: "exact", head: true })
-            .eq("competition_type", "transporter"),
+            .select("payment_status,competition_type")
+            .returns<MechaturaStatsRow[]>(),
     ]);
 
-    if (
-        pageError ||
-        totalCountResult.error ||
-        paidCountResult.error ||
-        sumoCountResult.error ||
-        transporterCountResult.error
-    ) {
-        throw new Error(
-            pageError?.message ??
-            totalCountResult.error?.message ??
-            paidCountResult.error?.message ??
-            sumoCountResult.error?.message ??
-            transporterCountResult.error?.message
-        );
+    if (pageError || statsError) {
+        throw new Error(pageError?.message ?? statsError?.message);
     }
 
+    const statsRegistrations = statsRows ?? [];
     const totalFilteredRegistrations = count ?? requestedPageData?.length ?? 0;
     const totalPages = Math.max(1, Math.ceil(totalFilteredRegistrations / pageSize));
     const page = Math.min(requestedPage, totalPages);
@@ -176,10 +160,12 @@ export default async function MechaturaAdminPage({
                 endItem: Math.min(from + pageSize, totalFilteredRegistrations),
             }}
             stats={{
-                totalTeams: totalCountResult.count ?? 0,
-                paidTeams: paidCountResult.count ?? 0,
-                sumoTeams: sumoCountResult.count ?? 0,
-                transporterTeams: transporterCountResult.count ?? 0,
+                totalTeams: statsRegistrations.length,
+                paidTeams: countBy(statsRegistrations, (registration) =>
+                    registration.payment_status === "paid" || registration.payment_status === "settled"
+                ),
+                sumoTeams: countBy(statsRegistrations, (registration) => registration.competition_type === "sumo"),
+                transporterTeams: countBy(statsRegistrations, (registration) => registration.competition_type === "transporter"),
             }}
         />
     );

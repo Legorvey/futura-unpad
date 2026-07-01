@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 
 import { useAuth } from "@/components/auth-provider";
+import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
 
@@ -18,7 +19,7 @@ export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { refreshAuth } = useAuth();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const login = useLoginMutation();
     const [submitError, setSubmitError] = useState("");
     const [keepSignedIn, setKeepSignedIn] = useState(false);
 
@@ -32,29 +33,12 @@ export default function LoginForm() {
     const { handleSubmit } = form;
 
     const onSubmit = async (values: LoginFormValues) => {
-        setIsSubmitting(true);
         setSubmitError("");
 
-        const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...values, keepSignedIn }),
-        });
-
-        if (!res.ok) {
-            console.error("Login response not ok:", res.status, res.statusText);
-            const text = await res.text().catch(() => null);
-            console.error("Login response text:", text);
-            let data = null;
-            try {
-                if (text) data = JSON.parse(text);
-            } catch (e) {
-                console.error("JSON parse error:", e);
-            }
-            setSubmitError(data?.error ?? `Login failed. Status: ${res.status} Text: ${text?.substring(0, 50)}`);
-            setIsSubmitting(false);
+        try {
+            await login.mutateAsync({ ...values, keepSignedIn });
+        } catch (error) {
+            setSubmitError(error instanceof Error ? error.message : "Login failed.");
             return;
         }
 
@@ -104,7 +88,7 @@ export default function LoginForm() {
                             <Checkbox
                                 id="keepSignedIn"
                                 checked={keepSignedIn}
-                                disabled={isSubmitting}
+                                disabled={login.isPending}
                                 onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
                             />
                             <FieldLabel
@@ -122,9 +106,9 @@ export default function LoginForm() {
                         <Button
                             type="submit"
                             className="h-11 rounded-[8px]"
-                            disabled={isSubmitting}
+                            disabled={login.isPending}
                         >
-                            {isSubmitting ? "Signing in..." : "Log in"}
+                            {login.isPending ? "Signing in..." : "Log in"}
                         </Button>
 
                         <div className="relative my-0.5">

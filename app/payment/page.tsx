@@ -16,8 +16,8 @@ import {
   getMechaturaPaymentExpiresAt,
   isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
+import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { createClient } from "@/utils/supabase/server";
 import PaymentActions from "./payment-actions";
 import PaymentDeadline from "./payment-deadline";
 
@@ -124,10 +124,7 @@ export default async function PaymentPage({
   }
 
   if (order.userId) {
-    const authSupabase = await createClient();
-    const {
-      data: { user },
-    } = await authSupabase.auth.getUser();
+    const { user } = await getCachedAuth();
 
     if (order.userId !== user?.id) {
       return <InvalidPaymentState />;

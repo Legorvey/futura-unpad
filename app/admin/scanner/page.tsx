@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { CheckCircle2, XCircle } from "lucide-react"
+import { useVerifySeminarRegistrationMutation } from "@/hooks/mutations/use-admin-mutations"
 
 const hasRawValue = (value: unknown): value is { rawValue: string } =>
     typeof value === "object" &&
@@ -11,6 +12,7 @@ const hasRawValue = (value: unknown): value is { rawValue: string } =>
     typeof value.rawValue === "string"
 
 export default function ScannerPage() {
+    const verifyRegistration = useVerifySeminarRegistrationMutation()
     const [scanResult, setScanResult] = useState<{ success: boolean; message: string; name?: string } | null>(null)
     const isScanningRef = useRef(false)
     const lastScannedIdRef = useRef<string | null>(null)
@@ -23,21 +25,13 @@ export default function ScannerPage() {
         setScanResult(null)
 
         try {
-            const res = await fetch("/api/admin/verify-registration", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ registration_id: decodedText })
+            const data = await verifyRegistration.mutateAsync({ registration_id: decodedText })
+            setScanResult({ success: true, message: "Successfully checked in!", name: data.participant.nama_lengkap })
+        } catch (error) {
+            setScanResult({
+                success: false,
+                message: error instanceof Error ? error.message : "Network error. Please try again.",
             })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                setScanResult({ success: true, message: "Successfully checked in!", name: data.participant.nama_lengkap })
-            } else {
-                setScanResult({ success: false, message: data.error || "Verification failed" })
-            }
-        } catch {
-            setScanResult({ success: false, message: "Network error. Please try again." })
         } finally {
             isScanningRef.current = false
             // Clear last scanned ID after 3 seconds to allow rescanning if needed

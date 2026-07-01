@@ -51,7 +51,7 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <Button asChild variant="outline" className="h-11 rounded-xl">
-          <Link href="/registration">
+          <Link href="/registration" prefetch={false}>
             <ArrowLeft className="h-4 w-4" />
             Back to registration
           </Link>

@@ -182,10 +182,12 @@ function ProfileMenuLink({
   onClick?: () => void
   children: React.ReactNode
 }) {
+  const linkPrefetch = prefetch ?? (href.startsWith("/") && !href.startsWith("/#") ? false : undefined)
+
   return (
     <Link
       href={href}
-      prefetch={prefetch}
+      prefetch={linkPrefetch}
       onClick={onClick}
       role="menuitem"
       className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex-row md:flex-row-reverse text-left md:text-right"

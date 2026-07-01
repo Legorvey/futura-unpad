@@ -253,7 +253,7 @@ export default function RegisterForm() {
                         </div>
                         <div className="relative flex justify-center text-sm lowercase">
                             <span className="bg-background px-2 text-muted-foreground">
-                                Or continue with
+                                Or
                             </span>
                         </div>
                     </div>
@@ -269,6 +269,7 @@ export default function RegisterForm() {
                                 ? `/login?next=${new URL(window.location.href).searchParams.get("next")}`
                                 : "/login"
                         }
+                        prefetch={false}
                         className="text-blue-600"
                     >
                         Log in

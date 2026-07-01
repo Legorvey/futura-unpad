@@ -164,7 +164,7 @@ export default function Navbar() {
                                         )}
                                     >
                                         <div className="flex flex-col gap-2 pt-2 px-2">
-                                            <Link href="/registration/seminar" className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
+                                            <Link href="/registration/seminar" prefetch={false} className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
                                                 <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Seminar</span>
                                                 <span className="text-xs text-muted-foreground">Applied technology talks.</span>
                                             </Link>
@@ -216,6 +216,7 @@ export default function Navbar() {
                                     <>
                                         <Link
                                             href="/login"
+                                            prefetch={false}
                                             className="hidden sm:block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
                                         >
                                             Log in
@@ -225,7 +226,7 @@ export default function Navbar() {
                                             size="sm"
                                             className={cn("hidden sm:flex transition-all duration-700 ease-in-out", isScrolled && "rounded-[1.5rem]")}
                                         >
-                                            <Link href="/register">Register</Link>
+                                            <Link href="/register" prefetch={false}>Register</Link>
                                         </Button>
                                     </>
                                 )}
@@ -320,7 +321,7 @@ export default function Navbar() {
                                     Registration <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isMobileRegistrationOpen && "rotate-180")} />
                                 </button>
                                 <div className={cn("flex flex-col gap-2 overflow-hidden transition-all duration-500 ease-in-out", isMobileRegistrationOpen ? "max-h-48 opacity-100 mt-2" : "max-h-0 opacity-0")}>
-                                    <Link href="/registration/seminar" className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <Link href="/registration/seminar" prefetch={false} className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
                                         Seminar
                                     </Link>
                                     <AuthGuardLink href="/registration/mechatura" requireAuth className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
@@ -337,6 +338,7 @@ export default function Navbar() {
                                 <div className="flex flex-col gap-3 pt-6 mt-2 border-t border-border/50">
                                     <Link
                                         href="/login"
+                                        prefetch={false}
                                         className="text-base font-medium text-muted-foreground hover:text-foreground transition py-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
@@ -344,6 +346,7 @@ export default function Navbar() {
                                     </Link>
                                     <Link
                                         href="/register"
+                                        prefetch={false}
                                         className="text-base font-medium text-primary hover:text-primary/80 transition py-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >

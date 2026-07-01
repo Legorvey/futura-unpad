@@ -102,7 +102,7 @@ export default function ResetPasswordForm() {
                     <Field className="gap-3">
                         {isComplete ? (
                             <Button asChild className="h-11 rounded-xl">
-                                <Link href="/login">Back to login</Link>
+                                <Link href="/login" prefetch={false}>Back to login</Link>
                             </Button>
                         ) : (
                             <Button

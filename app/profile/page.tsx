@@ -232,7 +232,7 @@ export default async function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-6 text-center">
                   <p className="text-sm text-muted-foreground mb-4">You have not registered for the National Seminar yet.</p>
                   <Button asChild className="h-10 rounded-xl">
-                    <Link href="/registration/seminar">Register for Seminar</Link>
+                    <Link href="/registration/seminar" prefetch={false}>Register for Seminar</Link>
                   </Button>
                 </div>
               )}
@@ -293,7 +293,7 @@ export default async function ProfilePage() {
 
                   <div className="sm:col-span-2 lg:col-span-3 mt-4">
                     <Button asChild variant="secondary" className="h-10 rounded-xl w-full sm:w-auto">
-                      <Link href={`/payment?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
+                      <Link href={`/payment?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`} prefetch={false}>
                         Open Payment Details <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
@@ -303,7 +303,7 @@ export default async function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-6 text-center">
                   <p className="text-sm text-muted-foreground mb-4">You have not formed a team for the Mechatura Robotics Competition yet.</p>
                   <Button asChild className="h-10 rounded-xl">
-                    <Link href="/registration/mechatura">Register Team</Link>
+                    <Link href="/registration/mechatura" prefetch={false}>Register Team</Link>
                   </Button>
                 </div>
               )}
@@ -330,7 +330,7 @@ export default async function ProfilePage() {
               <div className="flex flex-col items-center justify-center py-6 text-center">
                 <p className="text-sm text-muted-foreground mb-4">No active Lomba KTI registration found for this account.</p>
                 <Button asChild className="h-10 rounded-xl">
-                  <Link href="/registration/lomba-kti">Register for Lomba KTI</Link>
+                  <Link href="/registration/lomba-kti" prefetch={false}>Register for Lomba KTI</Link>
                 </Button>
               </div>
             </div>

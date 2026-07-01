@@ -54,7 +54,7 @@ function InvalidPaymentState() {
           Please return to registration and submit the form again.
         </p>
         <Button asChild className="mt-6 rounded-xl">
-          <Link href="/registration">Back to registration</Link>
+          <Link href="/registration" prefetch={false}>Back to registration</Link>
         </Button>
       </section>
     </main>
@@ -219,7 +219,7 @@ export default async function PaymentPage({
 
       {isPaid ? (
         <Button asChild className="h-11 rounded-xl">
-          <Link href={`/payment/success?order_id=${order.externalId}`}>
+          <Link href={`/payment/success?order_id=${order.externalId}`} prefetch={false}>
             View receipt
           </Link>
         </Button>
@@ -230,7 +230,7 @@ export default async function PaymentPage({
             Mechatura registration page to start a new registration.
           </p>
           <Button asChild className="h-11 rounded-xl">
-            <Link href="/registration/mechatura">Register again</Link>
+            <Link href="/registration/mechatura" prefetch={false}>Register again</Link>
           </Button>
         </section>
       ) : (

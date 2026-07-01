@@ -96,6 +96,7 @@ export default function RegistrationPage() {
                                         <AuthGuardLink
                                             href={program.href}
                                             requireAuth={authRequiredRegistrationHrefs.has(program.href)}
+                                            prefetch={false}
                                             className="text-sm font-medium rounded-lg bg-black px-4 py-2 text-white"
                                         >
                                             Continue to form

@@ -75,7 +75,7 @@ export default function LoginForm() {
                             label={
                                 <div className="flex justify-between w-full mb-1.5">
                                     <span>Password</span>
-                                    <Link href="/forgot-password" className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
+                                    <Link href="/forgot-password" prefetch={false} className="text-right text-sm text-muted-foreground hover:text-black transition">Forgot password?</Link>
                                 </div>
                             }
                             type="password"
@@ -84,7 +84,7 @@ export default function LoginForm() {
                             fieldClassName="gap-0 w-full"
                         />
 
-                        <Field orientation="horizontal" className="items-center gap-2 mt-2">
+                        <Field orientation="horizontal" className="items-center gap-2">
                             <Checkbox
                                 id="keepSignedIn"
                                 checked={keepSignedIn}
@@ -117,7 +117,7 @@ export default function LoginForm() {
                             </div>
                             <div className="relative flex justify-center text-sm lowercase">
                                 <span className="bg-background px-2 text-muted-foreground">
-                                    Or continue with
+                                    Or
                                 </span>
                             </div>
                         </div>
@@ -132,6 +132,7 @@ export default function LoginForm() {
                                     ? `/register?next=${searchParams.get("next")}`
                                     : "/register"
                             }
+                            prefetch={false}
                             className="text-blue-600"
                         >
                             Register

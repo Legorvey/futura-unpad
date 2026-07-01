@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
                             {forgotPassword.isPending ? "Sending link..." : "Send reset link"}
                         </Button>
                         <Button asChild variant="outline" className="h-11 rounded-[8px]">
-                            <Link href="/login">Back to login</Link>
+                            <Link href="/login" prefetch={false}>Back to login</Link>
                         </Button>
                     </Field>
                 </FieldGroup>

@@ -145,7 +145,7 @@ export default async function PaymentSuccessPage({
 
         <div className="mt-8 flex justify-center">
           <Button asChild className="h-11 rounded-xl px-4 py-5">
-            <Link href={isPaid ? "/" : "/registration"}>
+            <Link href={isPaid ? "/" : "/registration"} prefetch={false}>
               {isPaid ? "Back to Home" : "Back to Registration"}
             </Link>
           </Button>

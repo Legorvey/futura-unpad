@@ -17,7 +17,7 @@ function ExpiredResetLink() {
                 </p>
             </section>
             <Button asChild className="h-11 rounded-xl">
-                <Link href="/forgot-password">Request new link</Link>
+                <Link href="/forgot-password" prefetch={false}>Request new link</Link>
             </Button>
         </main>
     )

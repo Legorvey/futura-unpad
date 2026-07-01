@@ -1,7 +1,6 @@
 import FormFileField from "@/components/form/form-file-field"
 import { FormTextField } from "../form-text-field";
 import type { MechaturaFormValues } from "@/lib/validation/mechatura"
-import Link from "next/link";
 
 type MechaturaDocsInfoProps = {
     documentMaxSizeInBytes: number;
@@ -18,7 +17,7 @@ export default function MechaturaRobotInfo({
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Sebelum isi lampiran di bawah, mohon baca ketentuan Lomba Mechatura terlebih dahulu <br />
-                    Link Guidebook Mechatura dapat diakses melalui link berikut: <Link className="text-blue-600 hover:text-blue-500 hover:underline" href="www.youtube.com">Guidebook Mechatura</Link>
+                    Link Guidebook Mechatura dapat diakses melalui link berikut: <a className="text-blue-600 hover:text-blue-500 hover:underline" href="https://www.youtube.com" target="_blank" rel="noreferrer">Guidebook Mechatura</a>
                 </p>
             </div>
 

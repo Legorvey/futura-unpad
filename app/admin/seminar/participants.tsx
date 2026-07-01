@@ -191,7 +191,7 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
                     {!hideViewDetails && (
                         <>
                             <DropdownMenuItem asChild>
-                                <Link href={`/admin/seminar/${participant.id}`}>
+                                <Link href={`/admin/seminar/${participant.id}`} prefetch={false}>
                                     <Eye className="h-4 w-4" />
                                     View Details
                                 </Link>

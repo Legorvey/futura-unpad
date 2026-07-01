@@ -160,7 +160,7 @@ export default async function MechaturaRegistrationDetails({
         <div className="mx-auto w-full max-w-6xl space-y-8">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" asChild>
-                    <Link href="/admin/mechatura">
+                    <Link href="/admin/mechatura" prefetch={false}>
                         <ChevronLeft className="h-4 w-4" />
                         <span className="sr-only">Back to Mechatura Teams</span>
                     </Link>

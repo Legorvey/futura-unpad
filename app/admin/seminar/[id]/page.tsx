@@ -161,7 +161,7 @@ export default async function SeminarRegistrationDetails({
         <div className="mx-auto w-full max-w-6xl space-y-8">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" asChild>
-                    <Link href="/admin/seminar">
+                    <Link href="/admin/seminar" prefetch={false}>
                         <ChevronLeft className="h-4 w-4" />
                         <span className="sr-only">Back to Registrations</span>
                     </Link>
@@ -321,7 +321,7 @@ export default async function SeminarRegistrationDetails({
                                 </Button>
                             ) : (
                                 <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                                    <Link href={buildDetailsPageHref(registration.id, page - 1, pageSize)}>
+                                    <Link href={buildDetailsPageHref(registration.id, page - 1, pageSize)} prefetch={false}>
                                         <ChevronLeft className="h-4 w-4" />
                                         Previous
                                     </Link>
@@ -337,7 +337,7 @@ export default async function SeminarRegistrationDetails({
                                 </Button>
                             ) : (
                                 <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                                    <Link href={buildDetailsPageHref(registration.id, page + 1, pageSize)}>
+                                    <Link href={buildDetailsPageHref(registration.id, page + 1, pageSize)} prefetch={false}>
                                         Next
                                         <ChevronRight className="h-4 w-4" />
                                     </Link>

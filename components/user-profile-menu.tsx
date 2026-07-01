@@ -124,7 +124,7 @@ export function UserProfileDropdown({ onClose }: { onClose?: () => void }) {
 
         <div className="space-y-1">
           {isAdmin ? (
-            <ProfileMenuLink href="/admin" onClick={onClose}>
+            <ProfileMenuLink href="/admin" prefetch={false} onClick={onClose}>
               <LayoutDashboard className="h-4 w-4" />
               Admin dashboard
             </ProfileMenuLink>
@@ -173,16 +173,19 @@ export function UserProfileDropdown({ onClose }: { onClose?: () => void }) {
 
 function ProfileMenuLink({
   href,
+  prefetch,
   onClick,
   children,
 }: {
   href: string
+  prefetch?: boolean
   onClick?: () => void
   children: React.ReactNode
 }) {
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       onClick={onClick}
       role="menuitem"
       className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex-row md:flex-row-reverse text-left md:text-right"

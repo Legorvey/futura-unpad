@@ -191,7 +191,7 @@ export default function Navbar() {
                                         {isAdmin && (
                                             <div className="hidden sm:block">
                                                 <Button asChild className={cn("transition-all duration-700 ease-in-out", isScrolled && "rounded-[1.5rem]")}>
-                                                    <Link href="/admin">Admin Dashboard</Link>
+                                                    <Link href="/admin" prefetch={false}>Admin Dashboard</Link>
                                                 </Button>
                                             </div>
                                         )}

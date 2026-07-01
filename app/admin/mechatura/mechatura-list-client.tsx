@@ -178,7 +178,7 @@ export default function MechaturaListClient({
                         <Button className="rounded-[8px] px-6">Apply</Button>
                         {hasActiveFilters ? (
                             <Button variant="outline" className="rounded-[8px] px-5" asChild>
-                                <Link href="/admin/mechatura">
+                                <Link href="/admin/mechatura" prefetch={false}>
                                     <X className="h-4 w-4" />
                                     Reset
                                 </Link>
@@ -205,7 +205,7 @@ export default function MechaturaListClient({
                         </Button>
                     ) : (
                         <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page - 1)}>
+                            <Link href={buildPageHref(pagination.page - 1)} prefetch={false}>
                                 <ChevronLeft className="h-4 w-4" />
                                 Previous
                             </Link>
@@ -223,7 +223,7 @@ export default function MechaturaListClient({
                         </Button>
                     ) : (
                         <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page + 1)}>
+                            <Link href={buildPageHref(pagination.page + 1)} prefetch={false}>
                                 Next
                                 <ChevronRight className="h-4 w-4" />
                             </Link>

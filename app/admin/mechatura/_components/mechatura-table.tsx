@@ -102,7 +102,7 @@ function TeamActions({
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                        <Link href={`/admin/mechatura/${registration.id}`}>
+                        <Link href={`/admin/mechatura/${registration.id}`} prefetch={false}>
                             <Eye className="h-4 w-4" />
                             View Details
                         </Link>

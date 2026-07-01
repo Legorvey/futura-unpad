@@ -122,7 +122,7 @@ export default function SeminarListClient({
                         </a>
                     </Button>
                     <Button className="h-11 rounded-[8px] px-5 bg-blue-600 text-white hover:bg-blue-700" asChild>
-                        <Link href="/admin/scanner">
+                        <Link href="/admin/scanner" prefetch={false}>
                             <Scan className="h-4 w-4" />
                             Open Scanner
                         </Link>
@@ -231,7 +231,7 @@ export default function SeminarListClient({
                         </Button>
                         {hasActiveFilters ? (
                             <Button variant="outline" className="rounded-[8px] px-5" asChild>
-                                <Link href="/admin/seminar">
+                                <Link href="/admin/seminar" prefetch={false}>
                                     <X className="h-4 w-4" />
                                     Reset
                                 </Link>
@@ -255,7 +255,7 @@ export default function SeminarListClient({
                         </Button>
                     ) : (
                         <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page - 1)}>
+                            <Link href={buildPageHref(pagination.page - 1)} prefetch={false}>
                                 <ChevronLeft className="h-4 w-4" />
                                 Previous
                             </Link>
@@ -273,7 +273,7 @@ export default function SeminarListClient({
                         </Button>
                     ) : (
                         <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page + 1)}>
+                            <Link href={buildPageHref(pagination.page + 1)} prefetch={false}>
                                 Next
                                 <ChevronRight className="h-4 w-4" />
                             </Link>

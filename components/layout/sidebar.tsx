@@ -67,7 +67,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
     const sidebarContent = (
         <div className="flex h-full flex-col bg-card border-r border-border">
             <div className="flex h-14 items-center border-b border-border px-4 py-4">
-                <Link href="/" className="flex items-center gap-2 font-semibold">
+                <Link href="/" prefetch={false} className="flex items-center gap-2 font-semibold">
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Site</span>
                 </Link>
@@ -82,6 +82,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                prefetch={false}
                                 onClick={() => setIsMobileOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all hover:text-primary",
@@ -100,6 +101,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
                 <div className="border-t border-border p-4">
                     <Link 
                         href="/profile/account" 
+                        prefetch={false}
                         onClick={() => setIsMobileOpen(false)}
                         className="flex items-center gap-3 mb-4 overflow-hidden rounded-lg p-2 transition-colors hover:bg-muted"
                     >

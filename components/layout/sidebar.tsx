@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { LayoutDashboard, Users, Trophy, Cpu, LogOut, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { cn } from "@/lib/utils"
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button"
 export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { isMobileOpen: boolean, setIsMobileOpen: (open: boolean) => void, width: number, setWidth: (width: number) => void }) {
     const { user, isAdmin, signOut } = useAuth()
     const pathname = usePathname()
-    const router = useRouter()
     const [isResizing, setIsResizing] = useState(false)
     const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -22,8 +21,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen, width, setWidth }: { is
             console.error(error)
             return
         }
-
-        router.replace("/")
     }
 
     const startResizing = useCallback(() => {

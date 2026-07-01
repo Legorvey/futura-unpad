@@ -5,6 +5,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/navbar";
 import NavigationLoading from "@/components/navigation-loading";
+import AuthRouteGuard from "@/components/auth-route-guard";
 import { AuthProvider, type AuthUser } from "@/components/auth-provider";
 import { getCachedAuth } from "@/lib/auth";
 
@@ -56,6 +57,9 @@ export default async function RootLayout({
         <AuthProvider initialUser={initialUser} initialIsAdmin={isAdmin}>
           <Suspense fallback={null}>
             <NavigationLoading />
+          </Suspense>
+          <Suspense fallback={null}>
+            <AuthRouteGuard />
           </Suspense>
           <Navbar />
           {children}

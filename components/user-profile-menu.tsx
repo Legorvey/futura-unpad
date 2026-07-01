@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
 import React, { forwardRef, useMemo, useState } from "react"
 import {
   CreditCard,
@@ -63,8 +62,6 @@ export const UserProfileButton = forwardRef<HTMLButtonElement, React.ComponentPr
 UserProfileButton.displayName = "UserProfileButton"
 
 export function UserProfileDropdown({ onClose }: { onClose?: () => void }) {
-  const router = useRouter()
-  const pathname = usePathname()
   const { user, isAdmin, signOut } = useAuth()
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -85,15 +82,6 @@ export function UserProfileDropdown({ onClose }: { onClose?: () => void }) {
     }
 
     setIsLoggingOut(false)
-
-    if (
-      pathname.startsWith("/admin") ||
-      pathname.startsWith("/seminar-list") ||
-      pathname.startsWith("/profile")
-    ) {
-      router.replace("/login")
-      return
-    }
   }
 
   return (

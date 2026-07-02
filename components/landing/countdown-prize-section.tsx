@@ -1,38 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TARGET_DATE, calculateTimeLeft, timeBlocks } from "@/lib/landing/helper";
 
-const TARGET_DATE = new Date("2026-07-20T00:00:00+07:00").getTime()
-
-function calculateTimeLeft() {
-  const now = Date.now()
-  const difference = TARGET_DATE - now
-
-  if (difference <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0 }
-  }
-
-  return {
-    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((difference / (1000 * 60)) % 60),
-    seconds: Math.floor((difference / 1000) % 60),
-  }
-}
-
-const timeBlocks: { key: keyof ReturnType<typeof calculateTimeLeft>; label: string }[] = [
-  { key: "days", label: "Days" },
-  { key: "hours", label: "Hours" },
-  { key: "minutes", label: "Minutes" },
-  { key: "seconds", label: "Seconds" },
-]
+const THIS_TARGET_DATE = TARGET_DATE({date: 20, month: 7, year: 2026});
 
 export function CountdownPrizeSection() {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft)
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(THIS_TARGET_DATE))
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft())
+      setTimeLeft(calculateTimeLeft((THIS_TARGET_DATE)))
     }, 1000)
 
     return () => clearInterval(timer)

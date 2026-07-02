@@ -1,23 +1,17 @@
-import EssayRegistrationForm from "./form";
+import Countdown from "@/components/countdown";
+import { TARGET_DATE } from "@/lib/landing/helper";
 
 export default function EssayRegistrationPage() {
     return (
-        <main className="mx-auto w-full max-w-3xl items-start space-y-12 px-6 py-16 sm:px-8">
-            <section>
-                <div className="space-y-2">
-                    <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                        Lomba Essay
-                    </h1>
-                    <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-                        Daftarkan tim, lengkapi data essay dan ketua tim,
-                        verifikasi, lalu lanjutkan ke pembayaran.
-                    </p>
-                </div>
-            </section>
-
-            <section>
-                <EssayRegistrationForm />
-            </section>
+         <main className="mx-auto w-full items-start space-y-12 px-6 py-16 sm:px-8">
+            <h1 className="text-center text-5xl font-bold">Essay Registration Coming Soon</h1>
+            <Countdown
+                targetDate={TARGET_DATE({
+                    date: 21,
+                    month: 9,
+                    year: 2026,
+                })}
+            />
         </main>
     )
 }

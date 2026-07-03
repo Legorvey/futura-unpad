@@ -102,7 +102,7 @@ function DesktopDropdownPanel({
     return (
         <div
             className={cn(
-                "absolute inset-x-0 top-0 z-50 grid grid-cols-[17rem_20rem] gap-33 px-4 py-6",
+                "absolute inset-x-0 top-0 z-50 grid grid-cols-[17rem_20rem] gap-32 px-4 py-6",
                 visibleDropdown ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             )}
         >
@@ -201,7 +201,7 @@ export default function Navbar() {
                     onMouseLeave={() => setActiveDropdown(null)}
                 >
                     <div className="flex items-center justify-between w-full pb-3">
-                        <div className="flex min-w-0 items-center gap-5 sm:gap-12">
+                        <div className="flex min-w-0 items-center gap-5 sm:gap-16">
                             {isAdmin ? (
                                 <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight" onClick={() => setIsMobileMenuOpen(false)}>
                                     Admin Futura
@@ -212,7 +212,7 @@ export default function Navbar() {
                                 </Link>
                             )}
 
-                            <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
+                            <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
                                 <Link href="/#home" className="transition hover:text-foreground">
                                     Home
                                 </Link>
@@ -365,14 +365,17 @@ export default function Navbar() {
                                     className="flex items-center justify-between text-base font-medium text-muted-foreground hover:text-foreground transition py-2 text-left"
                                     onClick={() => setIsMobileFaqOpen(!isMobileFaqOpen)}
                                 >
-                                    FAQ <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isMobileFaqOpen && "rotate-180")} />
+                                    Info <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isMobileFaqOpen && "rotate-180")} />
                                 </button>
                                 <div className={cn("flex flex-col gap-2 overflow-hidden transition-all duration-500 ease-in-out", isMobileFaqOpen ? "max-h-32 opacity-100 mt-2" : "max-h-0 opacity-0")}>
                                     <Link href="/#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                        General Questions
+                                        Timeline
                                     </Link>
                                     <Link href="/#faq-competition" className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                        Competition Details
+                                        Booklet
+                                    </Link>
+                                    <Link href="/#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                        Juklak
                                     </Link>
                                 </div>
                             </div>

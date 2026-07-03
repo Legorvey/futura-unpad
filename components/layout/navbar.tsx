@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { AuthGuardLink } from "@/components/auth-guard-link"
@@ -10,6 +10,140 @@ import { cn } from "@/lib/utils"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { usePathname } from "next/navigation"
 
+type NavDropdown = "info" | "registration"
+type ActiveDropdown = NavDropdown | "user" | null
+
+type DropdownItem = {
+    label: string
+    href: string
+    requireAuth?: boolean
+    prefetch?: false
+}
+
+const dropdownDetails: Record<NavDropdown, { title: string }> = {
+    info: {
+        title: "Find answers before you join.",
+    },
+    registration: {
+        title: "Choose your Futura path.",
+    },
+}
+
+const infoItems: DropdownItem[] = [
+    {
+        label: "Timeline",
+        href: "/#faq",
+    },
+    {
+        label: "Booklet",
+        href: "/#faq-competition",
+    },
+     {
+        label: "Juklak",
+        href: "/#",
+    }
+]
+
+const registrationItems: DropdownItem[] = [
+    {
+        label: "Seminar",
+        href: "/registration/seminar",
+        prefetch: false,
+    },
+    {
+        label: "Mechatura",
+        href: "/registration/mechatura",
+        requireAuth: true,
+    },
+    {
+        label: "Lomba Essay",
+        href: "/registration/lomba-essay",
+        requireAuth: true,
+    },
+]
+
+const dropdownItems: Record<NavDropdown, DropdownItem[]> = {
+    info: infoItems,
+    registration: registrationItems,
+}
+
+function DropdownItemLink({ item, onClick }: { item: DropdownItem; onClick: () => void }) {
+    const className = "navbar-dropdown-item group flex flex-col rounded-xl px-4 py-2 hover:bg-muted"
+    const content = (
+        <>
+            <span className="text-lg text-foreground transition group-hover:text-primary">{item.label}</span>
+        </>
+    )
+
+    if (item.requireAuth) {
+        return (
+            <AuthGuardLink href={item.href} requireAuth className={className} onClick={onClick}>
+                {content}
+            </AuthGuardLink>
+        )
+    }
+
+    return (
+        <Link href={item.href} prefetch={item.prefetch} className={className} onClick={onClick}>
+            {content}
+        </Link>
+    )
+}
+
+function DesktopDropdownPanel({
+    activeDropdown,
+    onClose,
+}: {
+    activeDropdown: ActiveDropdown
+    onClose: () => void
+}) {
+    const visibleDropdown = activeDropdown === "info" || activeDropdown === "registration" ? activeDropdown : null
+
+    return (
+        <div
+            className={cn(
+                "absolute inset-x-0 top-0 z-50 grid grid-cols-[17rem_20rem] gap-33 px-4 py-6",
+                visibleDropdown ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            )}
+        >
+            <div className="relative pt-1">
+                {(Object.keys(dropdownDetails) as NavDropdown[]).map((dropdown) => (
+                    <h3
+                        key={dropdown}
+                        data-active={visibleDropdown === dropdown}
+                        className="navbar-dropdown-layer absolute left-0 top-1 text-2xl font-semibold leading-tight tracking-tight text-foreground"
+                    >
+                        {dropdownDetails[dropdown].title}
+                    </h3>
+                ))}
+                <h3 className="invisible text-2xl font-semibold leading-tight tracking-tight" aria-hidden="true">
+                    {dropdownDetails.registration.title}
+                </h3>
+            </div>
+            <div className="relative min-h-[152px]">
+                {(Object.keys(dropdownItems) as NavDropdown[]).map((dropdown) => (
+                    <div
+                        key={dropdown}
+                        data-active={visibleDropdown === dropdown}
+                        className="navbar-dropdown-layer absolute inset-0 flex flex-col"
+                    >
+                        {dropdownItems[dropdown].map((item) => (
+                            <DropdownItemLink key={item.href} item={item} onClick={onClose} />
+                        ))}
+                    </div>
+                ))}
+                <div className="invisible flex flex-col gap-2" aria-hidden="true">
+                    {registrationItems.map((item) => (
+                        <div key={item.href} className="flex flex-col gap-1 rounded-2xl">
+                            <span className="text-sm font-semibold">{item.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function Navbar() {
     const { user, isAdmin } = useAuth()
     const pathname = usePathname()
@@ -18,28 +152,11 @@ export default function Navbar() {
     const [isMobileRegistrationOpen, setIsMobileRegistrationOpen] = useState(false)
     const [isMobileFaqOpen, setIsMobileFaqOpen] = useState(false)
     const [isMobileUserOpen, setIsMobileUserOpen] = useState(false)
-    const [activeDropdown, setActiveDropdown] = useState<"faq" | "registration" | "user" | null>(null)
-    const [dropdownStyle, setDropdownStyle] = useState({ left: 0 })
-    const faqRef = useRef<HTMLButtonElement>(null)
-    const registrationRef = useRef<HTMLButtonElement>(null)
-    const navRef = useRef<HTMLElement>(null)
+    const [activeDropdown, setActiveDropdown] = useState<ActiveDropdown>(null)
 
-    const handleHover = (dropdown: "faq" | "registration" | "user") => {
+    const handleHover = (dropdown: ActiveDropdown) => {
+        if (!dropdown) return
         setActiveDropdown(dropdown)
-
-        if (dropdown === "faq" || dropdown === "registration") {
-            if (!navRef.current) return
-            const navRect = navRef.current.getBoundingClientRect()
-            let left = 0
-
-            if (dropdown === "faq" && faqRef.current) {
-                left = faqRef.current.getBoundingClientRect().left - navRect.left
-            }
-            if (dropdown === "registration" && registrationRef.current) {
-                left = registrationRef.current.getBoundingClientRect().left - navRect.left
-            }
-            setDropdownStyle({ left })
-        }
     }
 
     const visibleActiveDropdown = !user && activeDropdown === "user" ? null : activeDropdown
@@ -84,7 +201,7 @@ export default function Navbar() {
                     onMouseLeave={() => setActiveDropdown(null)}
                 >
                     <div className="flex items-center justify-between w-full pb-3">
-                        <div className="flex items-center gap-4 sm:gap-8">
+                        <div className="flex min-w-0 items-center gap-5 sm:gap-12">
                             {isAdmin ? (
                                 <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight" onClick={() => setIsMobileMenuOpen(false)}>
                                     Admin Futura
@@ -94,94 +211,35 @@ export default function Navbar() {
                                     Futura
                                 </Link>
                             )}
+
+                            <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
+                                <Link href="/#home" className="transition hover:text-foreground">
+                                    Home
+                                </Link>
+                                <Link href="/#about" className="transition hover:text-foreground">
+                                    About
+                                </Link>
+                                <Link href="/#programs" className="transition hover:text-foreground">
+                                    Programs
+                                </Link>
+
+                                <button
+                                    className="flex items-center gap-1 py-2 transition hover:text-foreground outline-none"
+                                    onMouseEnter={() => handleHover("info")}
+                                    onClick={() => setActiveDropdown(activeDropdown === "info" ? null : "info")}
+                                >
+                                    Info <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "info" && "rotate-180")} />
+                                </button>
+
+                                <button
+                                    className="flex items-center gap-1 py-2 transition hover:text-foreground outline-none"
+                                    onMouseEnter={() => handleHover("registration")}
+                                    onClick={() => setActiveDropdown(activeDropdown === "registration" ? null : "registration")}
+                                >
+                                    Registration <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "registration" && "rotate-180")} />
+                                </button>
+                            </nav>
                         </div>
-
-                        <nav ref={navRef} className="hidden items-center gap-5 text-sm font-medium text-muted-foreground md:flex relative">
-                            <Link href="/#home" className="transition hover:text-foreground">
-                                Home
-                            </Link>
-                            <Link href="/#about" className="transition hover:text-foreground">
-                                About
-                            </Link>
-                            <Link href="/#programs" className="transition hover:text-foreground">
-                                Programs
-                            </Link>
-
-                            <button
-                                ref={faqRef}
-                                className="flex items-center gap-1 transition hover:text-foreground outline-none py-2"
-                                onMouseEnter={() => handleHover("faq")}
-                                onClick={() => setActiveDropdown(activeDropdown === "faq" ? null : "faq")}
-                            >
-                                FAQ <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "faq" && "rotate-180")} />
-                            </button>
-
-                            <button
-                                ref={registrationRef}
-                                className="flex items-center gap-1 transition hover:text-foreground outline-none py-2"
-                                onMouseEnter={() => handleHover("registration")}
-                                onClick={() => setActiveDropdown(activeDropdown === "registration" ? null : "registration")}
-                            >
-                                Registration <ChevronDown className={cn("h-4 w-4 transition-transform duration-500", visibleActiveDropdown === "registration" && "rotate-180")} />
-                            </button>
-
-                            {/* Sliding Dropdown Content */}
-                            <div
-                                className={cn(
-                                    "absolute top-full mt-8 transition-all duration-500 ease-out z-50",
-                                    (visibleActiveDropdown === "faq" || visibleActiveDropdown === "registration") ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                                )}
-                                style={{
-                                    transform: `translateX(calc(${dropdownStyle.left}px - 1rem))`,
-                                    width: 320,
-                                }}
-                            >
-                                <div className="relative w-full">
-                                    {/* FAQ List */}
-                                    <div
-                                        className={cn(
-                                            "absolute top-0 left-0 w-full transition-all duration-300 ease-out",
-                                            visibleActiveDropdown === "faq" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 -translate-x-2 pointer-events-none"
-                                        )}
-                                    >
-                                        <div className="flex flex-col gap-2 pt-2 px-2">
-                                            <Link href="/#faq" className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">General Questions</span>
-                                                <span className="text-xs text-muted-foreground">Learn more about Futura.</span>
-                                            </Link>
-                                            <Link href="/#faq-competition" className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Competition Details</span>
-                                                <span className="text-xs text-muted-foreground">Rules, requirements, and guides.</span>
-                                            </Link>
-                                        </div>
-                                    </div>
-
-                                    {/* Registration List */}
-                                    <div
-                                        className={cn(
-                                            "absolute top-0 left-0 w-full transition-all duration-300 ease-out",
-                                            visibleActiveDropdown === "registration" ? "opacity-100 translate-x-0 pointer-events-auto" : "opacity-0 translate-x-2 pointer-events-none"
-                                        )}
-                                    >
-                                        <div className="flex flex-col gap-2 pt-2 px-2">
-                                            <Link href="/registration/seminar" prefetch={false} className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Seminar</span>
-                                                <span className="text-xs text-muted-foreground">Applied technology talks.</span>
-                                            </Link>
-                                            <AuthGuardLink href="/registration/mechatura" requireAuth className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Mechatura</span>
-                                                <span className="text-xs text-muted-foreground">Test & iterate quickly.</span>
-                                            </AuthGuardLink>
-                                            <AuthGuardLink href="/registration/lomba-essay" requireAuth className="group flex flex-col gap-1 rounded-2xl p-3 hover:bg-muted transition" onClick={() => setActiveDropdown(null)}>
-                                                <span className="text-sm font-semibold text-foreground transition group-hover:text-primary">Lomba Essay</span>
-                                                <span className="text-xs text-muted-foreground">Clearer story & feedback.</span>
-                                            </AuthGuardLink>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </nav>
 
                         {/* Top Right Actions */}
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -247,13 +305,17 @@ export default function Navbar() {
                     {/* Background Expansion Block */}
                     <div
                         className={cn(
-                            "hidden md:block w-full transition-all duration-500 ease-out pointer-events-none relative",
-                            visibleActiveDropdown === "registration" ? "h-[260px] opacity-100 border-t border-border/50" :
-                                visibleActiveDropdown === "faq" ? "h-[180px] opacity-100 border-t border-border/50" :
+                            "hidden md:block w-full pointer-events-none relative transition-[height,opacity,border-color] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                            visibleActiveDropdown === "registration" ? "h-[190px] opacity-100 border-t border-border/50" :
+                                visibleActiveDropdown === "info" ? "h-[190px] opacity-100 border-t border-border/50" :
                                     visibleActiveDropdown === "user" ? (isAdmin ? "h-[460px]" : "h-[420px]") + " opacity-100 border-t border-border/50" :
                                         "h-0 opacity-0 border-t border-transparent"
                         )}
                     >
+                        <DesktopDropdownPanel
+                            activeDropdown={visibleActiveDropdown}
+                            onClose={() => setActiveDropdown(null)}
+                        />
                         <div
                             className={cn(
                                 "absolute left-8 top-10 max-w-md transition-all duration-500 delay-100 ease-out",
@@ -288,6 +350,9 @@ export default function Navbar() {
                     >
                         <nav className="flex flex-col gap-2 pb-4 px-2">
                             <Link href="/#home" className="text-base font-medium text-muted-foreground hover:text-foreground transition py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                Home
+                            </Link>
+                            <Link href="/#about" className="text-base font-medium text-muted-foreground hover:text-foreground transition py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                 About
                             </Link>
                             <Link href="/#programs" className="text-base font-medium text-muted-foreground hover:text-foreground transition py-2" onClick={() => setIsMobileMenuOpen(false)}>
@@ -327,8 +392,8 @@ export default function Navbar() {
                                     <AuthGuardLink href="/registration/mechatura" requireAuth className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
                                         Mechatura
                                     </AuthGuardLink>
-                                    <AuthGuardLink href="/registration/lomba-kti" requireAuth className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                        Research Dissemination
+                                    <AuthGuardLink href="/registration/lomba-essay" requireAuth className="text-sm font-medium text-muted-foreground hover:text-foreground transition py-2 pl-4 border-l-2 border-border/50 ml-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                        Lomba Essay
                                     </AuthGuardLink>
                                 </div>
                             </div>

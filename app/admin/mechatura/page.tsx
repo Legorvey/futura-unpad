@@ -22,17 +22,7 @@ import {
     toSearchPattern,
 } from "./_lib/mechatura-utils";
 import { Suspense } from "react"
-import AdminLoading from "../admin-loading"
-
-type MechaturaStatsRow = {
-    payment_status: string | null;
-    competition_type: string | null;
-};
-
-const countBy = <TRow,>(
-    rows: TRow[],
-    predicate: (row: TRow) => boolean
-) => rows.reduce((count, row) => count + (predicate(row) ? 1 : 0), 0);
+import TableLoading from "../table-loading"
 
 async function MechaturaAdminData({
     searchParams,
@@ -92,24 +82,21 @@ async function MechaturaAdminData({
 
     const [
         { data: requestedPageData, error: pageError, count },
-        { data: statsRows, error: statsError },
+        { data: statsData, error: statsError },
     ] = await Promise.all([
         buildFilteredRegistrationQuery(mechaturaRegistrationColumns, { count: "exact" })
             .order("created_at", { ascending: false })
             .order("team_name", { ascending: true })
             .range(requestedFrom, requestedTo)
             .returns<AdminMechaturaRegistration[]>(),
-        adminSupabase
-            .from("mechatura_registrations")
-            .select("payment_status,competition_type")
-            .returns<MechaturaStatsRow[]>(),
+        adminSupabase.rpc("get_mechatura_stats"),
     ]);
 
     if (pageError || statsError) {
         throw new Error(pageError?.message ?? statsError?.message);
     }
-
-    const statsRegistrations = statsRows ?? [];
+    
+    const { total: totalTeams, paid: paidTeams, sumo: sumoTeams, transporter: transporterTeams } = statsData;
     const totalFilteredRegistrations = count ?? requestedPageData?.length ?? 0;
     const totalPages = Math.max(1, Math.ceil(totalFilteredRegistrations / pageSize));
     const page = Math.min(requestedPage, totalPages);
@@ -165,14 +152,12 @@ async function MechaturaAdminData({
                 endItem: Math.min(from + pageSize, totalFilteredRegistrations),
             }}
             stats={{
-                totalTeams: statsRegistrations.length,
-                paidTeams: countBy(statsRegistrations, (registration) =>
-                    isCompletedPaymentStatus(registration.payment_status)
-                ),
-                sumoTeams: countBy(statsRegistrations, (registration) => registration.competition_type === "sumo"),
-                transporterTeams: countBy(statsRegistrations, (registration) => registration.competition_type === "transporter"),
+                totalTeams,
+                paidTeams,
+                sumoTeams,
+                transporterTeams,
             }}
         />
     );
 }
-export default function MechaturaAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<AdminLoading />}><MechaturaAdminData searchParams={searchParams} /></Suspense> }
+export default function MechaturaAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><MechaturaAdminData searchParams={searchParams} /></Suspense> }

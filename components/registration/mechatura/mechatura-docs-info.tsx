@@ -10,7 +10,7 @@ export default function MechaturaDocsInfo({
 }: MechaturaDocsInfoProps){
     return (
         <section className="overflow-hidden rounded-xl border border-border bg-card" aria-labelledby="team-section-label">
-            <div className="border-b border-border p-8">
+            <div className="border-b border-border p-5 sm:p-6">
                 <h2 id="team-section-label" className="text-lg font-semibold">
                     Lampiran Anggota Tim
                 </h2>
@@ -24,7 +24,7 @@ export default function MechaturaDocsInfo({
                 </ul>
             </div>
     
-            <div className="space-y-6 p-8">
+            <div className="space-y-6 p-5 sm:p-6">
     
             <FormFileField<MechaturaFormValues>
                 name="member_document"
@@ -38,3 +38,4 @@ export default function MechaturaDocsInfo({
         </section>
     )
 }
+

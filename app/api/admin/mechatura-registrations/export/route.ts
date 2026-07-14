@@ -68,14 +68,7 @@ const formatPaymentStatus = (status: string | null) =>
 const formatCompetition = (value: unknown) =>
     isMechaturaCompetitionType(value) ? mechaturaCompetitionLabels[value] : "";
 
-const formatMembers = (members: MechaturaExportMember[]) =>
-    members
-        .filter((member) => !member.is_leader)
-        .map((member, index) => {
-            const contacts = [member.email, member.phone].filter(Boolean).join(" / ");
-            return `${index + 1}. ${member.full_name ?? "-"}${contacts ? ` (${contacts})` : ""}`;
-        })
-        .join("\n");
+// Member unrolling is handled inline now
 
 const chunk = <T,>(items: T[], size: number) => {
     const chunks: T[][] = [];
@@ -159,16 +152,29 @@ export async function GET() {
         "Leader Name",
         "Leader Email",
         "Leader Phone",
-        "Members",
         "Payment Status",
         "Registered At",
     ];
-    const rows = registrations.map((registration) => {
+
+    let maxMembers = 0;
+    const registrationsWithMembers = registrations.map((registration) => {
         const registrationMembers = membersByRegistrationId.get(registration.id) ?? [];
         const leader = registrationMembers.find((member) => member.is_leader);
+        const membersOnly = registrationMembers.filter((m) => !m.is_leader);
+        if (membersOnly.length > maxMembers) maxMembers = membersOnly.length;
+        return { registration, leader, membersOnly };
+    });
+
+    for (let i = 0; i < maxMembers; i++) {
+        headers.push(`Member ${i + 1} Name`);
+        headers.push(`Member ${i + 1} Email`);
+        headers.push(`Member ${i + 1} Phone`);
+    }
+
+    const rows = registrationsWithMembers.map(({ registration, leader, membersOnly }) => {
         const date = registration.created_at ? new Date(registration.created_at).toISOString() : "";
 
-        return [
+        const baseRow = [
             escapeCSV(registration.id),
             escapeCSV(registration.team_id),
             escapeCSV(registration.team_name),
@@ -179,10 +185,19 @@ export async function GET() {
             escapeCSV(leader?.full_name),
             escapeCSV(leader?.email),
             escapeCSV(leader?.phone),
-            escapeCSV(formatMembers(registrationMembers)),
             escapeCSV(formatPaymentStatus(registration.payment_status)),
             escapeCSV(date),
-        ].join(",");
+        ];
+
+        const memberCols: string[] = [];
+        for (let i = 0; i < maxMembers; i++) {
+            const m = membersOnly[i];
+            memberCols.push(escapeCSV(m?.full_name));
+            memberCols.push(escapeCSV(m?.email));
+            memberCols.push(escapeCSV(m?.phone));
+        }
+
+        return [...baseRow, ...memberCols].join(",");
     });
     const csvContent = [headers.join(","), ...rows].join("\n");
 

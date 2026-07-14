@@ -30,3 +30,4 @@ export default function PaymentProgress({ program }: PaymentProgressProps) {
     />
   );
 }
+

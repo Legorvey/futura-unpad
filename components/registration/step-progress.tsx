@@ -76,3 +76,4 @@ export default function StepProgress<TStep extends string>({
     </nav>
   );
 }
+

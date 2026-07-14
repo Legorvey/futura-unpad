@@ -34,6 +34,7 @@ const detailColumns = [
     "competition_type",
     "robot_name",
     "payment_status",
+    "payment_type",
     "member_document_path",
     "robot_document_path",
     "created_at",
@@ -50,6 +51,7 @@ type MechaturaDetailRegistration = {
     competition_type: unknown;
     robot_name: string | null;
     payment_status: string | null;
+    payment_type: string | null;
     member_document_path: string | null;
     robot_document_path: string | null;
     created_at: string | null;
@@ -160,6 +162,22 @@ export default async function MechaturaRegistrationDetails({
     const competition = isMechaturaCompetitionType(registrationData.competition_type)
         ? mechaturaCompetitionLabels[registrationData.competition_type]
         : "-";
+
+    const formatPaymentType = (type: string | null) => {
+        if (!type) return "-";
+        const map: Record<string, string> = {
+            gopay: "GoPay",
+            qris: "QRIS",
+            shopeepay: "ShopeePay",
+            credit_card: "Credit Card",
+            bank_transfer: "Bank Transfer",
+            echannel: "Mandiri Bill",
+            cstore: "Convenience Store",
+            bca_klikpay: "BCA KlikPay",
+            bca_klikbca: "KlikBCA",
+        };
+        return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    };
     return (
         <div className="mx-auto w-full max-w-6xl space-y-8">
             <div className="flex items-center gap-4">
@@ -203,7 +221,7 @@ export default async function MechaturaRegistrationDetails({
                         value={formatMechaturaDateTime(registrationData.paid_at)}
                     />
                     <DetailItem
-                        label="Payment"
+                        label="Payment Status"
                         value={
                             <span
                                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClassName[paymentStatus]}`}
@@ -212,6 +230,7 @@ export default async function MechaturaRegistrationDetails({
                             </span>
                         }
                     />
+                    <DetailItem label="Payment Method" value={formatPaymentType(registrationData.payment_type)} />
                 </dl>
             </section>
 

@@ -1,7 +1,9 @@
-export default function LombaEssay(){
+import { HeroSection } from "@/components/essay/hero-section"
+
+export default function LombaEssay() {
     return (
         <main>
-            <h1>halo</h1>
+            <HeroSection />
         </main>
     )
 }

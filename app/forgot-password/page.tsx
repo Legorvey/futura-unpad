@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <main className="mx-auto min-h-[calc(108svh-0px)] grid content-center  w-full max-w-xl space-y-10 px-6 py-16 sm:px-8">
+        <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center space-y-10 px-6 pb-16 pt-32 sm:px-8">
             <section className="space-y-2">
                 <h1 className="text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance">
                     Reset your password

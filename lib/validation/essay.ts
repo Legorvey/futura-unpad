@@ -17,6 +17,48 @@ export const clientEssayFormSchema = z.object({
   identity_confirmed: z.boolean().refine((val) => val === true, {
     message: "Harap centang konfirmasi bahwa data yang diisi sudah benar.",
   }),
+}).superRefine((data, ctx) => {
+  // Anggota 2 Validation
+  const hasMember2Name = !!data.member2_name?.trim();
+  const hasMember2Nim = !!data.member2_nim?.trim();
+  
+  if (hasMember2Name || hasMember2Nim) {
+    if (!hasMember2Name) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Nama anggota 2 wajib diisi jika NIM diisi.",
+        path: ["member2_name"],
+      });
+    }
+    if (!hasMember2Nim) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "NIM anggota 2 wajib diisi jika nama diisi.",
+        path: ["member2_nim"],
+      });
+    }
+  }
+
+  // Anggota 3 Validation
+  const hasMember3Name = !!data.member3_name?.trim();
+  const hasMember3Nim = !!data.member3_nim?.trim();
+  
+  if (hasMember3Name || hasMember3Nim) {
+    if (!hasMember3Name) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Nama anggota 3 wajib diisi jika NIM diisi.",
+        path: ["member3_name"],
+      });
+    }
+    if (!hasMember3Nim) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "NIM anggota 3 wajib diisi jika nama diisi.",
+        path: ["member3_nim"],
+      });
+    }
+  }
 });
 
 export type ClientEssayFormValues = z.infer<typeof clientEssayFormSchema>;

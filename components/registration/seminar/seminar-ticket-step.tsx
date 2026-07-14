@@ -24,7 +24,7 @@ export default function SeminarTicketStep({
   return (
     <FieldGroup className="gap-6">
       <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-start gap-4 p-8 border-b">
+        <div className="flex items-start gap-4 p-5 sm:p-6 border-b">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted">
             <CheckCircle2 className="h-5 w-5 text-foreground" />
           </span>
@@ -39,7 +39,7 @@ export default function SeminarTicketStep({
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h3 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -125,3 +125,4 @@ export default function SeminarTicketStep({
     </FieldGroup>
   );
 }
+

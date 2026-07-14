@@ -158,14 +158,24 @@ export async function ensureMidtransCompatibleMechaturaOrder(
 export async function updateMechaturaPaymentStatus(
   supabase: SupabaseAdminClient,
   orderId: string,
-  status: PaymentStatus
+  status: PaymentStatus,
+  paymentType?: string
 ) {
+  // Fetch existing order to enforce strict idempotency
+  const existingOrder = await findMechaturaPaymentOrder(supabase, orderId);
+
+  // If already completed, ignore duplicate webhooks to preserve original paid_at timestamp
+  if (existingOrder && isCompletedPaymentStatus(existingOrder.paymentStatus)) {
+    return;
+  }
+
   const completed = isCompletedPaymentStatus(status);
 
   const { error } = await supabase
     .from("mechatura_registrations")
     .update({
       payment_status: status,
+      payment_type: paymentType ?? null,
       paid_at: completed ? new Date().toISOString() : null,
       registration_status: completed ? "registered" : "waiting_payment",
     })
@@ -200,7 +210,7 @@ export async function syncMechaturaPaymentStatus(
     status.fraud_status
   );
 
-  await updateMechaturaPaymentStatus(supabase, orderId, paymentStatus);
+  await updateMechaturaPaymentStatus(supabase, orderId, paymentStatus, status.payment_type);
 
   return paymentStatus;
 }

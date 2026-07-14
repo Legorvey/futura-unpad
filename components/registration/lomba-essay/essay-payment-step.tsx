@@ -25,7 +25,7 @@ export default function EssayPaymentStep({
 }: EssayPaymentStepProps) {
   return (
     <FieldGroup className="gap-6">
-      <div className="overflow-hidden rounded-xl border border-border bg-card p-8">
+      <div className="overflow-hidden rounded-xl border border-border bg-card p-5 sm:p-6">
         <div className="mb-5 rounded-[8px] bg-muted p-3">
           <p className="text-xs text-muted-foreground">Registration ID</p>
           <p className="font-mono text-sm font-semibold">{registrationId}</p>
@@ -99,3 +99,4 @@ function PaymentSummaryItem({
     </div>
   );
 }
+

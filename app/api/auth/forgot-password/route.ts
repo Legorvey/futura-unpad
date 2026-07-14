@@ -45,6 +45,10 @@ export async function POST(request: Request) {
   });
 
   if (generateError) {
+    if (generateError.message.includes("User not found") || generateError.status === 404) {
+      // Prevent user enumeration by silently returning success
+      return NextResponse.json({ ok: true });
+    }
     return NextResponse.json({ error: generateError.message }, { status: 400 });
   }
 

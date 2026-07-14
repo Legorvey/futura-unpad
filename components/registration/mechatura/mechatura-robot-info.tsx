@@ -11,7 +11,7 @@ export default function MechaturaRobotInfo({
 }: MechaturaDocsInfoProps){
     return (
         <section className="overflow-hidden rounded-xl border border-border bg-card" aria-labelledby="team-section-label">
-            <div className="border-b border-border p-8">
+            <div className="border-b border-border p-5 sm:p-6">
                 <h2 id="team-section-label" className="text-lg font-semibold">
                     Lampiran Informasi Robot
                 </h2>
@@ -21,7 +21,7 @@ export default function MechaturaRobotInfo({
                 </p>
             </div>
 
-            <div className="space-y-6 p-8">
+            <div className="space-y-6 p-5 sm:p-6">
 
  
             <FormTextField<MechaturaFormValues>
@@ -43,3 +43,4 @@ export default function MechaturaRobotInfo({
         </section>
     )
 }
+

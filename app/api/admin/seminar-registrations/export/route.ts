@@ -112,6 +112,11 @@ export async function GET() {
         group.main ? [{ main: group.main, members: group.members }] : []
     )
 
+    let maxMembers = 0;
+    allGrouped.forEach(group => {
+        if (group.members.length > maxMembers) maxMembers = group.members.length;
+    });
+
     // CSV Header
     const headers = [
         "Registration ID",
@@ -122,21 +127,19 @@ export async function GET() {
         "Institution",
         "Status Akademika",
         "Registered At",
-        "Group Members", // Collapsed list of members
-    ]
+    ];
+
+    for (let i = 0; i < maxMembers; i++) {
+        headers.push(`Member ${i + 1} Name`);
+        headers.push(`Member ${i + 1} Institution`);
+    }
 
     // Convert data to CSV rows
     const rows = allGrouped.map(({ main, members }) => {
         const type = main.registration_type === "grup" || main.registration_type === "group" ? "Group" : "Individual"
         const date = main.created_at ? new Date(main.created_at).toISOString() : ""
 
-        // Format members into a clean, numbered list separated by newlines
-        // Example: "1. John Doe (Telkom University)\n2. Jane Doe (ITB)"
-        const membersString = members.map((m, i) =>
-            `${i + 1}. ${m.nama_lengkap} (${m.asal_institusi || "-"})`
-        ).join("\n")
-
-        return [
+        const baseRow = [
             escapeCSV(main.id),
             escapeCSV(type),
             escapeCSV(main.nama_lengkap),
@@ -145,8 +148,16 @@ export async function GET() {
             escapeCSV(main.asal_institusi),
             escapeCSV(main.status_akademika),
             escapeCSV(date),
-            escapeCSV(membersString),
-        ].join(",")
+        ];
+
+        const memberCols: string[] = [];
+        for (let i = 0; i < maxMembers; i++) {
+            const m = members[i];
+            memberCols.push(escapeCSV(m?.nama_lengkap));
+            memberCols.push(escapeCSV(m?.asal_institusi));
+        }
+
+        return [...baseRow, ...memberCols].join(",")
     })
 
     const csvContent = [headers.join(","), ...rows].join("\n")

@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Suspense } from "react"
-import AdminLoading from "../admin-loading"
+import TableLoading from "../table-loading"
 
 type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -100,4 +100,4 @@ async function LKTIAdminData({
         </div>
     )
 }
-export default function LKTIAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<AdminLoading />}><LKTIAdminData searchParams={searchParams} /></Suspense> }
+export default function LKTIAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><LKTIAdminData searchParams={searchParams} /></Suspense> }

@@ -150,20 +150,46 @@ function requireCoachWhenSelected<T extends z.ZodRawShape>(schema: z.ZodObject<T
     });
 }
 
-export const mechaturaIdentitySchema = requireCoachWhenSelected(
+function requireMembersWhenPartiallyFilled<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+    return schema.superRefine((values, ctx) => {
+        // Anggota 2 Validation
+        const m2Name = !!(values as any).member2_name?.trim();
+        const m2Email = !!(values as any).member2_email?.trim();
+        const m2Phone = !!(values as any).member2_phone?.trim();
+
+        if (m2Name || m2Email || m2Phone) {
+            if (!m2Name) addIssue(ctx, "member2_name", "Nama anggota 1 wajib diisi jika email atau telepon diisi.");
+            if (!m2Email) addIssue(ctx, "member2_email", "Email anggota 1 wajib diisi jika nama atau telepon diisi.");
+            if (!m2Phone) addIssue(ctx, "member2_phone", "Nomor telepon anggota 1 wajib diisi jika nama atau email diisi.");
+        }
+
+        // Anggota 3 Validation
+        const m3Name = !!(values as any).member3_name?.trim();
+        const m3Email = !!(values as any).member3_email?.trim();
+        const m3Phone = !!(values as any).member3_phone?.trim();
+
+        if (m3Name || m3Email || m3Phone) {
+            if (!m3Name) addIssue(ctx, "member3_name", "Nama anggota 2 wajib diisi jika email atau telepon diisi.");
+            if (!m3Email) addIssue(ctx, "member3_email", "Email anggota 2 wajib diisi jika nama atau telepon diisi.");
+            if (!m3Phone) addIssue(ctx, "member3_phone", "Nomor telepon anggota 2 wajib diisi jika nama atau email diisi.");
+        }
+    });
+}
+
+export const mechaturaIdentitySchema = requireMembersWhenPartiallyFilled(requireCoachWhenSelected(
     z.object(mechaturaIdentityShape)
-);
+));
 
 export const mechaturaCompetitionSchema = z.object(mechaturaCompetitionShape);
-export const mechaturaSubmissionSchema = requireCoachWhenSelected(
+export const mechaturaSubmissionSchema = requireMembersWhenPartiallyFilled(requireCoachWhenSelected(
     z.object(mechaturaSubmissionShape)
-);
+));
 
 // IDENTITIY STEP VALIDATIONS
 export function createMechaturaSchema({
     documentMaxSizeInBytes = DEFAULT_MECHATURA_DOCUMENT_MAX_SIZE,
 }: CreateMechaturaSchemaOptions = {}) {
-    return requireCoachWhenSelected(z.object({
+    return requireMembersWhenPartiallyFilled(requireCoachWhenSelected(z.object({
         ...mechaturaCompetitionShape,
         ...mechaturaIdentityShape,
         // Team Attachments
@@ -171,7 +197,7 @@ export function createMechaturaSchema({
         robot_name: requiredText("Nama robot"),
         robot_document: createDocumentSchema(documentMaxSizeInBytes),
         ...mechaturaVerificationShape,
-    }));
+    })));
 }
 
 export const MechaturaFormSchema = createMechaturaSchema();

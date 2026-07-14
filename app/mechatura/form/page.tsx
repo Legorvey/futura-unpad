@@ -35,7 +35,7 @@ export default async function MechaturaPage() {
     }
 
     return (
-        <main className="mx-auto w-full max-w-3xl items-start space-y-12 px-6 py-16 sm:px-8">
+        <main className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-3xl flex-col justify-center space-y-8 px-6 pb-32 pt-28 sm:px-8">
             <section>
                 <div className="space-y-2">
                     <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
@@ -57,3 +57,5 @@ export default async function MechaturaPage() {
         </main>
     );
 }
+
+

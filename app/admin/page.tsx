@@ -8,48 +8,37 @@ import {
 } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase-admin"
 import { requireAdminOrRedirect } from "@/lib/auth"
-import { isCompletedPaymentStatus } from "@/lib/payment"
 import { Suspense } from "react"
 import AdminLoading from "./admin-loading"
+import { RevenueChart, type RevenueData } from "./revenue-chart"
 
 async function AdminDashboardData() {
     const { user } = await requireAdminOrRedirect()
     const adminSupabase = createAdminClient()
 
-    const getCount = async (table: string, filters: Record<string, string> = {}, inFilter?: { column: string; values: string[] }) => {
-        let query = adminSupabase.from(table).select("*", { count: 'exact', head: true })
-        for (const [key, value] of Object.entries(filters)) {
-            query = query.eq(key, value)
-        }
-        if (inFilter) {
-            query = query.in(inFilter.column, inFilter.values)
-        }
-        const { count, error } = await query;
-        if (error) throw new Error(error.message);
-        return count ?? 0;
+    const [
+        { data: stats, error: statsError },
+        { data: revenueData, error: revenueError }
+    ] = await Promise.all([
+        adminSupabase.rpc("get_admin_dashboard_stats"),
+        adminSupabase.rpc("get_daily_revenue").returns<RevenueData[]>()
+    ])
+    
+    if (statsError || revenueError) {
+        throw new Error(statsError?.message ?? revenueError?.message);
     }
 
-    const [
-        totalRegistrations,
-        mahasiswaCount,
-        siswaCount,
-        dosenCount,
-        umumCount,
-        totalMechaturaCount,
-        mechaturaPaidCount,
-        sumoCount,
-        transporterCount
-    ] = await Promise.all([
-        getCount("seminar_registrations"),
-        getCount("seminar_registrations", { status_akademika: "mahasiswa" }),
-        getCount("seminar_registrations", { status_akademika: "siswa" }),
-        getCount("seminar_registrations", { status_akademika: "dosen" }),
-        getCount("seminar_registrations", { status_akademika: "umum" }),
-        getCount("mechatura_registrations"),
-        getCount("mechatura_registrations", {}, { column: "payment_status", values: ["paid", "settled"] }),
-        getCount("mechatura_registrations", { competition_type: "sumo" }),
-        getCount("mechatura_registrations", { competition_type: "transporter" }),
-    ])
+    const {
+        seminar_total: totalRegistrations,
+        seminar_mahasiswa: mahasiswaCount,
+        seminar_siswa: siswaCount,
+        seminar_dosen: dosenCount,
+        seminar_umum: umumCount,
+        mechatura_total: totalMechaturaCount,
+        mechatura_paid: mechaturaPaidCount,
+        mechatura_sumo: sumoCount,
+        mechatura_transporter: transporterCount
+    } = stats;
 
     return (
         <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -59,7 +48,7 @@ async function AdminDashboardData() {
                         Admin Dashboard
                     </p>
                     <div className="space-y-2">
-                        <h1 className="text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance">
                             Futura Overview
                         </h1>
                         <p className="max-w-xl text-sm font-medium leading-relaxed text-neutral-500">
@@ -68,6 +57,10 @@ async function AdminDashboardData() {
                         </p>
                     </div>
                 </div>
+            </section>
+
+            <section>
+                <RevenueChart data={revenueData ?? []} />
             </section>
 
             <section>

@@ -27,7 +27,7 @@ import {
     attachGroupMembers,
 } from "./_lib/seminar-utils"
 import { Suspense } from "react"
-import AdminLoading from "../admin-loading"
+import TableLoading from "../table-loading"
 
 async function SeminarListData({
     searchParams,
@@ -55,9 +55,7 @@ async function SeminarListData({
 
     const adminSupabase = createAdminClient()
     const searchPattern = toSearchPattern(searchFilter)
-    const statsPromise = adminSupabase
-        .from("seminar_registrations")
-        .select(seminarStatsColumns)
+    const statsPromise = adminSupabase.rpc("get_seminar_stats");
 
     if (attendanceFilter === "all") {
         const requestedFrom = (requestedPage - 1) * pageSize
@@ -191,7 +189,12 @@ async function SeminarListData({
                     startItem: totalFilteredRegistrations === 0 ? 0 : from + 1,
                     endItem: Math.min(from + pageSize, totalFilteredRegistrations),
                 }}
-                stats={getSeminarStats((statsData ?? []) as unknown as Participants[])}
+                stats={{
+                    totalRegistrations: statsData?.total ?? 0,
+                    checkedInAttendees: statsData?.attended ?? 0,
+                    groupRegistrations: statsData?.group ?? 0,
+                    individualRegistrations: statsData?.individual ?? 0,
+                }}
             />
         )
     }
@@ -260,7 +263,6 @@ async function SeminarListData({
         throw new Error(attendanceMemberError.message)
     }
 
-    const allParticipants = (statsData ?? []) as unknown as Participants[]
     const attendanceMembers = (attendanceMemberData ?? []) as unknown as Participants[]
     const attendanceMembersByGroup = new Map<string, Participants[]>()
 
@@ -285,14 +287,10 @@ async function SeminarListData({
         })
 
     const stats = {
-        totalRegistrations: allParticipants.length,
-        checkedInAttendees: allParticipants.filter((p) => p.attended).length,
-        groupRegistrations: allParticipants
-            .filter((p) => p.is_main_contact !== false)
-            .filter(isGroupRegistration).length,
-        individualRegistrations: allParticipants
-            .filter((p) => p.is_main_contact !== false)
-            .filter((p) => !isGroupRegistration(p)).length,
+        totalRegistrations: statsData?.total ?? 0,
+        checkedInAttendees: statsData?.attended ?? 0,
+        groupRegistrations: statsData?.group ?? 0,
+        individualRegistrations: statsData?.individual ?? 0,
     }
 
     const filteredParticipants = registrations.filter((participant) => {
@@ -390,4 +388,4 @@ async function SeminarListData({
         />
     )
 }
-export default function SeminarList({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<AdminLoading />}><SeminarListData searchParams={searchParams} /></Suspense> }
+export default function SeminarList({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><SeminarListData searchParams={searchParams} /></Suspense> }

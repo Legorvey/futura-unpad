@@ -316,7 +316,7 @@ export function ReceiptImage({ receipt, mechaturaOrder }: { receipt: ReceiptData
   return (
     <section className="space-y-4">
       <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-start gap-4 p-8 border-b">
+        <div className="flex items-start gap-4 p-5 sm:p-6 border-b">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted">
             <CheckCircle2 className="h-5 w-5 text-foreground" />
           </span>
@@ -331,7 +331,7 @@ export function ReceiptImage({ receipt, mechaturaOrder }: { receipt: ReceiptData
           </div>
         </div>
 
-        <div className="space-y-5 p-8">
+        <div className="space-y-5 p-5 sm:p-6">
           <div>
             <p className="text-sm text-muted-foreground">Total Paid</p>
             <p className="mt-1 text-3xl font-semibold tracking-tight">
@@ -367,3 +367,4 @@ export function ReceiptImage({ receipt, mechaturaOrder }: { receipt: ReceiptData
     </section>
   );
 }
+

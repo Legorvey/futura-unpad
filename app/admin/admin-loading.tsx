@@ -12,6 +12,20 @@ export default function AdminLoading() {
                 </div>
             </section>
 
+            <section className="flex flex-col gap-4 rounded-xl border border-border p-6 bg-card">
+                <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                        <div className="h-6 w-48 bg-muted rounded"></div>
+                        <div className="h-4 w-64 bg-muted rounded"></div>
+                    </div>
+                    <div className="space-y-2 text-right">
+                        <div className="h-8 w-32 bg-muted rounded ml-auto"></div>
+                        <div className="h-4 w-40 bg-muted rounded ml-auto"></div>
+                    </div>
+                </div>
+                <div className="mt-4 h-[300px] w-full bg-muted rounded"></div>
+            </section>
+
             <section>
                 <div className="h-7 w-32 bg-muted rounded mb-5"></div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

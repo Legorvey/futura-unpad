@@ -5,6 +5,7 @@ import { columns } from "./participants"
 import type { Participants } from "./participants"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Download, Scan, Search, X } from "lucide-react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
     Select,
@@ -69,6 +70,7 @@ export default function SeminarListClient({
         individualRegistrations: number
     }
 }) {
+    const router = useRouter()
     const participants = initialData
     const hasActiveFilters =
         !!searchParam?.trim() ||
@@ -107,6 +109,59 @@ export default function SeminarListClient({
         const queryString = query.toString()
         return queryString ? `/admin/seminar?${queryString}` : "/admin/seminar"
     }
+
+    const updateFilter = (key: string, value: string | undefined) => {
+        const query = new URLSearchParams()
+        
+        const currentSearch = key === "search" ? value : searchParam
+        const currentCategory = key === "category" ? value : (categoryFilter ?? "all")
+        const currentType = key === "type" ? value : (typeFilter ?? "all")
+        const currentAttendance = key === "attendance" ? value : (attendanceFilter ?? "all")
+        const currentPageSize = key === "pageSize" ? Number(value) : pageSize
+
+        if (currentSearch?.trim()) query.set("search", currentSearch.trim())
+        if (currentCategory !== "all") query.set("category", currentCategory!)
+        if (currentType !== "all") query.set("type", currentType!)
+        if (currentAttendance !== "all") query.set("attendance", currentAttendance!)
+        if (currentPageSize !== defaultPageSize) query.set("pageSize", String(currentPageSize))
+
+        const queryString = query.toString()
+        router.push(queryString ? `/admin/seminar?${queryString}` : "/admin/seminar")
+    }
+
+    const activeFilterPills = []
+    if (searchParam?.trim()) {
+        activeFilterPills.push({
+            key: "search",
+            label: `Search: "${searchParam}"`,
+            onRemove: () => updateFilter("search", undefined)
+        })
+    }
+    if ((categoryFilter ?? "all") !== "all") {
+        const label = statusOptions.find(o => o.value === categoryFilter)?.label ?? categoryFilter
+        activeFilterPills.push({
+            key: "category",
+            label: `Status: ${label}`,
+            onRemove: () => updateFilter("category", "all")
+        })
+    }
+    if ((typeFilter ?? "all") !== "all") {
+        const label = typeOptions.find(o => o.value === typeFilter)?.label ?? typeFilter
+        activeFilterPills.push({
+            key: "type",
+            label: `Type: ${label}`,
+            onRemove: () => updateFilter("type", "all")
+        })
+    }
+    if ((attendanceFilter ?? "all") !== "all") {
+        const label = attendanceOptions.find(o => o.value === attendanceFilter)?.label ?? attendanceFilter
+        activeFilterPills.push({
+            key: "attendance",
+            label: `Check-ins: ${label}`,
+            onRemove: () => updateFilter("attendance", "all")
+        })
+    }
+
 
     return (
         <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -149,97 +204,98 @@ export default function SeminarListClient({
                 })}
             </div>
 
-            <form action="/admin/seminar">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-center">
-                    <label className="xl:flex-1">
-                        <div className="relative">
-                            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input
-                                name="search"
-                                defaultValue={searchParam ?? ""}
-                                placeholder="Search registrations"
-                                className="h-9 w-full rounded-[8px] border border-input bg-transparent px-4 pl-11 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                            />
-                        </div>
-                    </label>
-
-                    <div className="grid gap-4 sm:grid-cols-2 xl:w-[760px] xl:grid-cols-4">
-                        <div>
-                            <Select name="category" defaultValue={categoryFilter ?? "all"}>
-                                <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                    <SelectValue placeholder="All statuses" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {statusOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <Select name="type" defaultValue={typeFilter ?? "all"}>
-                                <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                    <SelectValue placeholder="All types" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {typeOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <Select name="attendance" defaultValue={attendanceFilter ?? "all"}>
-                                <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                    <SelectValue placeholder="All check-ins" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {attendanceOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <Select name="pageSize" defaultValue={String(pageSize)}>
-                                <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                    <SelectValue placeholder="Rows per page" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {pageSizeOptions.map((option) => (
-                                        <SelectItem key={option} value={String(option)}>
-                                            {option} per page
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            <div className="flex flex-col gap-5">
+                <form action="/admin/seminar" className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-xl border border-border p-4 bg-card/50">
+                    <div className="relative flex-1 w-full lg:max-w-xs">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                            name="search"
+                            defaultValue={searchParam ?? ""}
+                            placeholder="Search registrations..."
+                            className="h-10 w-full rounded-lg border border-input bg-background px-4 pl-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                        <button type="submit" className="hidden">Search</button>
                     </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row xl:shrink-0">
-                        <Button className="rounded-[8px] px-6">
-                            Apply
-                        </Button>
-                        {hasActiveFilters ? (
-                            <Button variant="outline" className="rounded-[8px] px-5" asChild>
-                                <Link href="/admin/seminar" prefetch={false}>
-                                    <X className="h-4 w-4" />
-                                    Reset
-                                </Link>
-                            </Button>
-                        ) : null}
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Select name="category" value={categoryFilter ?? "all"} onValueChange={(v) => updateFilter("category", v)}>
+                            <SelectTrigger className="h-10 w-[140px] rounded-lg bg-background">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {statusOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select name="type" value={typeFilter ?? "all"} onValueChange={(v) => updateFilter("type", v)}>
+                            <SelectTrigger className="h-10 w-[140px] rounded-lg bg-background">
+                                <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {typeOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select name="attendance" value={attendanceFilter ?? "all"} onValueChange={(v) => updateFilter("attendance", v)}>
+                            <SelectTrigger className="h-10 w-[150px] rounded-lg bg-background">
+                                <SelectValue placeholder="Check-ins" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {attendanceOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select name="pageSize" value={String(pageSize)} onValueChange={(v) => updateFilter("pageSize", v)}>
+                            <SelectTrigger className="h-10 w-[110px] rounded-lg bg-background">
+                                <SelectValue placeholder="Rows" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pageSizeOptions.map((option) => (
+                                    <SelectItem key={option} value={String(option)}>
+                                        {option} rows
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                </div>
-            </form>
+                </form>
+
+                {activeFilterPills.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap px-1">
+                        <span className="text-sm text-muted-foreground font-medium mr-1">Active filters:</span>
+                        {activeFilterPills.map(pill => (
+                            <div key={pill.key} className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground shadow-sm">
+                                {pill.label}
+                                <button 
+                                    onClick={pill.onRemove} 
+                                    className="rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" 
+                                    type="button"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        ))}
+                        <button 
+                            onClick={() => router.push("/admin/seminar")}
+                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
+                        >
+                            Clear all
+                        </button>
+                    </div>
+                )}
+            </div>
 
             <DataTable columns={columns} data={participants} />
 

@@ -86,3 +86,4 @@ export default function SeminarRegistrationOptionStep({
     </form>
   );
 }
+

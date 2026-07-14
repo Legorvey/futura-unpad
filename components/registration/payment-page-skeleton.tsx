@@ -30,7 +30,7 @@ export default function PaymentPageSkeleton({
       <SkeletonPaymentProgress stepCount={stepCount} />
 
       <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-8">
+        <div className="border-b border-border p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="space-y-2">
@@ -41,7 +41,7 @@ export default function PaymentPageSkeleton({
         </div>
 
         <div className="divide-y divide-border">
-          <div className="grid gap-4 p-8 sm:grid-cols-2">
+          <div className="grid gap-4 p-5 sm:p-6 sm:grid-cols-2">
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="space-y-2">
                 <Skeleton className="h-3 w-24" />
@@ -50,7 +50,7 @@ export default function PaymentPageSkeleton({
             ))}
           </div>
 
-          <div className="grid gap-2 p-8 sm:grid-cols-[1fr_auto] sm:items-start">
+          <div className="grid gap-2 p-5 sm:p-6 sm:grid-cols-[1fr_auto] sm:items-start">
             <div className="space-y-2">
               <Skeleton className="h-5 w-48 max-w-full" />
               <Skeleton className="h-4 w-56 max-w-full" />
@@ -97,3 +97,4 @@ function SkeletonPaymentProgress({ stepCount }: { stepCount: number }) {
     </div>
   );
 }
+

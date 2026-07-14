@@ -11,7 +11,7 @@ export function HeroSection() {
                 <div className="max-w-5xl space-y-4 text-center">
                     {/* <h3 className="mx-auto text-md w-fit rounded-full bg-stone-800 py-3 px-6">Teknik Elektro Universitas Padjadjaran Presents</h3> */}
                     <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter leading-none text-balance">
-                        Seminar Nasional Inovasi & Teknologi
+                        Lomba Essay
                     </h1>
                     <p className="text-md lg:text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 text-balance">
                         Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030
@@ -20,7 +20,7 @@ export function HeroSection() {
 
                 <div className="mx-auto flex flex-col items-center">
                     <h1 className="text-lg sm:text-xl font-semibold mb-4">Registrasi akan dibuka dalam</h1>
-                    <Countdown targetDate={new Date("2026-11-07T00:00:00+07:00").getTime()} />
+                    <Countdown targetDate={new Date("2026-09-21T00:00:00+07:00").getTime()} />
                 </div>
 
                 {/* <Link href="/registration/seminar" className="mx-auto bg-white text-black py-2 px-4 w-fit rounded-full">Daftar Sekarang</Link> */}

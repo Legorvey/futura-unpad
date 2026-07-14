@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { mechaturaCompetitionLabels, paymentStatusLabels } from "@/lib/payment";
 import { ChevronLeft, ChevronRight, Download, Scan, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DataTable } from "./data-table";
 import { columns, type AdminMechaturaLeader, type AdminMechaturaRegistration } from "./teams";
@@ -60,6 +61,7 @@ export default function MechaturaListClient({
     pagination,
     stats,
 }: MechaturaListClientProps) {
+    const router = useRouter();
     const hasActiveFilters =
         !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all";
     const leaderByRegistrationId = new Map(
@@ -79,6 +81,42 @@ export default function MechaturaListClient({
             category: categoryFilter,
             payment: paymentFilter,
         });
+
+    const updateFilter = (key: string, value: string | undefined) => {
+        const newHref = buildMechaturaPageHref({
+            page: 1, // reset to page 1 on filter change
+            pageSize: key === "pageSize" ? Number(value) : pageSize,
+            search: key === "search" ? value : searchParam,
+            category: key === "category" ? (value as any) : categoryFilter,
+            payment: key === "payment" ? (value as any) : paymentFilter,
+        });
+        router.push(newHref);
+    };
+
+    const activeFilterPills = [];
+    if (searchParam?.trim()) {
+        activeFilterPills.push({
+            key: "search",
+            label: `Search: "${searchParam}"`,
+            onRemove: () => updateFilter("search", undefined)
+        });
+    }
+    if (categoryFilter !== "all") {
+        const label = categoryOptions.find(o => o.value === categoryFilter)?.label;
+        activeFilterPills.push({
+            key: "category",
+            label: `Category: ${label}`,
+            onRemove: () => updateFilter("category", "all")
+        });
+    }
+    if (paymentFilter !== "all") {
+        const label = paymentStatusLabels[paymentFilter as keyof typeof paymentStatusLabels] ?? paymentFilter;
+        activeFilterPills.push({
+            key: "payment",
+            label: `Payment: ${label}`,
+            onRemove: () => updateFilter("payment", "all")
+        });
+    }
 
     const teamData = registrations.map((reg) => ({
         ...reg,
@@ -130,24 +168,24 @@ export default function MechaturaListClient({
                 ))}
             </div>
 
-            <form action="/admin/mechatura">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-center">
-                    <label className="xl:flex-1">
-                        <div className="relative">
-                            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input
-                                name="search"
-                                defaultValue={searchParam ?? ""}
-                                placeholder="Search teams, robots, institutions, leaders"
-                                className="h-9 w-full rounded-[8px] border border-input bg-transparent px-4 pl-11 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                            />
-                        </div>
-                    </label>
+            <div className="flex flex-col gap-5">
+                <form action="/admin/mechatura" className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-xl border border-border p-4 bg-card/50">
+                    <div className="relative flex-1 w-full lg:max-w-md">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                            name="search"
+                            defaultValue={searchParam ?? ""}
+                            placeholder="Search teams, institutions..."
+                            className="h-10 w-full rounded-lg border border-input bg-background px-4 pl-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                        {/* Hidden submit button to allow Enter key to submit */}
+                        <button type="submit" className="hidden">Search</button>
+                    </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 xl:w-[570px] xl:grid-cols-3">
-                        <Select name="category" defaultValue={categoryFilter}>
-                            <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                <SelectValue placeholder="All categories" />
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Select name="category" value={categoryFilter} onValueChange={(v) => updateFilter("category", v)}>
+                            <SelectTrigger className="h-10 w-[160px] rounded-lg bg-background">
+                                <SelectValue placeholder="Category" />
                             </SelectTrigger>
                             <SelectContent>
                                 {categoryOptions.map((option) => (
@@ -158,9 +196,9 @@ export default function MechaturaListClient({
                             </SelectContent>
                         </Select>
 
-                        <Select name="payment" defaultValue={paymentFilter}>
-                            <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                <SelectValue placeholder="All payments" />
+                        <Select name="payment" value={paymentFilter} onValueChange={(v) => updateFilter("payment", v)}>
+                            <SelectTrigger className="h-10 w-[160px] rounded-lg bg-background">
+                                <SelectValue placeholder="Payment" />
                             </SelectTrigger>
                             <SelectContent>
                                 {paymentFilters.map((status) => (
@@ -171,33 +209,45 @@ export default function MechaturaListClient({
                             </SelectContent>
                         </Select>
 
-                        <Select name="pageSize" defaultValue={String(pageSize)}>
-                            <SelectTrigger className="h-12 w-full rounded-[8px] px-4">
-                                <SelectValue placeholder="Rows per page" />
+                        <Select name="pageSize" value={String(pageSize)} onValueChange={(v) => updateFilter("pageSize", v)}>
+                            <SelectTrigger className="h-10 w-[140px] rounded-lg bg-background">
+                                <SelectValue placeholder="Rows" />
                             </SelectTrigger>
                             <SelectContent>
                                 {pageSizeOptions.map((option) => (
                                     <SelectItem key={option} value={String(option)}>
-                                        {option} per page
+                                        {option} rows
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
+                </form>
 
-                    <div className="flex flex-col gap-3 sm:flex-row xl:shrink-0">
-                        <Button className="rounded-[8px] px-6">Apply</Button>
-                        {hasActiveFilters ? (
-                            <Button variant="outline" className="rounded-[8px] px-5" asChild>
-                                <Link href="/admin/mechatura" prefetch={false}>
-                                    <X className="h-4 w-4" />
-                                    Reset
-                                </Link>
-                            </Button>
-                        ) : null}
+                {activeFilterPills.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap px-1">
+                        <span className="text-sm text-muted-foreground font-medium mr-1">Active filters:</span>
+                        {activeFilterPills.map(pill => (
+                            <div key={pill.key} className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground shadow-sm">
+                                {pill.label}
+                                <button 
+                                    onClick={pill.onRemove} 
+                                    className="rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" 
+                                    type="button"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        ))}
+                        <button 
+                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all" }))}
+                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
+                        >
+                            Clear all
+                        </button>
                     </div>
-                </div>
-            </form>
+                )}
+            </div>
 
             <DataTable columns={columns} data={teamData} />
 

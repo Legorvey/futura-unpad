@@ -17,6 +17,7 @@ type MidtransNotification = {
   signature_key?: string;
   transaction_status?: string;
   fraud_status?: string;
+  payment_type?: string;
 };
 
 export async function POST(request: Request) {
@@ -47,7 +48,8 @@ export async function POST(request: Request) {
   await updateMechaturaPaymentStatus(
     createAdminClient(),
     notification.order_id,
-    paymentStatus
+    paymentStatus,
+    notification.payment_type
   );
 
   return NextResponse.json({ ok: true });

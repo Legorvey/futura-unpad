@@ -40,3 +40,4 @@ export default function EssayDetailsStep({ onSubmit }: EssayDetailsStepProps) {
     </form>
   );
 }
+

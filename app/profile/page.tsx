@@ -272,7 +272,7 @@ export default async function ProfilePage() {
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-sm text-muted-foreground mb-4">You have not registered for the National Seminar yet.</p>
                 <Button asChild className="h-10 rounded-xl">
-                  <Link href="/registration/seminar" prefetch={false}>Register for Seminar</Link>
+                  <Link href="/seminar-nasional/form" prefetch={false}>Register for Seminar</Link>
                 </Button>
               </div>
             )}
@@ -378,7 +378,7 @@ export default async function ProfilePage() {
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-sm text-muted-foreground mb-4">You have not formed a team for the Mechatura Robotics Competition yet.</p>
                 <Button asChild className="h-10 rounded-xl">
-                  <Link href="/registration/mechatura" prefetch={false}>Register Team</Link>
+                  <Link href="/mechatura/form" prefetch={false}>Register Team</Link>
                 </Button>
               </div>
             )}
@@ -405,7 +405,7 @@ export default async function ProfilePage() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <p className="text-sm text-muted-foreground mb-4">No active Lomba KTI registration found for this account.</p>
               <Button asChild className="h-10 rounded-xl">
-                <Link href="/registration/lomba-kti" prefetch={false}>Register for Lomba KTI</Link>
+                <Link href="/lomba-essay/form" prefetch={false}>Register for Lomba KTI</Link>
               </Button>
             </div>
           </div>

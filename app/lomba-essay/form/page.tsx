@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Countdown from "@/components/countdown";
 import { TARGET_DATE } from "@/lib/landing/helper";
 

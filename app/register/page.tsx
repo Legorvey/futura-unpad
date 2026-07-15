@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { redirect } from "next/navigation"
 import RegisterForm from "./form"
 import { getCachedAuth } from "@/lib/auth"

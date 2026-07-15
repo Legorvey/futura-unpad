@@ -271,10 +271,8 @@ export default async function ProfilePage() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">You have not registered for the National Seminar yet.</p>
-                <Button asChild className="h-10 rounded-xl">
-                  <Link href="/seminar-nasional/form" prefetch={true}>Register for Seminar</Link>
-                </Button>
+                <p className="text-sm font-semibold text-foreground mb-1">Registration Coming Soon</p>
+                <p className="text-sm text-muted-foreground">National Seminar registration is not open yet.</p>
               </div>
             )}
           </div>
@@ -404,10 +402,8 @@ export default async function ProfilePage() {
 
           <div className="p-6">
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <p className="text-sm text-muted-foreground mb-4">No active Lomba KTI registration found for this account.</p>
-              <Button asChild className="h-10 rounded-xl">
-                <Link href="/lomba-essay/form" prefetch={true}>Register for Lomba KTI</Link>
-              </Button>
+              <p className="text-sm font-semibold text-foreground mb-1">Registration Coming Soon</p>
+              <p className="text-sm text-muted-foreground">Lomba KTI registration is not open yet.</p>
             </div>
           </div>
         </div>

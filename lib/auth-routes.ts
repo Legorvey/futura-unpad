@@ -2,9 +2,9 @@ const authRequiredPathPrefixes = [
   "/admin",
   "/profile",
   "/payment",
-  "/registration/mechatura",
-  "/registration/lomba-essay",
-  "/registration/lomba-kti",
+  "/mechatura/form",
+  "/lomba-essay/form",
+  "/seminar-nasional/form",
 ] as const;
 
 const matchesPathPrefix = (pathname: string, prefix: string) =>

@@ -31,15 +31,15 @@ export function NavbarDemo() {
     },
     {
       name: "About",
-      link: "#about",
+      link: "/#about",
     },
     {
       name: "Timeline",
-      link: "#timeline",
+      link: "/#timeline",
     },
     {
       name: "Registrations",
-      link: "#registrations",
+      link: "/#registrations",
     },
   ];
  

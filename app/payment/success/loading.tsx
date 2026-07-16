@@ -1,5 +1,5 @@
-import PaymentPageSkeleton from "@/components/registration/payment-page-skeleton";
+import PaymentSpinnerLoader from "@/components/registration/payment-spinner-loader";
 
 export default function Loading() {
-  return <PaymentPageSkeleton stepCount={4} />;
+  return <PaymentSpinnerLoader message="Verifying your transaction..." />;
 }

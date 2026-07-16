@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const requestUrl = new URL(request.url);
   const redirectUrl = new URL(
-    "/auth/verify-reset",
+    "/auth/callback?next=/reset-password",
     process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin
   );
 
@@ -59,7 +59,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
 
-  const actionLink = linkData.properties.action_link;
+  const supabaseLink = new URL(linkData.properties.action_link);
+  const token = supabaseLink.searchParams.get("token");
+  
+  if (!token) {
+      console.error("Failed to extract token from Supabase action_link");
+      return NextResponse.json({ error: "Failed to generate valid recovery link" }, { status: 500 });
+  }
+
+  const customLink = `${requestUrl.origin}/auth/callback?token_hash=${token}&type=recovery&next=/reset-password`;
 
   const resendResponse = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -75,7 +83,7 @@ export async function POST(request: Request) {
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Reset Your Password</h2>
           <p>We received a request to reset your password. Click the button below to choose a new password:</p>
-          <a href="${actionLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; margin-top: 16px;">Reset Password</a>
+          <a href="${customLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; margin-top: 16px;">Reset Password</a>
           <p style="margin-top: 32px; font-size: 14px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,

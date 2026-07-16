@@ -55,3 +55,7 @@ Thumbs.db
 # AI Agents
 .agents/
 .claude/
+tasks/
+
+# MCP Servers
+.playwright-mcp/

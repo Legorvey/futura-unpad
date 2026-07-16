@@ -59,8 +59,13 @@ export const mechaturaCompetitionLabels: Record<MechaturaCompetitionType, string
 export const mechaturaPaymentAmount = 10000;
 export const midtransOrderIdMaxLength = 50;
 
-export const formatCurrency = (value: number) =>
-  `Rp. ${value.toLocaleString("id-ID")}`;
+const currencyFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  maximumFractionDigits: 0,
+});
+
+export const formatCurrency = (value: number) => currencyFormatter.format(value);
 
 export const isAcademicStatus = (value: unknown): value is AcademicStatus =>
   value === "mahasiswa" ||

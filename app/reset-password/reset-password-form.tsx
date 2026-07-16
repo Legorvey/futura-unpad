@@ -46,7 +46,9 @@ export default function ResetPasswordForm() {
 
         setIsComplete(true)
         setSuccessMessage("Password updated successfully. Please sign in with your new password.")
-        router.replace("/login")
+        setTimeout(() => {
+            router.replace("/login")
+        }, 2000)
     }
 
     return (

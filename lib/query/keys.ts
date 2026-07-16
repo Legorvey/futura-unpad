@@ -37,7 +37,6 @@ export const mutationKeys = {
     login: ["auth", "login"] as const,
     register: ["auth", "register"] as const,
     resetPassword: ["auth", "reset-password"] as const,
-    setRecoveryCookie: ["auth", "set-recovery-cookie"] as const,
   },
   registrations: {
     seminar: {

@@ -58,12 +58,12 @@ export async function POST(request: Request) {
 
   const adminSupabase = createAdminClient();
 
-  // Check duplicate by name AND email
+  // Check duplicate by user_id to prevent multiple registrations per account
   const existingQuery = adminSupabase
     .from("seminar_registrations")
     .select("id,user_id,email")
-    .eq("email", parsed.data.email)
-    .eq("nama_lengkap", parsed.data.nama_lengkap);
+    .eq("user_id", user.id)
+    .eq("is_main_contact", true);
 
   const { data: existingRegistration, error: existingError } = await existingQuery
     .order("created_at", { ascending: false })

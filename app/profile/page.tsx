@@ -4,7 +4,6 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ReceiptDownloadButton, type ReceiptData } from "@/components/registration/mechatura-invoice"
 import {
   formatCurrency,
   isAcademicStatus,
@@ -17,9 +16,6 @@ import {
 } from "@/lib/payment"
 import { getCachedAuth } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { QRCodeSVG } from "qrcode.react"
-import { TicketDownloadButton, type DownloadRegistrationData } from "./ticket-download-button"
-import { MechaturaTicketDownloadButton } from "@/components/registration/mechatura-ticket-download-button"
 
 type ProfileRegistration = {
   id: string
@@ -48,12 +44,14 @@ type ProfileMechaturaRegistration = {
   midtrans_order_id: string
   created_at: string | null
   paid_at: string | null
+  mechatura_members: ProfileMechaturaLeader[]
 }
 
 type ProfileMechaturaLeader = {
   full_name: string
   email: string | null
   phone: string | null
+  is_leader: boolean
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -102,7 +100,7 @@ export default async function ProfilePage() {
       adminSupabase
         .from("mechatura_registrations")
         .select(
-          "id,team_name,institution,competition_type,robot_name,registration_status,payment_status,payment_amount,midtrans_order_id,created_at,paid_at"
+          "id,team_name,institution,competition_type,robot_name,registration_status,payment_status,payment_amount,midtrans_order_id,created_at,paid_at,mechatura_members(full_name,email,phone,is_leader)"
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
@@ -114,14 +112,6 @@ export default async function ProfilePage() {
     throw new Error(error?.message ?? mechaturaError?.message)
   }
 
-  const mechaturaMembersPromise = latestMechaturaRegistration
-    ? adminSupabase
-      .from("mechatura_members")
-      .select("full_name,email,phone,is_leader")
-      .eq("registration_id", latestMechaturaRegistration.id)
-      .order("is_leader", { ascending: false })
-    : Promise.resolve({ data: [], error: null })
-
   const groupMembersPromise = isProfileGroupRegistration(latestRegistration) && latestRegistration?.group_id
     ? adminSupabase
       .from("seminar_registrations")
@@ -132,19 +122,17 @@ export default async function ProfilePage() {
       .order("nama_lengkap", { ascending: true })
     : Promise.resolve({ data: [], error: null })
 
-  const [
-    { data: mechaturaMembersRaw, error: mechaturaMembersError },
-    { data: membersData, error: membersError },
-  ] = await Promise.all([mechaturaMembersPromise, groupMembersPromise])
+  const { data: membersData, error: membersError } = await groupMembersPromise
 
-  if (mechaturaMembersError || membersError) {
-    throw new Error(mechaturaMembersError?.message ?? membersError?.message)
+  if (membersError) {
+    throw new Error(membersError.message)
   }
 
-  const mechaturaMembers = mechaturaMembersRaw || [];
+  const mechaturaMembers = latestMechaturaRegistration?.mechatura_members || [];
+  // Sort to mimic previous logic, or just find the leader directly
   const mechaturaLeader = mechaturaMembers.find(m => m.is_leader);
 
-  const groupMembers = (membersData ?? []) as DownloadRegistrationData[]
+  const groupMembers = membersData ?? []
   const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
   const checkedInCount = latestRegistration ? (latestRegistration.attended ? 1 : 0) + groupMembers.filter(m => m.attended).length : 0
 
@@ -164,38 +152,6 @@ export default async function ProfilePage() {
   const isMechaturaPaymentComplete = isCompletedPaymentStatus(
     mechaturaPaymentStatus
   )
-  const mechaturaTicketLabel =
-    latestMechaturaRegistration && mechaturaCompetition
-      ? `${mechaturaCompetitionLabels[mechaturaCompetition]} - ${latestMechaturaRegistration.robot_name}`
-      : latestMechaturaRegistration?.robot_name ?? "-"
-  const mechaturaReceipt: ReceiptData | null =
-    latestMechaturaRegistration && isMechaturaPaymentComplete
-      ? {
-        title: "Mechatura Event Registration",
-        name: `${latestMechaturaRegistration.team_name} / ${mechaturaLeader?.full_name ?? "Team Leader"}`,
-        email: mechaturaLeader?.email ?? user.email ?? "-",
-        phone: mechaturaLeader?.phone ?? "-",
-        institution: latestMechaturaRegistration.institution ?? "-",
-        program: "Mechatura Robotics Competition",
-        ticket: mechaturaTicketLabel,
-        amount: formatCurrency(latestMechaturaRegistration.payment_amount ?? 0),
-        paidAt: latestMechaturaRegistration.paid_at
-          ? new Date(latestMechaturaRegistration.paid_at).toLocaleString("id-ID")
-          : "-",
-        invoiceId: latestMechaturaRegistration.midtrans_order_id,
-        referenceId: latestMechaturaRegistration.midtrans_order_id,
-        mechaturaDetails: {
-          teamName: latestMechaturaRegistration.team_name || "-",
-          robotName: latestMechaturaRegistration.robot_name || "-",
-          competitionType: mechaturaCompetition ? mechaturaCompetitionLabels[mechaturaCompetition] : "-",
-          members: mechaturaMembers.map(m => ({
-            name: m.full_name || "-",
-            email: m.email || "-",
-            phone: m.phone || "-"
-          }))
-        }
-      }
-      : null
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -256,20 +212,6 @@ export default async function ProfilePage() {
                       </p>
                     </div>
                   </div>
-                  {latestRegistration.registration_type !== "group" && (
-                    <div className="flex flex-col items-center justify-center self-start shrink-0 p-4 bg-background rounded-xl border border-border">
-                      <div className="rounded-[8px] bg-white border border-border p-2">
-                        <QRCodeSVG value={latestRegistration.id} size={120} />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-3 uppercase font-semibold tracking-wider">Ticket QR</p>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-6">
-                  <TicketDownloadButton
-                    mainContact={latestRegistration as DownloadRegistrationData}
-                    members={groupMembers}
-                  />
                 </div>
               </>
             ) : (
@@ -337,44 +279,25 @@ export default async function ProfilePage() {
                     </div>
                   </div>
 
-                  {isMechaturaPaymentComplete && (
-                    <div className="flex flex-col items-center justify-center self-start shrink-0 p-4 bg-background rounded-xl border border-border">
-                      <div className="rounded-[8px] bg-white border border-border p-2">
-                        <QRCodeSVG value={`mechatura:${latestMechaturaRegistration.id}`} size={120} />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-3 uppercase font-semibold tracking-wider">Ticket QR</p>
-                    </div>
-                  )}
                 </div>
 
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  {mechaturaReceipt ? (
-                    <ReceiptDownloadButton
-                      receipt={mechaturaReceipt}
-                      variant="outline"
-                      className="w-full sm:flex-1 shrink-0 bg-background hover:bg-muted/50"
-                    >
-                      Save Invoice
-                    </ReceiptDownloadButton>
-                  ) : (
+                {isMechaturaPaymentComplete ? (
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <Button asChild variant="outline" className="w-full sm:w-auto shrink-0 bg-background hover:bg-muted/50">
+                      <Link href={`/payment/success?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
+                        View Payment Receipt <ChevronRight className="w-4 h-4 ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Button asChild variant="outline" className="w-full sm:w-auto shrink-0 bg-background hover:bg-muted/50">
                       <Link href={`/payment?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
                         Open Payment Details <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
-                  )}
-                  {isMechaturaPaymentComplete && (
-                    <MechaturaTicketDownloadButton
-                      registrationId={latestMechaturaRegistration.id}
-                      teamName={latestMechaturaRegistration.team_name}
-                      institution={latestMechaturaRegistration.institution || "-"}
-                      competitionType={mechaturaCompetition}
-                      robotName={latestMechaturaRegistration.robot_name}
-                      leaderName={mechaturaLeader?.full_name ?? "Leader"}
-                      className="w-full sm:flex-1 shrink-0"
-                    />
-                  )}
-                </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">

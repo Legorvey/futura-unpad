@@ -29,16 +29,30 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+import { getCachedAuth } from "@/lib/auth";
+
 export const metadata: Metadata = {
   title: "Futura 2026",
   description: "by HMTE Universitas Padjadjaran",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const { user, adminAccess } = await getCachedAuth();
+  const initialSession: AuthSession = {
+    user: user
+      ? {
+          id: user.id,
+          email: user.email ?? null,
+          user_metadata: user.user_metadata,
+        }
+      : null,
+    adminAccess,
+  };
 
   return (
     <html
@@ -54,7 +68,7 @@ export default function RootLayout({
     >
       <body className="dark">
         <QueryProvider>
-          <AuthProvider>
+          <AuthProvider initialSession={initialSession}>
             <Suspense fallback={null}>
               <NavigationLoading />
             </Suspense>

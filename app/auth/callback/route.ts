@@ -36,17 +36,25 @@ export async function GET(request: Request) {
     const isPasswordRecoveryRedirect =
         new URL(safeNextUrl, requestUrl.origin).pathname === "/reset-password"
 
-    if (!code) {
-        return NextResponse.redirect(new URL("/login?error=missing_code", request.url))
-    }
+    const token_hash = requestUrl.searchParams.get("token_hash")
+    const type = requestUrl.searchParams.get("type") as any
 
     const supabase = await createClient({
         authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
     })
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-        return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url))
+    if (token_hash && type) {
+        const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+        if (error) {
+            return NextResponse.redirect(new URL("/login?error=oauth_failed", requestUrl.origin))
+        }
+    } else if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+            return NextResponse.redirect(new URL("/login?error=oauth_failed", requestUrl.origin))
+        }
+    } else {
+        return NextResponse.redirect(new URL("/login?error=missing_code", requestUrl.origin))
     }
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -92,7 +100,7 @@ export async function GET(request: Request) {
         )
     }
 
-    const response = NextResponse.redirect(new URL(finalNextUrl, process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"))
+    const response = NextResponse.redirect(new URL(finalNextUrl, requestUrl.origin))
 
     if (isPasswordRecoveryRedirect) {
         response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {

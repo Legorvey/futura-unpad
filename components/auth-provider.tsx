@@ -86,6 +86,7 @@ export function AuthProvider({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUser = toAuthUser(session?.user ?? null);
+      const currentSession = queryClient.getQueryData<AuthSession>(queryKeys.auth.session);
 
       if (!isMounted) {
         return;
@@ -95,28 +96,31 @@ export function AuthProvider({
         return;
       }
 
+      const isSameUser = currentSession?.user?.id === nextUser?.id;
+
+      // Only refresh the router if the user explicitly changed or metadata updated.
+      // We explicitly avoid calling refresh on redundant SIGNED_IN events for the 
+      // same user (often fired on focus) or TOKEN_REFRESHED.
       if (
-        event === "SIGNED_IN" ||
         event === "SIGNED_OUT" ||
-        event === "TOKEN_REFRESHED" ||
+        (event === "SIGNED_IN" && !isSameUser) ||
         event === "USER_UPDATED"
       ) {
         router.refresh();
       }
 
       if (!nextUser) {
-        queryClient.clear();
-        setCachedSession({ user: null, adminAccess: false });
+        if (currentSession?.user) {
+          queryClient.clear();
+          setCachedSession({ user: null, adminAccess: false });
+        }
         return;
       }
 
-      const currentSession = queryClient.getQueryData<AuthSession>(queryKeys.auth.session);
-      const isSameUser = currentSession?.user?.id === nextUser.id;
       const adminAccess = isSameUser ? (currentSession?.adminAccess ?? false) : false;
 
+      // Update the cache directly without invalidating to avoid an immediate background network request.
       setCachedSession({ user: nextUser, adminAccess });
-      
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
     });
 
     return () => {
@@ -129,10 +133,11 @@ export function AuthProvider({
     () => ({
       user,
       adminAccess,
-      isLoading: authSession.isPending || authSession.isFetching || isMutatingAuth,
+      // Ignore background refreshes (isFetching) so the Navbar doesn't flicker to a loading skeleton
+      isLoading: authSession.isPending || isMutatingAuth,
       signOut,
     }),
-    [authSession.isPending, authSession.isFetching, adminAccess, isMutatingAuth, signOut, user]
+    [authSession.isPending, adminAccess, isMutatingAuth, signOut, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

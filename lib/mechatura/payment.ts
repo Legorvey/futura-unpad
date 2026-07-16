@@ -55,6 +55,7 @@ export type MechaturaPaymentOrder = {
     email: string;
     phone: string;
   };
+  members: { name: string }[];
 };
 
 export const mechaturaPaymentOrderSelect =
@@ -66,9 +67,8 @@ export async function findMechaturaPaymentOrder(
 ): Promise<MechaturaPaymentOrder | null> {
   const { data: registration, error } = await supabase
     .from("mechatura_registrations")
-    .select(`${mechaturaPaymentOrderSelect},mechatura_members!inner(full_name,email,phone,is_leader)`)
+    .select(`${mechaturaPaymentOrderSelect},mechatura_members(full_name,email,phone,is_leader)`)
     .eq("midtrans_order_id", orderId)
-    .eq("mechatura_members.is_leader", true)
     .maybeSingle<any>();
 
   if (error) {
@@ -82,9 +82,11 @@ export async function findMechaturaPaymentOrder(
     return null;
   }
 
-  const leader = Array.isArray(registration.mechatura_members) 
-    ? registration.mechatura_members[0] 
-    : registration.mechatura_members;
+  const members = Array.isArray(registration.mechatura_members) 
+    ? registration.mechatura_members 
+    : [];
+    
+  const leader = members.find((m: any) => m.is_leader);
 
   if (!leader?.email || !leader.phone) {
     return null;
@@ -107,6 +109,7 @@ export async function findMechaturaPaymentOrder(
       email: leader.email,
       phone: leader.phone,
     },
+    members: members.filter((m: any) => !m.is_leader).map((m: any) => ({ name: m.full_name })),
   };
 }
 

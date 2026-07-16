@@ -2,7 +2,6 @@ export const runtime = 'edge';
 import { redirect } from "next/navigation";
 
 import {
-    deleteMechaturaRegistration,
     findLatestMechaturaRegistrationForUser,
     getMechaturaRegistrationStepHref,
     isMechaturaPaymentExpired,
@@ -30,7 +29,7 @@ export default async function MechaturaPage() {
             : null;
 
     if (latestRegistration && expiredTeamName) {
-        await deleteMechaturaRegistration(adminSupabase, latestRegistration.id);
+        // Render the form, but ExpiredRegistrationDialog will block it until deleted
     } else if (latestRegistration) {
         redirect(getMechaturaRegistrationStepHref(latestRegistration));
     }
@@ -50,8 +49,8 @@ export default async function MechaturaPage() {
             </section>
 
             <section>
-                {expiredTeamName ? (
-                    <ExpiredRegistrationDialog teamName={expiredTeamName} />
+                {latestRegistration && expiredTeamName ? (
+                    <ExpiredRegistrationDialog teamName={expiredTeamName} registrationId={latestRegistration.id} />
                 ) : null}
                 <MechaturaRegistrationForm />
             </section>

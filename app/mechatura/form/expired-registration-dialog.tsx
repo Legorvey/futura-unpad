@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { deleteExpiredRegistration } from "./actions";
 
 import {
   AlertDialog,
@@ -11,18 +12,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 type ExpiredRegistrationDialogProps = {
   teamName: string;
+  registrationId: string;
 };
 
 export default function ExpiredRegistrationDialog({
   teamName,
+  registrationId,
 }: ExpiredRegistrationDialogProps) {
   const [open, setOpen] = useState(true);
+  const [isPending, startTransition] = useTransition();
+
+  const handleConfirm = () => {
+    startTransition(async () => {
+      await deleteExpiredRegistration(registrationId);
+      setOpen(false);
+    });
+  };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={isPending ? undefined : setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Payment window expired</AlertDialogTitle>
@@ -33,7 +45,10 @@ export default function ExpiredRegistrationDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction>Start new registration</AlertDialogAction>
+          <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Start new registration
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

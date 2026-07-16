@@ -73,17 +73,4 @@ export function useResetPasswordMutation() {
   });
 }
 
-export function useSetRecoveryCookieMutation() {
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationKey: mutationKeys.auth.setRecoveryCookie,
-    mutationFn: () =>
-      fetchJson("/api/auth/set-recovery-cookie", okResponseSchema, {
-        method: "POST",
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
-    },
-  });
-}

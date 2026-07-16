@@ -26,13 +26,9 @@ import {
 } from "@/lib/validation/seminar";
 import { useRegistrationStep } from "@/hooks/use-registration-step";
 import { seminarStatusOptions } from "../../../lib/seminar/seminar-options";
-import {
-  downloadSeminarTickets,
-  type SeminarTicketRegistration,
-} from "../../../lib/seminar/seminar-ticket-download";
 import SeminarDetailsStep from "../../../components/registration/seminar/seminar-details-step";
 import SeminarRegistrationOptionStep from "../../../components/registration/seminar/seminar-registration-option-step";
-import SeminarTicketStep from "../../../components/registration/seminar/seminar-ticket-step";
+import SeminarSuccessStep from "../../../components/registration/seminar/seminar-success-step";
 import SeminarVerificationStep from "../../../components/registration/seminar/seminar-verification-step";
 
 const SEMINAR_DRAFT_STORAGE_KEY = "futura:registration:seminar:draft";
@@ -45,7 +41,7 @@ export default function SeminarRegistrationForm() {
   const [submitError, setSubmitError] = useState("");
   const [registrationId, setRegistrationId] = useState("");
   const [allRegistrations, setAllRegistrations] = useState<
-    SeminarTicketRegistration[]
+    { id: string; nama_lengkap: string; asal_institusi: string }[]
   >([]);
   const [showAnonDialog, setShowAnonDialog] = useState(true);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -147,14 +143,6 @@ export default function SeminarRegistrationForm() {
     toast.success("Registration successful!");
   });
 
-  const downloadTicket = () =>
-    downloadSeminarTickets({
-      registrations: allRegistrations,
-      registrationId,
-      statusLabel,
-      values: form.getValues(),
-    });
-
   return (
     <>
       <AlertDialog
@@ -166,8 +154,7 @@ export default function SeminarRegistrationForm() {
             <AlertDialogTitle>Register as Anonymous?</AlertDialogTitle>
             <AlertDialogDescription>
               You are not logged in. Do you want to continue registering for the
-              seminar as an anonymous user? We recommend logging in to keep
-              track of your tickets easily.
+              seminar as an anonymous user?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -186,7 +173,7 @@ export default function SeminarRegistrationForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Registration Successful!</AlertDialogTitle>
             <AlertDialogDescription>
-              {user ? "You can also view and download your ticket(s) at any time from your Profile page." : "If you create an account with this email later, you can view and download your ticket(s) at any time from your Profile page."}
+              {user ? "You can also view your registration at any time from your Profile page." : "If you create an account with this email later, you can view your registration at any time from your Profile page."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -235,12 +222,11 @@ export default function SeminarRegistrationForm() {
             />
           ) : null}
           {step === "ticket" ? (
-            <SeminarTicketStep
+            <SeminarSuccessStep
               registrations={allRegistrations}
               registrationId={registrationId}
               statusLabel={statusLabel}
               values={form.getValues()}
-              onDownload={downloadTicket}
             />
           ) : null}
         </section>

@@ -1,26 +1,22 @@
-import { CheckCircle2, Download } from "lucide-react";
-import { QRCodeCanvas } from "qrcode.react";
-
+import { CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
-import type { SeminarTicketRegistration } from "../../../lib/seminar/seminar-ticket-download";
 
-type SeminarTicketStepProps = {
-  registrations: SeminarTicketRegistration[];
+type SeminarSuccessStepProps = {
+  registrations: { id: string; nama_lengkap: string; asal_institusi: string }[];
   registrationId: string;
   statusLabel: string;
   values: ClientSeminarFormValues;
-  onDownload: () => void;
 };
 
-export default function SeminarTicketStep({
+export default function SeminarSuccessStep({
   registrations,
   registrationId,
   statusLabel,
   values,
-  onDownload,
-}: SeminarTicketStepProps) {
+}: SeminarSuccessStepProps) {
   return (
     <FieldGroup className="gap-6">
       <section className="overflow-hidden rounded-xl border border-border bg-card">
@@ -30,11 +26,10 @@ export default function SeminarTicketStep({
           </span>
           <div>
             <h2 className="text-lg font-semibold">
-              Your seminar ticket is ready
+              Your registration is complete
             </h2>
             <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500">
-              Your Futura seminar registration is saved. Download your ticket or
-              keep the registration ID for check-in.
+              Your Futura seminar registration is saved. You can view your registration details below.
             </p>
           </div>
         </div>
@@ -49,14 +44,6 @@ export default function SeminarTicketStep({
                 {values.institusi} / {statusLabel}
               </p>
             </div>
-            {values.registration_type !== "grup" && (
-              <div className="rounded-[8px] bg-white border border-border p-4 flex flex-col items-center shrink-0">
-                <QRCodeCanvas id="qr-canvas" value={registrationId} size={160} />
-                <p className="mt-3 text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">
-                  Ticket QR
-                </p>
-              </div>
-            )}
           </div>
           <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm sm:grid-cols-2">
             <div>
@@ -85,20 +72,13 @@ export default function SeminarTicketStep({
 
           {values.registration_type === "grup" && registrations.length > 0 && (
             <div className="mt-5 border-t border-border pt-4">
-              <h3 className="text-sm font-medium mb-3">Group Tickets</h3>
+              <h3 className="text-sm font-medium mb-3">Group Members</h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 {registrations.map((registration) => (
                   <div
                     key={registration.id}
-                    className="rounded-[8px] border border-border p-4 flex items-center gap-4"
+                    className="rounded-[8px] border border-border p-4 flex flex-col justify-center"
                   >
-                    <div className="rounded-[8px] bg-white border border-border p-2 shrink-0">
-                      <QRCodeCanvas
-                        id={`qr-canvas-${registration.id}`}
-                        value={registration.id}
-                        size={80}
-                      />
-                    </div>
                     <div className="min-w-0">
                       <p className="font-medium truncate">
                         {registration.nama_lengkap}
@@ -118,11 +98,14 @@ export default function SeminarTicketStep({
         </div>
       </section>
 
-      <Button type="button" className="h-11 rounded-[8px]" onClick={onDownload}>
-        <Download className="mr-2 h-4 w-4" />
-        {values.registration_type === "grup" ? "Download all tickets" : "Download ticket"}
-      </Button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button type="button" variant="outline" className="h-11 rounded-[8px]" asChild>
+          <Link href="/">Go to Home Page</Link>
+        </Button>
+        <Button type="button" className="h-11 rounded-[8px]" asChild>
+          <Link href="/profile">Go to Profile</Link>
+        </Button>
+      </div>
     </FieldGroup>
   );
 }
-

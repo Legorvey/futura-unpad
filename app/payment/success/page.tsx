@@ -9,8 +9,6 @@ import {
 } from "lucide-react";
 
 import PaymentProgress from "@/components/registration/payment-progress";
-import { ReceiptImage, type ReceiptData } from "@/components/registration/mechatura-invoice";
-import { MechaturaSuccessModal } from "./mechatura-success-modal";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
@@ -51,20 +49,6 @@ type VerificationOrder = {
   userId: string | null;
   rawOrder?: import("@/lib/mechatura/payment").MechaturaPaymentOrder;
 };
-
-const createReceipt = (order: VerificationOrder): ReceiptData => ({
-  title: `${registrationProgramLabels[order.program]} Payment Receipt`,
-  name: order.name,
-  email: order.email,
-  phone: order.phone,
-  institution: order.institution,
-  program: registrationProgramLabels[order.program],
-  ticket: order.ticket,
-  amount: formatCurrency(order.amount),
-  paidAt: order.paidAt ? new Date(order.paidAt).toLocaleString("id-ID") : "-",
-  invoiceId: order.externalId,
-  referenceId: order.externalId,
-});
 
 const findMechaturaOrder = async (
   supabase: ReturnType<typeof createAdminClient>,
@@ -134,7 +118,6 @@ async function verifyPayment(orderId: string) {
     return {
       status: "paid" as const,
       program: order.program,
-      receipt: createReceipt(order),
       order: order,
     };
   }
@@ -189,18 +172,107 @@ export default async function PaymentSuccessPage({
         <PaymentProgress program={"program" in result ? result.program : undefined} />
       </section>
 
-      {isPaid && result.receipt ? (
+      {isPaid && result.program === "mechatura" && result.order?.rawOrder ? (
         <section className="space-y-8">
-          <ReceiptImage 
-            receipt={result.receipt} 
-            mechaturaOrder={result.program === "mechatura" ? result.order?.rawOrder : undefined} 
-          />
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="flex items-start gap-4 p-5 sm:p-6 border-b">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted">
+                <CheckCircle2 className="h-5 w-5 text-foreground" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold">
+                  Payment and Registration Complete
+                </h2>
+                <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500">
+                  Your Mechatura competition registration is verified. Below are your team details.
+                </p>
+              </div>
+            </div>
 
-          {result.program === "mechatura" && result.order?.rawOrder && (
-            <MechaturaSuccessModal />
-          )}
+            <div className="p-5 sm:p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="mt-3 text-2xl font-semibold tracking-tight">
+                    {result.order.rawOrder.teamName}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {result.order.rawOrder.institution} / {mechaturaCompetitionLabels[result.order.rawOrder.competitionType]}
+                  </p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-sm font-medium text-muted-foreground">Amount Paid</p>
+                  <p className="text-xl font-semibold mt-1">{formatCurrency(result.order.rawOrder.paymentAmount)}</p>
+                </div>
+              </div>
+
+              <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-muted-foreground">Robot Name</dt>
+                  <dd className="mt-1 font-medium">{result.order.rawOrder.robotName}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Registration ID</dt>
+                  <dd className="mt-1 font-mono text-sm font-semibold">{result.order.id}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Team Leader</dt>
+                  <dd className="mt-1 font-medium">{result.order.rawOrder.leader.name}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Leader Contact</dt>
+                  <dd className="mt-1 font-medium">{result.order.rawOrder.leader.email}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Total Members</dt>
+                  <dd className="mt-1 font-medium">{result.order.rawOrder.members.length + 1} orang</dd>
+                </div>
+              </dl>
+
+              {result.order.rawOrder.members.length > 0 && (
+                <div className="mt-5 border-t border-border pt-4">
+                  <h3 className="text-sm font-medium mb-3">Additional Members</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {result.order.rawOrder.members.map((member, i) => (
+                      <div
+                        key={i}
+                        className="rounded-[8px] border border-border p-4 flex flex-col justify-center"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {member.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            Member
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button type="button" variant="outline" className="h-11 rounded-[8px]" asChild>
+              <Link href="/">Go to Home Page</Link>
+            </Button>
+            <Button type="button" className="h-11 rounded-[8px]" asChild>
+              <Link href="/profile">Go to Profile</Link>
+            </Button>
+          </div>
         </section>
-      ) : null}
+      ) : (
+        <section className="space-y-8">
+           <div className="grid gap-3 sm:grid-cols-2">
+             <Button type="button" variant="outline" className="h-11 rounded-[8px]" asChild>
+               <Link href="/">Go to Home Page</Link>
+             </Button>
+             <Button type="button" className="h-11 rounded-[8px]" asChild>
+               <Link href={paymentHref}>Back to Payment</Link>
+             </Button>
+           </div>
+        </section>
+      )}
     </main>
   );
 }

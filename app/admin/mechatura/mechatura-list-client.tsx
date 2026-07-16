@@ -139,12 +139,6 @@ export default function MechaturaListClient({
                             Export CSV
                         </a>
                     </Button>
-                    <Button className="h-11 rounded-[8px] px-5 bg-blue-600 text-white hover:bg-blue-700" asChild>
-                        <Link href="/admin/scanner" prefetch={false}>
-                            <Scan className="h-4 w-4 mr-2" />
-                            Open Scanner
-                        </Link>
-                    </Button>
                 </div>
             </div>
 

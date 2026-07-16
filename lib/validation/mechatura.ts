@@ -75,7 +75,7 @@ const mechaturaIdentityShape = {
     leader_email: emailSchema("Email ketua"),
     leader_phone: requiredPhone("Nomor ketua"),
 
-    member_count: z.number().min(0).max(2).optional().default(0),
+    member_count: z.number().min(0).max(2),
 
     // Team Member Identity
     member2_name: z.string().trim().max(120).optional().or(z.literal("")),

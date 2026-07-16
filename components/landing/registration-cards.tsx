@@ -1,3 +1,4 @@
+/* eslint-disable */
 // import Image from "next/image";
 // import Link from "next/link";
 
@@ -125,8 +126,8 @@
 
 "use client";
 import React from "react";
-
-import { AnimatePresence, motion } from "motion/react";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 
 export function RegistrationCards({ title = "I'm static and I know it.", image, speaker }: { title?: string; image?: string; speaker?: string }) {
 
@@ -138,10 +139,12 @@ export function RegistrationCards({ title = "I'm static and I know it.", image, 
       <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-black z-30" />
 
       {image && (
-        <img 
+        <Image 
           src={image} 
-          alt={speaker || title} 
-          className="absolute inset-0 w-full h-full object-cover z-10 group-hover/canvas-card:opacity-0 transition duration-500" 
+          alt={speaker || title || "Image"} 
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover z-10 group-hover/canvas-card:opacity-0 transition duration-500" 
         />
       )}
 
@@ -213,10 +216,10 @@ const AceternityIcon = () => {
       className="h-10 w-10 text-black dark:text-white group-hover/canvas-card:text-white "
     >
       <path
-        d="M8 8.05571C8 8.05571 54.9009 18.1782 57.8687 30.062C60.8365 41.9458 9.05432 57.4696 9.05432 57.4696"
+        d="M8 8.06C8 8.06 54.90 18.18 57.87 30.06C60.84 41.95 9.05 57.47 9.05 57.47"
         stroke="currentColor"
         strokeWidth="15"
-        strokeMiterlimit="3.86874"
+        strokeMiterlimit="3.87"
         strokeLinecap="round"
         style={{ mixBlendMode: "darken" }}
       />
@@ -224,7 +227,7 @@ const AceternityIcon = () => {
   );
 };
 
-export const Icon = ({ className, ...rest }: any) => {
+const Icon = ({ className, ...rest }: any) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

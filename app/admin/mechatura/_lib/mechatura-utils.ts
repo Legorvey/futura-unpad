@@ -19,7 +19,7 @@ export const paymentFilters: MechaturaPaymentFilter[] = [
     "expired",
     "cancelled",
 ];
-export const completedPaymentStatuses = [...sharedCompletedPaymentStatuses];
+const completedPaymentStatuses = [...sharedCompletedPaymentStatuses];
 export const pageSizeOptions = [10, 20, 30, 40] as const;
 export const defaultPageSize = 10;
 

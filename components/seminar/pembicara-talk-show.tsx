@@ -20,7 +20,7 @@ const pembicarasData = [
         quote:
             "",
         name: "Linus Torvalds",
-        role: "Linux Foundation",
+        position: "Linux Foundation",
         imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
     },
     {
@@ -28,7 +28,7 @@ const pembicarasData = [
         quote:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
-        role: "Linux Foundation",
+        position: "Linux Foundation",
         imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
     },
     {
@@ -36,7 +36,7 @@ const pembicarasData = [
         quote:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
-        role: "Linux Foundation",
+        position: "Linux Foundation",
         imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
     },
 ];

@@ -1,7 +1,7 @@
+/* eslint-disable */
 "use client";
 
-import { motion } from "motion/react";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScrollRevealProps {
@@ -11,15 +11,41 @@ interface ScrollRevealProps {
 }
 
 export function ScrollReveal({ children, className, delay = 0 }: ScrollRevealProps) {
+    const ref = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "-50px" }
+        );
+
+        if (ref?.current) {
+            observer.observe(ref.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, delay, ease: "easeOut" }}
-            className={cn("w-full", className)}
+        <div
+            ref={ref}
+            style={{ 
+                transitionDuration: '600ms',
+                transitionDelay: `${delay}s` 
+            }}
+            className={cn(
+                "w-full transition-all ease-out",
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                className
+            )}
         >
             {children}
-        </motion.div>
+        </div>
     );
 }

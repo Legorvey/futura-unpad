@@ -50,9 +50,9 @@ const escapeCSV = (field: string | null | undefined) => {
 }
 
 export async function GET() {
-    const { user, isAdmin } = await requireAdmin()
+    const { user, adminAccess } = await requireAdmin()
 
-    if (!user || !isAdmin) {
+    if (!user || !adminAccess) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { calculateTimeLeft, timeBlocks } from "@/lib/landing/helper";

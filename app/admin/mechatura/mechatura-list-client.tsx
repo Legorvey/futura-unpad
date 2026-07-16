@@ -234,12 +234,14 @@ export default function MechaturaListClient({
                                     onClick={pill.onRemove} 
                                     className="rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" 
                                     type="button"
+                                    aria-label="Remove filter"
                                 >
                                     <X className="h-3.5 w-3.5" />
                                 </button>
                             </div>
                         ))}
                         <button 
+                            type="button"
                             onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all" }))}
                             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
                         >

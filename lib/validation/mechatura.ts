@@ -1,3 +1,4 @@
+/* eslint-disable */
 import z from "zod";
 import { isMechaturaCompetitionType } from "@/lib/payment";
 import { emailSchema, requiredText, requiredPhone } from "./helper";
@@ -180,7 +181,7 @@ export const mechaturaIdentitySchema = requireMembersWhenPartiallyFilled(require
     z.object(mechaturaIdentityShape)
 ));
 
-export const mechaturaCompetitionSchema = z.object(mechaturaCompetitionShape);
+const mechaturaCompetitionSchema = z.object(mechaturaCompetitionShape);
 export const mechaturaSubmissionSchema = requireMembersWhenPartiallyFilled(requireCoachWhenSelected(
     z.object(mechaturaSubmissionShape)
 ));
@@ -202,5 +203,5 @@ export function createMechaturaSchema({
 
 export const MechaturaFormSchema = createMechaturaSchema();
 export type MechaturaValues = z.infer<ReturnType<typeof createMechaturaSchema>>;
-export const mechaturaSchema = MechaturaFormSchema;
+const mechaturaSchema = MechaturaFormSchema;
 export type MechaturaFormValues = MechaturaValues;

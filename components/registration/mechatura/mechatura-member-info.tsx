@@ -56,8 +56,8 @@ export default function MechaturaMemberInfo(){
     }
 
     return (
-        <section className="overflow-hidden rounded-xl border border-border bg-card" aria-labelledby="team-section-label">
-            <div className="border-b border-border p-5 sm:p-6">
+        <section className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border sm:bg-card" aria-labelledby="team-section-label">
+            <div className="border-b border-border pb-4 pt-0 sm:py-6 sm:px-6">
                 <h2 id="team-section-label" className="text-lg font-semibold">
                     Identitas Anggota Tim
                 </h2>
@@ -66,7 +66,7 @@ export default function MechaturaMemberInfo(){
                 </p>
             </div>
             
-            <div className="space-y-6 p-5 sm:p-6">
+            <div className="space-y-6 pt-5 pb-0 sm:p-6">
     
             {/* FORM KETUA TIM */}
             <div className="space-y-6">

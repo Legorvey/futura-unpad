@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -9,7 +10,7 @@ export const requireAdmin = async () => {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { user: null, isAdmin: false };
+    return { user: null, adminAccess: false };
   }
 
   const { data, error } = await supabase
@@ -20,18 +21,18 @@ export const requireAdmin = async () => {
 
   return {
     user,
-    isAdmin: !error && !!data,
+    adminAccess: !error && !!data,
   };
 };
 
 export const getCachedAuth = cache(requireAdmin);
 
 export const requireAdminOrRedirect = async () => {
-  const { user, isAdmin } = await getCachedAuth();
+  const { user, adminAccess } = await getCachedAuth();
   if (!user) {
     redirect("/login?next=/admin");
   }
-  if (!isAdmin) {
+  if (!adminAccess) {
     redirect("/");
   }
   return { user };

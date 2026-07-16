@@ -26,7 +26,17 @@ import { FormTextField } from "@/components/form/form-text-field";
 
 type LegalDialogType = "terms" | "privacy";
 
-export default function RegisterForm() {
+const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return 0;
+    let score = 0;
+    if (pwd.length > 0) score = 1; // Very Weak
+    if (pwd.length >= 6) score = 2; // Weak
+    if (pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /[0-9]/.test(pwd)) score = 3; // Strong
+    if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score = 4; // Very Strong
+    return score;
+};
+
+export default function RegisterForm({ loginHref = "/login" }: { loginHref?: string }) {
     const router = useRouter();
     const { refreshAuth } = useAuth();
     const registerAccount = useRegisterMutation();
@@ -57,15 +67,7 @@ export default function RegisterForm() {
     const passwordValue = watch("password");
     const termsAccepted = watch("termsAccepted");
 
-    const getPasswordStrength = (pwd: string) => {
-        if (!pwd) return 0;
-        let score = 0;
-        if (pwd.length > 0) score = 1; // Very Weak
-        if (pwd.length >= 6) score = 2; // Weak
-        if (pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /[0-9]/.test(pwd)) score = 3; // Strong
-        if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score = 4; // Very Strong
-        return score;
-    };
+
 
     const passwordStrength = getPasswordStrength(passwordValue);
 
@@ -90,16 +92,18 @@ export default function RegisterForm() {
 
         if (data?.authenticated) {
             const currentUrl = new URL(window.location.href);
-            const next = currentUrl.searchParams.get("next");
-            const safeNext =
-                next &&
-                    next.startsWith("/") &&
-                    !next.startsWith("//") &&
-                    !next.startsWith("/login") &&
-                    !next.startsWith("/register") &&
-                    !next.startsWith("/auth/callback")
-                    ? next
+            const getSafeRedirectPath = (value: string | null) => {
+                return value &&
+                    value.startsWith("/") &&
+                    !value.startsWith("//") &&
+                    !value.startsWith("/login") &&
+                    !value.startsWith("/register") &&
+                    !value.startsWith("/auth/callback")
+                    ? value
                     : "/profile";
+            };
+
+            const safeNext = getSafeRedirectPath(currentUrl.searchParams.get("next"));
 
             await refreshAuth();
             router.replace(safeNext);
@@ -263,12 +267,7 @@ export default function RegisterForm() {
                 <p className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}
                     <Link
-                        href={
-                            typeof window !== "undefined" &&
-                                new URL(window.location.href).searchParams.get("next")
-                                ? `/login?next=${new URL(window.location.href).searchParams.get("next")}`
-                                : "/login"
-                        }
+                        href={loginHref}
                         prefetch={false}
                         className="text-blue-600"
                     >

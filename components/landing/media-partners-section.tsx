@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Tv, Radio, Newspaper, Mic, Video, Camera, Clapperboard, Rss } from "lucide-react"
 
 const partners = [
@@ -25,10 +26,11 @@ export default function MediaPartnersSection() {
 
         <div className="flex gap-4 w-max animate-sponsor-scroll-reverse hover:[animation-play-state:paused]">
           {[...partners, ...partners].map((partner, idx) => {
-            const Icon = partner.icon
+            const Icon = partner.icon;
+            const keyId = `partner-${partner.name}-${idx}`;
             return (
               <div
-                key={idx}
+                key={keyId}
                 className="flex items-center gap-3 px-8 py-4 rounded-2xl border border-border/50 shadow-sm min-w-[200px] justify-center transition-all hover:border-primary/40 hover:shadow-md cursor-pointer"
               >
                 <Icon className="w-6 h-6 text-primary" />

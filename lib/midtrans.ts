@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 
 type SnapTransactionInput = {
   orderId: string;
@@ -250,5 +250,11 @@ export function isValidMidtransSignature({
     .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)
     .digest("hex");
 
-  return expectedSignature === signatureKey;
+  if (expectedSignature.length !== signatureKey.length) {
+    return false;
+  }
+  return timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(signatureKey)
+  );
 }

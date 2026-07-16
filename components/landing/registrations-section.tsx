@@ -59,7 +59,7 @@ export default function RegistrationsSection() {
         <section id="registrations" className="px-6 lg:px-12 max-w-7xl mx-auto flex flex-col justify-center items-center gap-24">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">Acara Futura</h1>
             {events.map((event, index) => (
-                <div key={index} className={`flex flex-col lg:items-center gap-10 lg:gap-16 w-full ${event.reverse ? "lg:flex-row-reverse" : "lg:flex-row"}`}>
+                <div key={event.title} className={`flex flex-col lg:items-center gap-10 lg:gap-16 w-full ${event.reverse ? "lg:flex-row-reverse" : "lg:flex-row"}`}>
 
                     {/* Visual Side */}
 
@@ -96,7 +96,7 @@ export default function RegistrationsSection() {
                             </h3>
                             <ul className="flex flex-wrap gap-x-6 gap-y-2">
                                 {event.highlights.map((highlight, idx) => (
-                                    <li key={idx} className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 font-medium">
+                                    <li key={highlight} className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 font-medium">
                                         <div className="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
                                         {highlight}
                                     </li>

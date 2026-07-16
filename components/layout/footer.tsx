@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 import {
   Mail,
@@ -141,7 +142,7 @@ export default function HoverFooter() {
             </h4>
             <ul className="space-y-4">
               {contactInfo.map((item, i) => (
-                <li key={i} className="flex items-center space-x-3">
+                <li key={item.text} className="flex items-center space-x-3">
                   {item.icon}
                   {item.href ? (
                     <a

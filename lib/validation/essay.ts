@@ -62,5 +62,5 @@ export const clientEssayFormSchema = z.object({
 });
 
 export type ClientEssayFormValues = z.infer<typeof clientEssayFormSchema>;
-export const clientLombaEssayFormSchema = clientEssayFormSchema;
+const clientLombaEssayFormSchema = clientEssayFormSchema;
 export type ClientLombaEssayFormValues = ClientEssayFormValues;

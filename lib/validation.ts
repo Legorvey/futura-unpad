@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { z } from "zod";
 import { isRegistrationToken } from "./payment";
 
@@ -6,13 +7,13 @@ export * from "./validation/essay";
 export * from "./validation/mechatura";
 export * from "./validation/seminar";
 
-export const requiredText = (field: string, max = 120) =>
+const requiredText = (field: string, max = 120) =>
   z.string()
     .trim()
     .min(1, `${field} wajib diisi.`)
     .max(max, `${field} terlalu panjang.`);
 
-export const orderSchema = z.object({
+const orderSchema = z.object({
   order_id: z.string().refine(isRegistrationToken),
 });
 

@@ -5,11 +5,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { NavbarDemo } from "@/components/layout/navbar";
 import NavigationLoading from "@/components/navigation-loading";
-import AuthRouteGuard from "@/components/auth-route-guard";
 import { AuthProvider } from "@/components/auth-provider";
 import QueryProvider from "@/components/query-provider";
 import type { AuthSession } from "@/lib/api/auth-session";
-import { getCachedAuth } from "@/lib/auth";
 import HoverFooter from "@/components/layout/footer"
 
 const space_grotesk = Space_Grotesk({
@@ -27,6 +25,7 @@ const ebGaramond = EB_Garamond({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,22 +33,11 @@ export const metadata: Metadata = {
   description: "by HMTE Universitas Padjadjaran",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user, isAdmin } = await getCachedAuth();
-  const initialAuthSession: AuthSession = {
-    user: user
-      ? {
-          id: user.id,
-          email: user.email ?? null,
-          user_metadata: user.user_metadata,
-        }
-      : null,
-    isAdmin,
-  };
 
   return (
     <html
@@ -65,12 +53,9 @@ export default async function RootLayout({
     >
       <body className="dark">
         <QueryProvider>
-          <AuthProvider initialSession={initialAuthSession}>
+          <AuthProvider>
             <Suspense fallback={null}>
               <NavigationLoading />
-            </Suspense>
-            <Suspense fallback={null}>
-              <AuthRouteGuard />
             </Suspense>
             <NavbarDemo />
             <div className="w-full flex-1">

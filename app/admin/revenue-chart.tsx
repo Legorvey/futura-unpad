@@ -1,7 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Bar, ComposedChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import dynamic from "next/dynamic"
+
+const Bar = dynamic(() => import("recharts").then(mod => mod.Bar), { ssr: false })
+const ComposedChart = dynamic(() => import("recharts").then(mod => mod.ComposedChart), { ssr: false })
+const CartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false })
+const XAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false })
+const YAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false })
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"
 import { DateRange } from "react-day-picker"
 import { Info, TrendingUp, Cpu, PenTool, Receipt, CalendarIcon } from "lucide-react"
@@ -55,6 +61,12 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
+const currencyFormatter = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })
+
+const formatCurrency = (value: number) => {
+  return currencyFormatter.format(value)
+}
+
 export function RevenueChart({ data }: { data: RevenueData[] }) {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
@@ -106,9 +118,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   const totalGrossRevenue = totalNetRevenue + totalTax
   const totalRegistrations = formattedData.reduce((sum, item) => sum + item.count, 0)
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value)
-  }
+
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border p-6 bg-card">
@@ -146,14 +156,10 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
         </div>
         <div className="text-right">
           <p className="text-3xl font-semibold tracking-tight">
-            {new Intl.NumberFormat("id-ID", {
-              style: "currency",
-              currency: "IDR",
-              maximumFractionDigits: 0,
-            }).format(totalNetRevenue)}
+            {formatCurrency(totalNetRevenue)}
           </p>
           <p className="text-sm font-medium text-muted-foreground mt-1">
-             Gross: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(totalGrossRevenue)}
+             Gross: {formatCurrency(totalGrossRevenue)}
           </p>
           <p className="text-sm text-muted-foreground mt-1">{totalRegistrations} total paid teams</p>
         </div>

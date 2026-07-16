@@ -35,8 +35,7 @@ export default async function LoginPage({
 }: {
     searchParams: LoginSearchParams
 }){
-    const params = await searchParams
-    const { user } = await getCachedAuth()
+    const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
 
     if (user) {
         redirect(getSafeRedirectPath(params.next))

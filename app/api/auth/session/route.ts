@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { user, isAdmin } = await requireAdmin();
+  const { user, adminAccess } = await requireAdmin();
   const session = authSessionSchema.parse({
     user: user
       ? {
@@ -15,7 +15,7 @@ export async function GET() {
           user_metadata: user.user_metadata,
         }
       : null,
-    isAdmin,
+    adminAccess,
   });
 
   return NextResponse.json(session);

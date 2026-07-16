@@ -67,6 +67,26 @@ const buildDetailsPageHref = (id: string, page: number, pageSize: number) => {
     return queryString ? `/admin/seminar/${id}?${queryString}` : `/admin/seminar/${id}`
 }
 
+const checkInFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+})
+
+const formatCheckInTime = (timeStr: string | null | undefined) => {
+    if (!timeStr) return "Not checked in"
+    return checkInFormatter.format(new Date(timeStr))
+}
+
+const createdAtFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+})
+
+const formatCreatedAt = (timeStr: string | null | undefined) => {
+    if (!timeStr) return "Unknown"
+    return createdAtFormatter.format(new Date(timeStr))
+}
+
 export default async function SeminarRegistrationDetails({
     params,
     searchParams,
@@ -92,12 +112,7 @@ export default async function SeminarRegistrationDetails({
 
     const registration = registrationData as unknown as Participants
     const isGroup = registration.registration_type === "group" || registration.registration_type === "grup"
-    const formattedDate = registration.created_at
-        ? new Intl.DateTimeFormat("en-US", {
-            dateStyle: "medium",
-            timeStyle: "short",
-        }).format(new Date(registration.created_at))
-        : "Unknown"
+    const formattedDate = formatCreatedAt(registration.created_at)
 
     let members: Participants[] = []
     let totalMembers = 0
@@ -149,13 +164,7 @@ export default async function SeminarRegistrationDetails({
     const from = totalAttendees === 0 ? 0 : (page - 1) * pageSize + 1
     const to = Math.min(from + currentPageRows - 1, totalAttendees)
 
-    const formatCheckInTime = (timeStr: string | null | undefined) => {
-        if (!timeStr) return "Not checked in"
-        return new Intl.DateTimeFormat("en-US", {
-            dateStyle: "medium",
-            timeStyle: "short",
-        }).format(new Date(timeStr))
-    }
+
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-8">

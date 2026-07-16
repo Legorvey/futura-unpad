@@ -19,25 +19,27 @@ const getInitials = (displayName: string | null | undefined, email: string | nul
     .join("")
 }
 
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+})
+
 const formatDate = (value?: string | null) => {
   if (!value) {
     return "-"
   }
 
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
+  return dateFormatter.format(new Date(value))
 }
 
 export default async function AccountPage() {
-  const { user, isAdmin } = await getCachedAuth()
+  const { user, adminAccess } = await getCachedAuth()
 
   if (!user) {
     redirect("/login?next=/profile/account")
   }
 
-  if (isAdmin) {
+  if (adminAccess) {
     redirect("/admin/profile")
   }
 

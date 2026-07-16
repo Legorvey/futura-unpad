@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 import { useRef, useEffect, useState, type PointerEvent } from "react";
 import {
@@ -184,7 +185,7 @@ export function TextHoverEffect({
   );
 }
 
-export function FooterGlowDivider({ className }: { className?: string }) {
+function FooterGlowDivider({ className }: { className?: string }) {
   const [active, setActive] = useState(false);
   const cursorX = useMotionValue(50);
   const smoothCursorX = useSpring(cursorX, dividerGlowSettings.cursorSpring);

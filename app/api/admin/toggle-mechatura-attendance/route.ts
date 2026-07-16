@@ -6,18 +6,18 @@ import { invalidRequest, readJsonBody, serverError } from "@/lib/http";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 const toggleMechaturaAttendanceSchema = z.object({
-  registration_id: z.string().uuid(),
+  registration_id: z.uuid(),
   attended: z.boolean(),
 });
 
 export async function POST(request: Request) {
-  const { user, isAdmin } = await requireAdmin();
+  const { user, adminAccess } = await requireAdmin();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAdmin) {
+  if (!adminAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -27,18 +27,19 @@ const formatRemainingTime = (remainingMs: number) => {
 
   return `${minutes}m ${seconds}s`;
 };
+const dateTimeFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
 export default function PaymentDeadline({ expiresAt }: PaymentDeadlineProps) {
   const [remainingMs, setRemainingMs] = useState(() => getRemainingMs(expiresAt));
   const isExpired = remainingMs <= 0;
-  const formattedDeadline = useMemo(
-    () =>
-      new Intl.DateTimeFormat("en", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(new Date(expiresAt)),
-    [expiresAt]
-  );
+  const [formattedDeadline, setFormattedDeadline] = useState("");
+
+  useEffect(() => {
+    setFormattedDeadline(dateTimeFormatter.format(new Date(expiresAt)));
+  }, [expiresAt]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {

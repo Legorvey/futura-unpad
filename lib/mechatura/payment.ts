@@ -8,6 +8,7 @@ import {
   isCompletedPaymentStatus,
   mechaturaCompetitionLabels,
   mechaturaPaymentAmount,
+  completedPaymentStatuses,
   type MechaturaCompetitionType,
   type PaymentStatus,
 } from "@/lib/payment";
@@ -30,12 +31,11 @@ type MechaturaRegistrationPaymentRow = {
   user_id: string | null;
   created_at: string | null;
   paid_at?: string | null;
-};
-
-type MechaturaLeaderRow = {
-  full_name: string;
-  email: string | null;
-  phone: string | null;
+  mechatura_members?: {
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+  }[];
 };
 
 export type MechaturaPaymentOrder = {
@@ -66,9 +66,10 @@ export async function findMechaturaPaymentOrder(
 ): Promise<MechaturaPaymentOrder | null> {
   const { data: registration, error } = await supabase
     .from("mechatura_registrations")
-    .select(mechaturaPaymentOrderSelect)
+    .select(`${mechaturaPaymentOrderSelect},mechatura_members!inner(full_name,email,phone,is_leader)`)
     .eq("midtrans_order_id", orderId)
-    .maybeSingle<MechaturaRegistrationPaymentRow>();
+    .eq("mechatura_members.is_leader", true)
+    .maybeSingle<any>();
 
   if (error) {
     throw error;
@@ -81,16 +82,9 @@ export async function findMechaturaPaymentOrder(
     return null;
   }
 
-  const { data: leader, error: leaderError } = await supabase
-    .from("mechatura_members")
-    .select("full_name,email,phone")
-    .eq("registration_id", registration.id)
-    .eq("is_leader", true)
-    .maybeSingle<MechaturaLeaderRow>();
-
-  if (leaderError) {
-    throw leaderError;
-  }
+  const leader = Array.isArray(registration.mechatura_members) 
+    ? registration.mechatura_members[0] 
+    : registration.mechatura_members;
 
   if (!leader?.email || !leader.phone) {
     return null;
@@ -161,17 +155,10 @@ export async function updateMechaturaPaymentStatus(
   status: PaymentStatus,
   paymentType?: string
 ) {
-  // Fetch existing order to enforce strict idempotency
-  const existingOrder = await findMechaturaPaymentOrder(supabase, orderId);
-
-  // If already completed, ignore duplicate webhooks to preserve original paid_at timestamp
-  if (existingOrder && isCompletedPaymentStatus(existingOrder.paymentStatus)) {
-    return;
-  }
-
   const completed = isCompletedPaymentStatus(status);
 
-  const { error } = await supabase
+  // Use a conditional update to safely enforce idempotency without refetching first
+  let query = supabase
     .from("mechatura_registrations")
     .update({
       payment_status: status,
@@ -181,6 +168,10 @@ export async function updateMechaturaPaymentStatus(
     })
     .eq("midtrans_order_id", orderId);
 
+  query = query.not("payment_status", "in", `(${completedPaymentStatuses.join(",")})`);
+
+  const { error } = await query;
+
   if (error) {
     throw error;
   }
@@ -188,15 +179,16 @@ export async function updateMechaturaPaymentStatus(
 
 export async function syncMechaturaPaymentStatus(
   supabase: SupabaseAdminClient,
-  orderId: string
+  orderId: string,
+  existingOrder?: MechaturaPaymentOrder | null
 ) {
-  const existingOrder = await findMechaturaPaymentOrder(supabase, orderId);
+  const order = existingOrder !== undefined ? existingOrder : await findMechaturaPaymentOrder(supabase, orderId);
 
   if (
-    existingOrder &&
-    isCompletedMechaturaPaymentStatus(existingOrder.paymentStatus)
+    order &&
+    isCompletedMechaturaPaymentStatus(order.paymentStatus)
   ) {
-    return existingOrder.paymentStatus as PaymentStatus;
+    return order.paymentStatus as PaymentStatus;
   }
 
   const status = await getMidtransTransactionStatus(orderId);

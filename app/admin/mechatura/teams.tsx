@@ -66,7 +66,7 @@ const statusClassName: Record<PaymentStatus, string> = {
 const getStatus = (status: string | null): PaymentStatus =>
     status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
 
-export function AttendanceCheckbox({ team }: { team: MechaturaTeamData }) {
+function AttendanceCheckbox({ team }: { team: MechaturaTeamData }) {
     const router = useRouter();
     const toggleAttendance = useToggleMechaturaAttendanceMutation();
 
@@ -100,7 +100,7 @@ const copyText = async (value: string | null | undefined) => {
     await navigator.clipboard.writeText(value);
 };
 
-export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideViewDetails?: boolean }) {
+function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideViewDetails?: boolean }) {
     const router = useRouter();
     const deleteTeam = useDeleteMechaturaRegistrationMutation();
     const [deleteOpen, setDeleteOpen] = useState(false);

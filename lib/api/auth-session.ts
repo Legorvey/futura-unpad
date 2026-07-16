@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const authUserSchema = z.object({
   id: z.string(),
-  email: z.string().email().nullable(),
+  email: z.email().nullable(),
   user_metadata: z
     .object({
       display_name: z.string().optional(),
@@ -14,7 +14,7 @@ export const authUserSchema = z.object({
 
 export const authSessionSchema = z.object({
   user: authUserSchema.nullable(),
-  isAdmin: z.boolean(),
+  adminAccess: z.boolean(),
 });
 
 export type AuthSession = z.infer<typeof authSessionSchema>;

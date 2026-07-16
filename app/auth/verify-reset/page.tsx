@@ -18,8 +18,8 @@ function VerifyResetContent() {
             hasFired.current = true;
             
             setRecoveryCookie()
-                .then(() => router.push("/reset-password"))
-                .catch(() => router.push("/login?error=recovery_failed"));
+                .then(() => window.location.assign("/reset-password"))
+                .catch(() => window.location.assign("/login?error=recovery_failed"));
         };
 
         // Check if there's already a session immediately

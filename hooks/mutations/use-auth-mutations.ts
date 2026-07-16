@@ -19,10 +19,15 @@ import type {
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 export function useForgotPasswordMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: mutationKeys.auth.forgotPassword,
     mutationFn: (values: ForgotPasswordFormValues) =>
       postJson("/api/auth/forgot-password", okResponseSchema, values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+    },
   });
 }
 
@@ -68,11 +73,16 @@ export function useResetPasswordMutation() {
 }
 
 export function useSetRecoveryCookieMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: mutationKeys.auth.setRecoveryCookie,
     mutationFn: () =>
       fetchJson("/api/auth/set-recovery-cookie", okResponseSchema, {
         method: "POST",
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+    },
   });
 }

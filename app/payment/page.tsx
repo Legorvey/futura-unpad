@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
 import PaymentProgress from "@/components/registration/payment-progress";

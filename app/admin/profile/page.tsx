@@ -1,11 +1,13 @@
 import { requireAdminOrRedirect } from "@/lib/auth"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+})
+
 const formatDate = (dateString?: string) => {
     if (!dateString) return "-"
-    return new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-    }).format(new Date(dateString))
+    return dateFormatter.format(new Date(dateString))
 }
 
 export default async function AdminProfilePage() {

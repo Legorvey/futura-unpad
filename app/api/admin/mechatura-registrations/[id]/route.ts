@@ -31,13 +31,13 @@ export async function DELETE(
         return invalidRequest();
     }
 
-    const { user, isAdmin } = await requireAdmin();
+    const { user, adminAccess } = await requireAdmin();
 
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!isAdmin) {
+    if (!adminAccess) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

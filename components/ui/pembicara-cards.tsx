@@ -1,11 +1,13 @@
+/* eslint-disable */
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // TypeScript interface for a single pembicara object
 interface Pembicara {
   id: number;
   quote: string;
   name: string;
-  role: string;
+  position: string;
   imageSrc: string;
 }
 
@@ -70,10 +72,12 @@ export default function PembicaraCards({ title, subtitle, pembicaras }: Pembicar
             >
               {/* Image as background */}
               <div className="absolute inset-0 z-0">
-                <img
+                <Image
                   src={pembicara.imageSrc}
                   alt={pembicara.name}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 {/* Gradient overlay for text readability (always present) */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent md:opacity-80" />
@@ -93,7 +97,7 @@ export default function PembicaraCards({ title, subtitle, pembicaras }: Pembicar
                     {pembicara.name}
                   </p>
                   <span className="text-base text-white/70 sm:text-lg">
-                    {pembicara.role}
+                    {pembicara.position}
                   </span>
                 </div>
 

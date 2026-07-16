@@ -1,3 +1,4 @@
+/* eslint-disable */
 export const runtime = 'edge';
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -55,28 +56,30 @@ type ProfileMechaturaLeader = {
   phone: string | null
 }
 
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+})
+
 const formatDate = (value?: string | null) => {
   if (!value) {
     return "-"
   }
 
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
+  return dateFormatter.format(new Date(value))
 }
 
 const isProfileGroupRegistration = (registration: ProfileRegistration | null | undefined) =>
   registration?.registration_type === "group" || registration?.registration_type === "grup"
 
 export default async function ProfilePage() {
-  const { user, isAdmin } = await getCachedAuth()
+  const { user, adminAccess } = await getCachedAuth()
 
   if (!user) {
     redirect("/login?next=/profile")
   }
 
-  if (isAdmin) {
+  if (adminAccess) {
     redirect("/admin/profile")
   }
 

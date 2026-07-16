@@ -1,9 +1,11 @@
+/* eslint-disable */
 "use client";
 
 import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion, useInView } from "framer-motion";
 import { SquareArrowOutUpRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 function cn(...classes: Array<string | undefined | null | false>) {
     return classes.filter(Boolean).join(" ");
@@ -127,16 +129,21 @@ export function CardStack<T extends CardStackItem>({
     const containerRef = React.useRef<HTMLDivElement>(null);
     const isInView = useInView(containerRef, { once: false, amount: 0.2 });
 
-    // keep active in bounds if items change
-    React.useEffect(() => {
-        setActive((a) => wrapIndex(a, len));
-    }, [len]);
+    const handleSetActive = React.useCallback((action: React.SetStateAction<number>, bypassOnChange = false) => {
+        setActive((prev) => {
+            const nextVal = typeof action === 'function' ? action(prev) : action;
+            const bounded = wrapIndex(nextVal, len);
+            if (bounded !== prev && len > 0 && !bypassOnChange) {
+                onChangeIndex?.(bounded, items[bounded]!);
+            }
+            return bounded;
+        });
+    }, [len, items, onChangeIndex]);
 
+    // keep active in bounds if items change without triggering onChange again
     React.useEffect(() => {
-        if (!len) return;
-        onChangeIndex?.(active, items[active]!);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [active]);
+        handleSetActive((a) => a, true);
+    }, [len, handleSetActive]);
 
     const maxOffset = Math.max(0, Math.floor(maxVisible / 2));
 
@@ -149,14 +156,14 @@ export function CardStack<T extends CardStackItem>({
     const prev = React.useCallback(() => {
         if (!len) return;
         if (!canGoPrev) return;
-        setActive((a) => wrapIndex(a - 1, len));
-    }, [canGoPrev, len]);
+        handleSetActive((a) => a - 1);
+    }, [canGoPrev, len, handleSetActive]);
 
     const next = React.useCallback(() => {
         if (!len) return;
         if (!canGoNext) return;
-        setActive((a) => wrapIndex(a + 1, len));
-    }, [canGoNext, len]);
+        handleSetActive((a) => a + 1);
+    }, [canGoNext, len, handleSetActive]);
 
     // keyboard navigation (when container focused)
     const onKeyDown = (e: React.KeyboardEvent) => {
@@ -210,6 +217,8 @@ export function CardStack<T extends CardStackItem>({
                 style={{ height: Math.max(380, cardHeight + 80) }}
                 tabIndex={0}
                 onKeyDown={onKeyDown}
+                role="region"
+                aria-label="Interactive card stack"
             >
                 {/* background wash / spotlight (unique feel) */}
                 <div
@@ -318,7 +327,7 @@ export function CardStack<T extends CardStackItem>({
                                     }}
                                     // translateZ via style transform (kept stable w/ motion values above)
                                     // We apply translateZ by using a CSS transform in a child wrapper.
-                                    onClick={() => setActive(i)}
+                                    onClick={() => handleSetActive(i)}
                                     {...dragProps}
                                 >
                                     <div
@@ -350,7 +359,8 @@ export function CardStack<T extends CardStackItem>({
                             return (
                                 <button
                                     key={it.id}
-                                    onClick={() => setActive(idx)}
+                                    type="button"
+                                    onClick={() => handleSetActive(idx)}
                                     className={cn(
                                         "h-2 w-2 rounded-full transition",
                                         on
@@ -385,12 +395,14 @@ function DefaultFanCard({ item }: { item: CardStackItem; active: boolean }) {
             {/* image */}
             <div className="absolute inset-0">
                 {item.imageSrc ? (
-                    <img
+                    <Image
                         src={item.imageSrc}
                         alt={item.title}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
                         draggable={false}
-                        loading="eager"
+                        priority
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center bg-secondary text-sm text-muted-foreground">

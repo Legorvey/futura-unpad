@@ -31,11 +31,16 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
 
         if (
           body &&
-          typeof body === "object" &&
-          "redirect_url" in body &&
-          typeof body.redirect_url === "string"
+          typeof body === "object"
         ) {
-          return { redirect_url: body.redirect_url };
+          if ("redirect_url" in body && typeof body.redirect_url === "string") {
+            return { redirect_url: body.redirect_url };
+          }
+          
+          if ("order_id" in body && typeof body.order_id === "string" && body.order_id !== orderId) {
+            router.replace(`/payment?order_id=${body.order_id}`);
+            return null;
+          }
         }
       }
 

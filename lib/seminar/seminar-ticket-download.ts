@@ -112,56 +112,58 @@ export async function downloadSeminarTickets({
   if (registrations.length > 1) {
     const zip = new JSZip();
 
-    for (const registration of registrations) {
-      const canvas = createTicketCanvas();
-      const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
+    await Promise.all(
+      registrations.map(async (registration) => {
+        const canvas = createTicketCanvas();
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-      renderTicketBase(
-        ctx,
-        `Futura Seminar (${values.group_name || "Group"})`
-      );
+        renderTicketBase(
+          ctx,
+          `Futura Seminar (${values.group_name || "Group"})`
+        );
 
-      ctx.fillStyle = "#111111";
-      ctx.font = "700 46px Arial";
-      drawWrappedText(ctx, registration.nama_lengkap, 90, 285, 680, 56);
+        ctx.fillStyle = "#111111";
+        ctx.font = "700 46px Arial";
+        drawWrappedText(ctx, registration.nama_lengkap, 90, 285, 680, 56);
 
-      ctx.font = "400 24px Arial";
-      ctx.fillStyle = "#666666";
-      ctx.fillText(values.email, 90, 350);
-      ctx.fillText(values.telp, 90, 388);
+        ctx.font = "400 24px Arial";
+        ctx.fillStyle = "#666666";
+        ctx.fillText(values.email, 90, 350);
+        ctx.fillText(values.telp, 90, 388);
 
-      renderTicketRows(ctx, [
-        ["Institution", registration.asal_institusi || "-"],
-        ["Status", statusLabel],
-        ["Registration ID", registration.id],
-        ["Total Participants", `${registrations.length} People`],
-      ]);
-
-      const qrCanvas = document.getElementById(
-        `qr-canvas-${registration.id}`
-      ) as HTMLCanvasElement | null;
-      if (qrCanvas) {
-        ctx.drawImage(qrCanvas, 90, 410, 200, 200);
-      }
-
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png")
-      );
-      if (blob) {
-        const groupSegment =
-          values.registration_type === "grup" && values.group_name
-            ? values.group_name
-            : "Individu";
-        const fileName = getSafeTicketFileName([
-          groupSegment,
-          registration.nama_lengkap || "TICKET",
-          registration.asal_institusi || values.institusi || "Institusi",
-          registration.id,
+        renderTicketRows(ctx, [
+          ["Institution", registration.asal_institusi || "-"],
+          ["Status", statusLabel],
+          ["Registration ID", registration.id],
+          ["Total Participants", `${registrations.length} People`],
         ]);
-        zip.file(`${fileName}.png`, blob);
-      }
-    }
+
+        const qrCanvas = document.getElementById(
+          `qr-canvas-${registration.id}`
+        ) as HTMLCanvasElement | null;
+        if (qrCanvas) {
+          ctx.drawImage(qrCanvas, 90, 410, 200, 200);
+        }
+
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, "image/png")
+        );
+        if (blob) {
+          const groupSegment =
+            values.registration_type === "grup" && values.group_name
+              ? values.group_name
+              : "Individu";
+          const fileName = getSafeTicketFileName([
+            groupSegment,
+            registration.nama_lengkap || "TICKET",
+            registration.asal_institusi || values.institusi || "Institusi",
+            registration.id,
+          ]);
+          zip.file(`${fileName}.png`, blob);
+        }
+      })
+    );
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const link = document.createElement("a");

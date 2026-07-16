@@ -38,7 +38,7 @@ export function RuangLingkup() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {scopes.map((scope, idx) => (
-          <WobbleCard key={idx} containerClassName={`min-h-[300px] ${scope.className}`}>
+          <WobbleCard key={scope.title} containerClassName={`min-h-[300px] ${scope.className}`}>
             <h2 className="max-w-80 text-left text-balance text-2xl lg:text-3xl font-semibold tracking-tight text-white">
               {scope.title}
             </h2>

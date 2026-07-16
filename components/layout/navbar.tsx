@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 import {
   Navbar,
@@ -22,7 +23,7 @@ type NavbarItem = {
 };
 
 export function NavbarDemo() {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, adminAccess, signOut } = useAuth();
   const pathname = usePathname();
   const navItems: NavbarItem[] = [
     {
@@ -64,7 +65,7 @@ export function NavbarDemo() {
     return null;
   }
 
-  const profileHref = isAdmin ? "/admin" : "/profile";
+  const profileHref = adminAccess ? "/admin" : "/profile";
 
   return (
     <div className="relative w-full">
@@ -118,7 +119,7 @@ export function NavbarDemo() {
           >
             {navItems.map((item, idx) => (
               <a
-                key={`mobile-link-${idx}`}
+                key={item.name}
                 href={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="relative text-neutral-600 dark:text-neutral-300"

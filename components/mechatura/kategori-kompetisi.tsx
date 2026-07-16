@@ -28,7 +28,7 @@ export function KategoriKompetisi() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {categories.map((category, idx) => (
-          <WobbleCard key={idx} containerClassName={`min-h-[300px] ${category.className}`}>
+          <WobbleCard key={category.title} containerClassName={`min-h-[300px] ${category.className}`}>
             <h2 className="max-w-80 text-left text-balance text-2xl lg:text-3xl font-semibold tracking-tight text-white">
               {category.title}
             </h2>

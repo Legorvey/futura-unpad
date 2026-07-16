@@ -116,6 +116,22 @@ const DetailItem = ({
     </div>
 );
 
+const formatPaymentType = (type: string | null) => {
+    if (!type) return "-";
+    const map: Record<string, string> = {
+        gopay: "GoPay",
+        qris: "QRIS",
+        shopeepay: "ShopeePay",
+        credit_card: "Credit Card",
+        bank_transfer: "Bank Transfer",
+        echannel: "Mandiri Bill",
+        cstore: "Convenience Store",
+        bca_klikpay: "BCA KlikPay",
+        bca_klikbca: "KlikBCA",
+    };
+    return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+};
+
 export default async function MechaturaRegistrationDetails({
     params,
 }: {
@@ -163,21 +179,7 @@ export default async function MechaturaRegistrationDetails({
         ? mechaturaCompetitionLabels[registrationData.competition_type]
         : "-";
 
-    const formatPaymentType = (type: string | null) => {
-        if (!type) return "-";
-        const map: Record<string, string> = {
-            gopay: "GoPay",
-            qris: "QRIS",
-            shopeepay: "ShopeePay",
-            credit_card: "Credit Card",
-            bank_transfer: "Bank Transfer",
-            echannel: "Mandiri Bill",
-            cstore: "Convenience Store",
-            bca_klikpay: "BCA KlikPay",
-            bca_klikbca: "KlikBCA",
-        };
-        return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-    };
+
     return (
         <div className="mx-auto w-full max-w-6xl space-y-8">
             <div className="flex items-center gap-4">

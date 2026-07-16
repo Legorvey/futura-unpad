@@ -131,7 +131,13 @@ export async function POST(request: Request) {
   });
 
   if (!transaction?.redirect_url) {
-    return serverError();
+    return NextResponse.json(
+      { 
+        error: "Payment gateway error. Please refresh and try again.", 
+        order_id: order.paymentOrderId 
+      },
+      { status: 500 }
+    );
   }
 
   const { error: updateError } = await adminSupabase

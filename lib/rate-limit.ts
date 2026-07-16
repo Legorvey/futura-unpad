@@ -16,6 +16,16 @@ type MemoryEntry = {
 
 const memoryStore = new Map<string, MemoryEntry>();
 
+// Clean up expired entries every 10 minutes to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of memoryStore.entries()) {
+    if (value.resetAt <= now) {
+      memoryStore.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
+
 const getClientIp = (request: Request) => {
   const forwardedFor = request.headers.get("x-forwarded-for");
 

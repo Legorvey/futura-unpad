@@ -29,6 +29,8 @@ export default function Location({ id, location, address, mapSrc }: LocationProp
                             allowFullScreen={true}
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
+                            title="Location Map"
+                            sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
                         />
                     </div>
                 </div>

@@ -22,7 +22,7 @@ export type AuthUser = AuthSessionUser;
 
 type AuthContextValue = {
   user: AuthUser | null;
-  isAdmin: boolean;
+  adminAccess: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
   signOut: () => Promise<{ error: Error | null }>;
@@ -39,13 +39,13 @@ export function AuthProvider({
   initialSession,
 }: {
   children: React.ReactNode;
-  initialSession: AuthSession;
+  initialSession?: AuthSession | null;
 }) {
   const queryClient = useQueryClient();
-  const authSession = useAuthSessionQuery({ initialData: initialSession });
+  const authSession = useAuthSessionQuery({ initialData: initialSession ?? undefined });
   const [isMutatingAuth, setIsMutatingAuth] = useState(false);
   const user = authSession.data?.user ?? null;
-  const isAdmin = authSession.data?.isAdmin ?? false;
+  const adminAccess = authSession.data?.adminAccess ?? false;
 
   const setCachedSession = useCallback(
     (nextSession: AuthSession) => {
@@ -67,7 +67,7 @@ export function AuthProvider({
       return { error };
     }
 
-    setCachedSession({ user: null, isAdmin: false });
+    setCachedSession({ user: null, adminAccess: false });
     setIsMutatingAuth(false);
 
     return { error: null };
@@ -90,15 +90,15 @@ export function AuthProvider({
       }
 
       if (!nextUser) {
-        setCachedSession({ user: null, isAdmin: false });
+        setCachedSession({ user: null, adminAccess: false });
         return;
       }
 
       const currentSession = queryClient.getQueryData<AuthSession>(queryKeys.auth.session);
       const isSameUser = currentSession?.user?.id === nextUser.id;
-      const isAdmin = isSameUser ? (currentSession?.isAdmin ?? false) : false;
+      const adminAccess = isSameUser ? (currentSession?.adminAccess ?? false) : false;
 
-      setCachedSession({ user: nextUser, isAdmin });
+      setCachedSession({ user: nextUser, adminAccess });
       
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
     });
@@ -112,12 +112,12 @@ export function AuthProvider({
   const value = useMemo(
     () => ({
       user,
-      isAdmin,
+      adminAccess,
       isLoading: authSession.isLoading || isMutatingAuth,
       refreshAuth,
       signOut,
     }),
-    [authSession.isLoading, isAdmin, isMutatingAuth, refreshAuth, signOut, user]
+    [authSession.isLoading, adminAccess, isMutatingAuth, refreshAuth, signOut, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

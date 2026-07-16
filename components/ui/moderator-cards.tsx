@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export interface ModeratorCardProps {
     id: number;
     name: string;
@@ -19,10 +21,12 @@ export default function ModeratorCards({ moderators }: { moderators: ModeratorCa
                         className="flex flex-col items-center gap-8 md:flex-row"
                     >
                         <div className="shrink-0">
-                            <img
-                                className="h-72 w-64 rounded-md object-cover"
+                            <Image
+                                className="rounded-md object-cover"
                                 src={moderator.imageSrc}
                                 alt={moderator.name}
+                                width={256}
+                                height={288}
                             />
                         </div>
                         <div className="flex flex-col text-center md:text-left">

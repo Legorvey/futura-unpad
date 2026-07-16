@@ -5,6 +5,22 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import Image from "next/image"
 
+const getSafeRedirectPath = (value: string | null) => {
+    if (
+        !value ||
+        !value.startsWith("/") ||
+        value.startsWith("//") ||
+        value.startsWith("/login") ||
+        value === "/register" ||
+        value.startsWith("/register?") ||
+        value.startsWith("/auth/callback")
+    ) {
+        return "/profile"
+    }
+
+    return value
+}
+
 export default function GoogleLoginButton({
     keepSignedIn = true,
     onBeforeLogin,
@@ -15,21 +31,7 @@ export default function GoogleLoginButton({
     const supabase = createClient()
     const [isLoading, setIsLoading] = useState(false)
 
-    const getSafeRedirectPath = (value: string | null) => {
-        if (
-            !value ||
-            !value.startsWith("/") ||
-            value.startsWith("//") ||
-            value.startsWith("/login") ||
-            value === "/register" ||
-            value.startsWith("/register?") ||
-            value.startsWith("/auth/callback")
-        ) {
-            return "/admin"
-        }
 
-        return value
-    }
 
     const loginWithGoogle = async () => {
         if (onBeforeLogin && !onBeforeLogin()) {
@@ -40,10 +42,7 @@ export default function GoogleLoginButton({
 
         const currentUrl = new URL(window.location.href)
         const callbackUrl = new URL("/auth/callback", window.location.origin)
-        const next = currentUrl.searchParams.get("next") ?? "/admin"
-
-        callbackUrl.searchParams.set("next", getSafeRedirectPath(next))
-        callbackUrl.searchParams.set("keep_signed_in", keepSignedIn ? "1" : "0")
+        callbackUrl.searchParams.set("next", getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile"))
 
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",

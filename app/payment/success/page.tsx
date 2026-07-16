@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+
 
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -113,10 +113,17 @@ async function verifyPayment(orderId: string) {
   }
 
   if (!isCompletedMechaturaPaymentStatus(order.paymentStatus)) {
-    await syncMechaturaPaymentStatus(supabase, orderId).catch((error) => {
+    const newStatus = await syncMechaturaPaymentStatus(supabase, orderId, order.rawOrder).catch((error) => {
       console.error("Midtrans payment sync failed", error.message);
+      return null;
     });
-    order = await findOrder(supabase, orderId);
+
+    if (newStatus && newStatus !== order.paymentStatus) {
+      order.paymentStatus = newStatus;
+      if (isCompletedMechaturaPaymentStatus(newStatus)) {
+         order.paidAt = new Date().toISOString(); // Predictively mark as paid for receipt
+      }
+    }
 
     if (!order) {
       return { status: "invalid" as const };

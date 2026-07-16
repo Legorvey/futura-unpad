@@ -15,22 +15,38 @@ import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
 
+const safeRedirect = (value: string | null) => {
+    return value &&
+        value.startsWith("/") &&
+        !value.startsWith("//") &&
+        !value.startsWith("/login") &&
+        value !== "/register" &&
+        !value.startsWith("/register?") &&
+        !value.startsWith("/auth/callback")
+        ? value
+        : null;
+};
+
 export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { refreshAuth } = useAuth();
     const login = useLoginMutation();
     const [submitError, setSubmitError] = useState("");
-    const [keepSignedIn, setKeepSignedIn] = useState(false);
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
             identifier: "",
             password: "",
+            keepSignedIn: false,
         },
     });
+    const keepSignedIn = form.watch("keepSignedIn");
+    const setKeepSignedIn = (value: boolean) => form.setValue("keepSignedIn", value);
     const { handleSubmit } = form;
+
+    const safeNext = safeRedirect(searchParams.get("next"));
 
     const onSubmit = async (values: LoginFormValues) => {
         setSubmitError("");
@@ -42,20 +58,8 @@ export default function LoginForm() {
             return;
         }
 
-        const next = searchParams.get("next");
-        const safeNext =
-            next &&
-                next.startsWith("/") &&
-                !next.startsWith("//") &&
-                !next.startsWith("/login") &&
-                next !== "/register" &&
-                !next.startsWith("/register?") &&
-                !next.startsWith("/auth/callback")
-                ? next
-                : "/profile";
-
         await refreshAuth();
-        router.replace(safeNext);
+        router.replace(safeNext || "/profile");
     };
 
     return (
@@ -128,8 +132,8 @@ export default function LoginForm() {
                         Do not have an account?{" "}
                         <Link
                             href={
-                                searchParams.get("next")
-                                    ? `/register?next=${searchParams.get("next")}`
+                                safeNext
+                                    ? `/register?next=${safeNext}`
                                     : "/register"
                             }
                             prefetch={false}

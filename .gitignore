@@ -51,3 +51,7 @@ next-env.d.ts
 Thumbs.db
 .idea/
 .vscode/
+
+# AI Agents
+.agents/
+.claude/

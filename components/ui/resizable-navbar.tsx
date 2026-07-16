@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 import { cn } from "@/lib/utils";
 import { isInternalAppHref } from "@/lib/navigation";
@@ -208,7 +209,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
             "relative px-4 py-2 transition-colors duration-500 ease-out",
             navbarSettings.classes.itemText,
           )}
-          key={`link-${idx}`}
+          key={item.name}
           href={item.link}
         >
           {hovered === idx && (

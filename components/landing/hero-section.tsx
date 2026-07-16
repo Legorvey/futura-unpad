@@ -71,8 +71,11 @@ export function HeroSection() {
     <section id="home" className="relative overflow-hidden bg-background">
       <div className="relative mx-auto min-h-[calc(108svh-0px)] content-center gap-16 px-5 py-8 sm:px-8 z-10">
 
+        {/* BACKGROUND */}
+        <BackgroundBeams className="-z-10" />
+
         {/* MAIN TITLE */}
-        <div className="flex flex-col items-center text-center space-y-6">
+        <div className="flex flex-col items-center text-center space-y-6 relative z-10">
           <InfoPill
             title="Registrasi Mechatura telah dibuka"
             href="/mechatura/"
@@ -91,7 +94,6 @@ export function HeroSection() {
             text="Daftar Sekarang"
             href="#registrations"
           />
-          <BackgroundBeams />
         </div>
 
         {/* VIDEO HERO */}

@@ -5,19 +5,19 @@ import { invalidRequest, readJsonBody, serverError } from "@/lib/http"
 import { z } from "zod"
 
 const toggleSchema = z.object({
-  registration_id: z.string().uuid(),
+  registration_id: z.uuid(),
   attended: z.boolean(),
   bulk: z.boolean().optional().default(false)
 })
 
 export async function POST(request: Request) {
-    const { user, isAdmin } = await requireAdmin()
+    const { user, adminAccess } = await requireAdmin()
 
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (!isAdmin) {
+    if (!adminAccess) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

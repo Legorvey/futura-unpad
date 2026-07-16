@@ -80,7 +80,7 @@ export default async function ProfilePage() {
   }
 
   if (adminAccess) {
-    redirect("/admin/profile")
+    redirect("/admin")
   }
 
   const adminSupabase = createAdminClient()

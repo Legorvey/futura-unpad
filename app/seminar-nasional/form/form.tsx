@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/components/auth-provider";
 import { useCreateSeminarRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
+import { toast } from "sonner";
 import StepProgress from "@/components/registration/step-progress";
 import { useFormDraft } from "@/hooks/use-form-draft";
 import {
@@ -129,6 +130,9 @@ export default function SeminarRegistrationForm() {
         })),
     }).catch((error) => {
       setSubmitError(error instanceof Error ? error.message : "Registration failed. Please try again.");
+      toast.error("Registration failed", {
+        description: error instanceof Error ? error.message : "An unexpected error occurred."
+      });
       return null;
     });
 
@@ -140,6 +144,7 @@ export default function SeminarRegistrationForm() {
     setAllRegistrations(responseData.registrations || []);
     setStep("ticket");
     setShowProfileDialog(true);
+    toast.success("Registration successful!");
   });
 
   const downloadTicket = () =>

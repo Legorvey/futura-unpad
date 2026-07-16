@@ -11,24 +11,26 @@ import { useResetPasswordMutation } from "@/hooks/mutations/use-auth-mutations"
 
 export default function ResetPasswordForm() {
     const router = useRouter()
-    const { refreshAuth } = useAuth()
+    const searchParams = useSearchParams()
     const resetPassword = useResetPasswordMutation()
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
-    const [message, setMessage] = useState("")
+    const [errorMessage, setErrorMessage] = useState("")
+    const [successMessage, setSuccessMessage] = useState("")
     const [isComplete, setIsComplete] = useState(false)
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
-        setMessage("")
+        setErrorMessage("")
+        setSuccessMessage("")
 
         if (password.length < 8) {
-            setMessage("Password must be at least 8 characters.")
+            setErrorMessage("Password must be at least 8 characters.")
             return
         }
 
         if (password !== confirmPassword) {
-            setMessage("Passwords do not match.")
+            setErrorMessage("Passwords do not match.")
             return
         }
 
@@ -38,13 +40,12 @@ export default function ResetPasswordForm() {
                 confirmPassword,
             })
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Password update failed. Please request a new reset link.")
+            setErrorMessage(error instanceof Error ? error.message : "Password update failed. Please request a new reset link.")
             return
         }
 
-        await refreshAuth()
         setIsComplete(true)
-        setMessage("Password updated successfully. Please sign in with your new password.")
+        setSuccessMessage("Password updated successfully. Please sign in with your new password.")
         router.replace("/login")
     }
 
@@ -74,6 +75,7 @@ export default function ResetPasswordForm() {
                             required
                             minLength={8}
                             disabled={isComplete}
+                            aria-invalid={!!errorMessage}
                         />
                     </Field>
 
@@ -90,12 +92,19 @@ export default function ResetPasswordForm() {
                             required
                             minLength={8}
                             disabled={isComplete}
+                            aria-invalid={!!errorMessage}
                         />
                     </Field>
 
-                    {message ? (
-                        <p className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                            {message}
+                    {errorMessage ? (
+                        <p className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                            {errorMessage}
+                        </p>
+                    ) : null}
+                    
+                    {successMessage ? (
+                        <p className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                            {successMessage}
                         </p>
                     ) : null}
 

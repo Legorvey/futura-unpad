@@ -12,6 +12,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 
 import { useAuth } from "@/components/auth-provider";
 import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
+import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
 
@@ -30,7 +31,6 @@ const safeRedirect = (value: string | null) => {
 export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { refreshAuth } = useAuth();
     const login = useLoginMutation();
     const [submitError, setSubmitError] = useState("");
 
@@ -51,15 +51,23 @@ export default function LoginForm() {
     const onSubmit = async (values: LoginFormValues) => {
         setSubmitError("");
 
+        let result;
         try {
-            await login.mutateAsync({ ...values, keepSignedIn });
+            result = await login.mutateAsync({ ...values, keepSignedIn });
+            toast.success("Successfully logged in");
         } catch (error) {
             setSubmitError(error instanceof Error ? error.message : "Login failed.");
+            toast.error("Login failed", { 
+                description: error instanceof Error ? error.message : "Please check your credentials and try again." 
+            });
             return;
         }
 
-        await refreshAuth();
-        router.replace(safeNext || "/profile");
+        const nextUrl = result.adminAccess
+            ? (safeNext?.startsWith("/admin") ? safeNext : "/admin")
+            : (safeNext || "/profile");
+            
+        router.replace(nextUrl);
     };
 
     return (

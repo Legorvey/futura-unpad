@@ -73,5 +73,15 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  let adminAccess = false;
+  if (error === null) {
+    const { data: adminData } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", (await supabase.auth.getUser()).data.user?.id || "")
+      .maybeSingle();
+    adminAccess = !!adminData;
+  }
+
+  return NextResponse.json({ ok: true, adminAccess });
 }

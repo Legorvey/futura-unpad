@@ -65,6 +65,19 @@ export async function GET(request: Request) {
         }
     }
 
+    let finalNextUrl = safeNextUrl
+    if (user && !isPasswordRecoveryRedirect) {
+        const { data: adminData } = await supabase
+            .from("admin_users")
+            .select("user_id")
+            .eq("user_id", user.id)
+            .maybeSingle()
+            
+        if (adminData && (!safeNextUrl || safeNextUrl === "/profile")) {
+            finalNextUrl = "/admin"
+        }
+    }
+
     const cookieStore = await cookies()
     if (keepSignedIn) {
         cookieStore.set(AUTH_PERSISTENCE_COOKIE, "", {
@@ -79,7 +92,7 @@ export async function GET(request: Request) {
         )
     }
 
-    const response = NextResponse.redirect(new URL(safeNextUrl, process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"))
+    const response = NextResponse.redirect(new URL(finalNextUrl, process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"))
 
     if (isPasswordRecoveryRedirect) {
         response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {

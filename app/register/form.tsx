@@ -20,6 +20,7 @@ import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 
 import { useAuth } from "@/components/auth-provider";
 import { useRegisterMutation } from "@/hooks/mutations/use-auth-mutations";
+import { toast } from "sonner";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import { FormTextField } from "@/components/form/form-text-field";
@@ -38,7 +39,6 @@ const getPasswordStrength = (pwd: string) => {
 
 export default function RegisterForm({ loginHref = "/login" }: { loginHref?: string }) {
     const router = useRouter();
-    const { refreshAuth } = useAuth();
     const registerAccount = useRegisterMutation();
     const [submitError, setSubmitError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -83,6 +83,9 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                 termsAccepted: values.termsAccepted,
         }).catch((error) => {
             setSubmitError(error instanceof Error ? error.message : "Registration failed.");
+            toast.error("Registration failed", {
+                description: error instanceof Error ? error.message : "An unexpected error occurred."
+            });
             return null;
         });
 
@@ -91,6 +94,7 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         }
 
         if (data?.authenticated) {
+            toast.success("Successfully registered and logged in");
             const currentUrl = new URL(window.location.href);
             const getSafeRedirectPath = (value: string | null) => {
                 return value &&
@@ -105,12 +109,14 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
 
             const safeNext = getSafeRedirectPath(currentUrl.searchParams.get("next"));
 
-            await refreshAuth();
             router.replace(safeNext);
             return;
         }
 
         setSuccessMessage("Registration successful. Please check your email if confirmation is required.");
+        toast.success("Registration successful", {
+            description: "Please check your email if confirmation is required."
+        });
     };
 
     const requireLegalAgreement = () => {

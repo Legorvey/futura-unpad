@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePathname, useRouter } from "next/navigation";
+import { buildLoginRedirectHref, isAuthRequiredPath } from "@/lib/auth-routes";
 
 import {
   type AuthSession,
@@ -24,7 +26,6 @@ type AuthContextValue = {
   user: AuthUser | null;
   adminAccess: boolean;
   isLoading: boolean;
-  refreshAuth: () => Promise<void>;
   signOut: () => Promise<{ error: Error | null }>;
 };
 
@@ -42,6 +43,8 @@ export function AuthProvider({
   initialSession?: AuthSession | null;
 }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
   const authSession = useAuthSessionQuery({ initialData: initialSession ?? undefined });
   const [isMutatingAuth, setIsMutatingAuth] = useState(false);
   const user = authSession.data?.user ?? null;
@@ -54,10 +57,6 @@ export function AuthProvider({
     [queryClient]
   );
 
-  const refreshAuth = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
-  }, [queryClient]);
-
   const signOut = useCallback(async () => {
     setIsMutatingAuth(true);
     const { error } = await supabase.auth.signOut();
@@ -67,11 +66,18 @@ export function AuthProvider({
       return { error };
     }
 
+    queryClient.clear();
     setCachedSession({ user: null, adminAccess: false });
     setIsMutatingAuth(false);
 
     return { error: null };
-  }, [setCachedSession]);
+  }, [setCachedSession, queryClient]);
+
+  useEffect(() => {
+    if (!authSession.isLoading && !isMutatingAuth && !user && isAuthRequiredPath(pathname)) {
+      router.replace(buildLoginRedirectHref(pathname));
+    }
+  }, [authSession.isLoading, isMutatingAuth, user, pathname, router]);
 
   useEffect(() => {
     let isMounted = true;
@@ -89,7 +95,17 @@ export function AuthProvider({
         return;
       }
 
+      if (
+        event === "SIGNED_IN" ||
+        event === "SIGNED_OUT" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "USER_UPDATED"
+      ) {
+        router.refresh();
+      }
+
       if (!nextUser) {
+        queryClient.clear();
         setCachedSession({ user: null, adminAccess: false });
         return;
       }
@@ -107,17 +123,16 @@ export function AuthProvider({
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [queryClient, setCachedSession]);
+  }, [queryClient, setCachedSession, router]);
 
   const value = useMemo(
     () => ({
       user,
       adminAccess,
       isLoading: authSession.isLoading || isMutatingAuth,
-      refreshAuth,
       signOut,
     }),
-    [authSession.isLoading, adminAccess, isMutatingAuth, refreshAuth, signOut, user]
+    [authSession.isLoading, adminAccess, isMutatingAuth, signOut, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

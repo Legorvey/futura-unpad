@@ -35,11 +35,11 @@ export default function AuthPageSkeleton({ variant }: AuthPageSkeletonProps) {
   const config = authSkeletonConfig[variant];
 
   return (
-    <main className="mx-auto w-full max-w-xl items-start space-y-12 px-6 py-16 sm:px-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center space-y-12 px-6 pb-16 pt-32 sm:px-8">
       <span className="sr-only">Loading authentication form...</span>
 
-      <section className="space-y-3">
-        <Skeleton className={cn("h-10", config.titleClassName)} />
+      <section className="space-y-2">
+        <Skeleton className={cn("h-10 sm:h-9 md:h-10", config.titleClassName)} />
         <Skeleton className={cn("h-4", config.descriptionClassName)} />
       </section>
 

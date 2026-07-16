@@ -1,5 +1,4 @@
 const authRequiredPathPrefixes = [
-  "/admin",
   "/profile",
   "/payment",
   "/mechatura/form",

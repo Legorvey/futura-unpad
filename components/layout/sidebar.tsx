@@ -37,8 +37,11 @@ export function Sidebar() {
         }
         setIsLoggingOut(false)
         setLogoutOpen(false)
+        
+        if (pathname.startsWith("/admin")) {
+            router.replace("/login")
+        }
     }
-
 
 
     const navItems = [

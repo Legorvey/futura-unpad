@@ -11,6 +11,7 @@ import MechaturaIdentityStep from "@/components/registration/mechatura/mechatura
 import StepProgress from "@/components/registration/step-progress";
 import { clearFormDraft, useFormDraft } from "@/hooks/use-form-draft";
 import { useCreateMechaturaRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
+import { toast } from "sonner";
 import { useRegistrationStep } from "@/hooks/use-registration-step";
 import { ApiError } from "@/lib/query/fetch-json";
 import { toInternalAppHref } from "@/lib/navigation";
@@ -178,6 +179,8 @@ export default function MechaturaRegistrationForm() {
           return { payment_url: body.payment_url };
         }
 
+
+
         if (error.status === 401) {
           router.push("/login?next=/registration/mechatura");
           return null;
@@ -189,10 +192,16 @@ export default function MechaturaRegistrationForm() {
           ? error.message
           : "Registration failed. Please check your data and try again."
       );
+      toast.error("Registration failed", {
+        description: error instanceof Error ? error.message : "An unexpected error occurred."
+      });
       return null;
     });
 
     if (data?.payment_url) {
+      toast.success("Registration successful", {
+        description: "Redirecting to payment..."
+      });
       clearFormDraft(MECHATURA_DRAFT_STORAGE_KEY);
 
       const appHref = toInternalAppHref(data.payment_url, window.location.origin);

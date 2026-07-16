@@ -33,11 +33,14 @@ export default function ForgotPasswordPage() {
         try {
             await forgotPassword.mutateAsync(values)
         } catch (error) {
-            setErrorMessage(error instanceof Error ? error.message : "Please try again later.")
-            return
+            if (error instanceof Error && error.message !== "User with this email not found") {
+                setErrorMessage("Please try again later.")
+                return
+            }
+            // If the error is 'User with this email not found', we swallow it to prevent email enumeration.
         }
 
-        setSuccessMessage(`Email has been successfully sent to ${values.email}`)
+        setSuccessMessage(`If an account with ${values.email} exists, a secure reset link has been sent.`)
     }
 
     return (
@@ -72,9 +75,7 @@ export default function ForgotPasswordPage() {
 
                     {errorMessage ? (
                         <p className="rounded-[8px] border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                            {errorMessage === "User with this email not found" 
-                                ? "Email doesn't exist." 
-                                : errorMessage}
+                            {errorMessage}
                         </p>
                     ) : null}
 

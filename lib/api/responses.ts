@@ -4,6 +4,10 @@ export const okResponseSchema = z.object({
   ok: z.literal(true),
 });
 
+export const authLoginResponseSchema = okResponseSchema.extend({
+  adminAccess: z.boolean(),
+});
+
 export const authRegisterResponseSchema = okResponseSchema.extend({
   authenticated: z.boolean(),
 });

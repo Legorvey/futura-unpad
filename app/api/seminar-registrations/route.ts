@@ -48,6 +48,14 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await authSupabase.auth.getUser();
+  
+  if (!user) {
+    return NextResponse.json(
+      { error: "Please log in before registering for the seminar." },
+      { status: 401 }
+    );
+  }
+
   const adminSupabase = createAdminClient();
 
   // Check duplicate by name AND email
@@ -75,7 +83,7 @@ export async function POST(request: Request) {
 
   const inserts = [
     {
-      user_id: user?.id ?? null,
+      user_id: user.id,
       nama_lengkap: parsed.data.nama_lengkap,
       email: parsed.data.email,
       no_telepon: parsed.data.no_telepon,

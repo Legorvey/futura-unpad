@@ -13,7 +13,7 @@ export default function PaymentPageSkeleton({
   return (
     <main
       className={cn(
-        "mx-auto w-full max-w-3xl space-y-12 px-6 py-16 sm:px-8",
+        "mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center space-y-12 px-6 pb-16 pt-32 sm:px-8",
         className
       )}
     >

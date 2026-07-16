@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { z } from "zod";
 
 import {
+  authLoginResponseSchema,
   authRegisterResponseSchema,
   okResponseSchema,
 } from "@/lib/api/responses";
@@ -37,7 +38,7 @@ export function useLoginMutation() {
   return useMutation({
     mutationKey: mutationKeys.auth.login,
     mutationFn: (values: LoginFormValues) =>
-      postJson("/api/auth/login", okResponseSchema, values),
+      postJson("/api/auth/login", authLoginResponseSchema, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
     },

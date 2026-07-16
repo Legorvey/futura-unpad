@@ -8,6 +8,8 @@ import {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+import { isAuthRequiredPath, buildLoginRedirectHref } from "@/lib/auth-routes";
+
 export const updateSession = async (request: NextRequest) => {
   const sessionOnly = isSessionAuthPersistence(
     request.cookies.get(AUTH_PERSISTENCE_COOKIE)?.value
@@ -54,11 +56,7 @@ export const updateSession = async (request: NextRequest) => {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isProtectedRoute = 
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/seminar-list') ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/registration/lomba-kti');
+  const isProtectedRoute = isAuthRequiredPath(pathname);
 
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();

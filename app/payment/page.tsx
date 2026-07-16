@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { CreditCard } from "lucide-react";
+import { CreditCard, LucideGlobeLock } from "lucide-react";
 import PaymentProgress from "@/components/registration/payment-progress";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,21 +46,19 @@ type PaymentOrder = {
   details: Array<[string, string]>;
 };
 
-function InvalidPaymentState() {
+import { ErrorState } from "@/components/ui/error-state"
+import { AlertCircle } from "lucide-react"
+
+function PaymentErrorState({ title, description, href, cta }: { title: string, description: string, href: string, cta: string }) {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-3xl flex-col justify-center space-y-8 px-6 pb-32 pt-28 sm:px-8">
-      <PaymentProgress />
-      <section className="rounded-xl border border-border bg-card p-6">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Payment link is invalid.
-        </h1>
-        <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500">
-          Please return to registration and submit the form again.
-        </p>
-        <Button asChild className="mt-6 rounded-xl">
-          <Link href="/registration" prefetch={false}>Back to registration</Link>
-        </Button>
-      </section>
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-6 pb-16 pt-32 sm:px-8">
+      <ErrorState 
+        icon={AlertCircle}
+        title={title}
+        description={description}
+        actionHref={href}
+        actionLabel={cta}
+      />
     </main>
   );
 }
@@ -114,7 +112,7 @@ export default async function PaymentPage({
     : params.order_id;
 
   if (!isRegistrationToken(orderId)) {
-    return <InvalidPaymentState />;
+    return <PaymentErrorState title="Payment link is invalid." description="Please return to fill and submit the form again." href="/" cta="Back to Home" />;
   }
 
   const supabase = createAdminClient();
@@ -124,14 +122,14 @@ export default async function PaymentPage({
   });
 
   if (!order) {
-    return <InvalidPaymentState />;
+    return <PaymentErrorState title="Payment link is invalid." description="Please return to fill and submit the form again." href="/" cta="Back to Home" />;
   }
 
   if (order.userId) {
     const { user } = await getCachedAuth();
 
     if (order.userId !== user?.id) {
-      return <InvalidPaymentState />;
+       return <PaymentErrorState title="Payment link is invalid." description="Please return to fill and submit the form again." href="/" cta="Back to Home" />;
     }
   }
 
@@ -143,6 +141,18 @@ export default async function PaymentPage({
     createdAt: order.createdAt,
     paymentStatus,
   });
+
+  if (isExpired && !isPaid) {
+    return (
+      <PaymentErrorState 
+        title="Payment window expired." 
+        description="This Mechatura payment window has expired. Please return to the Mechatura registration page to start a new registration." 
+        href="/mechatura/form" 
+        cta="Register again" 
+      />
+    );
+  }
+
   const expiresAt = getMechaturaPaymentExpiresAt(order.createdAt);
 
   return (
@@ -227,16 +237,6 @@ export default async function PaymentPage({
             View receipt
           </Link>
         </Button>
-      ) : isExpired ? (
-        <section className="space-y-3">
-          <p role="alert" className="text-sm leading-6 text-destructive">
-            This Mechatura payment window has expired. Please return to the
-            Mechatura registration page to start a new registration.
-          </p>
-          <Button asChild className="h-11 rounded-xl">
-            <Link href="/registration/mechatura" prefetch={false}>Register again</Link>
-          </Button>
-        </section>
       ) : (
         <PaymentActions orderId={order.externalId} />
       )}

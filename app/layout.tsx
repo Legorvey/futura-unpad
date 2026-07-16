@@ -9,6 +9,7 @@ import { AuthProvider } from "@/components/auth-provider";
 import QueryProvider from "@/components/query-provider";
 import type { AuthSession } from "@/lib/api/auth-session";
 import HoverFooter from "@/components/layout/footer"
+import { Toaster } from "@/components/ui/sonner";
 
 const space_grotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default function RootLayout({
               {children}
             </div>
             <HoverFooter />
+            <Toaster position="top-right" richColors theme="dark" />
           </AuthProvider>
         </QueryProvider>
       </body>

@@ -16,6 +16,7 @@ import ConfirmDialog from "@/components/confirm-dialog";
 import { LogOut, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type NavbarItem = {
   name: string;
@@ -23,7 +24,7 @@ type NavbarItem = {
 };
 
 export function NavbarDemo() {
-  const { user, adminAccess, signOut } = useAuth();
+  const { user, adminAccess, isLoading, signOut } = useAuth();
   const pathname = usePathname();
   const navItems: NavbarItem[] = [
     {
@@ -54,11 +55,13 @@ export function NavbarDemo() {
 
       if (error) {
           console.error(error)
+          toast.error("Failed to log out", { description: "Please try again." })
           setIsLoggingOut(false)
           return
       }
       setIsLoggingOut(false)
       setLogoutOpen(false)
+      toast.success("Successfully logged out")
   }
  
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
@@ -75,7 +78,12 @@ export function NavbarDemo() {
           <NavbarLogo />
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
-            {user ? (
+            {isLoading ? (
+              <>
+                <div className="h-10 w-[72px] animate-pulse rounded-md bg-muted" />
+                <div className="h-10 w-[84px] animate-pulse rounded-md bg-muted" />
+              </>
+            ) : user ? (
               <>
                 <NavbarButton
                   href={profileHref}
@@ -128,7 +136,12 @@ export function NavbarDemo() {
               </a>
             ))}
             <div className="flex w-full flex-col gap-4">
-              {user ? (
+              {isLoading ? (
+                <>
+                  <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+                  <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+                </>
+              ) : user ? (
                 <div className="flex items-center gap-4">
                   <NavbarButton
                     href={profileHref}

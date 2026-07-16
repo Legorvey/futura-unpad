@@ -8,7 +8,7 @@ const ComposedChart = dynamic(() => import("recharts").then(mod => mod.ComposedC
 const CartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false })
 const XAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false })
 const YAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false })
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, subDays } from "date-fns"
 import { DateRange } from "react-day-picker"
 import { Info, TrendingUp, Cpu, PenTool, Receipt, CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -72,6 +72,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
     from: startOfMonth(new Date()),
     to: new Date()
   })
+  const [isCalendarOpen, setIsCalendarOpen] = React.useState(false)
 
   // Format the data for the chart to fill the selected date range
   const formattedData = React.useMemo(() => {
@@ -81,7 +82,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
     const end = dateRange.to || start
     const days = eachDayOfInterval({ start, end })
     
-    const dataMap = new Map<string, any>()
+    const dataMap = new Map<string, RevenueData>()
     data.forEach(item => {
       const d = new Date(item.date)
       if (!isNaN(d.getTime())) {
@@ -152,9 +153,9 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
               </DialogContent>
             </Dialog>
           </div>
-          <p className="text-sm text-muted-foreground">Breakdown of gross revenue, net income, and gateway fees</p>
+          <p className="text-sm text-muted-foreground mt-1">Breakdown of gross revenue, net income, and gateway fees</p>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right border-t sm:border-t-0 border-border pt-4 sm:pt-0">
           <p className="text-3xl font-semibold tracking-tight">
             {formatCurrency(totalNetRevenue)}
           </p>
@@ -165,13 +166,13 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
         </div>
       </div>
       
-      <div className="flex justify-end border-b border-border pb-4 mb-2">
-        <Popover>
+      <div className="flex justify-end border-b border-border pb-4 mb-4">
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant={"outline"}
               className={cn(
-                "w-[280px] justify-start text-left font-normal",
+                "w-full sm:w-[280px] justify-start text-left font-normal",
                 !dateRange && "text-muted-foreground"
               )}
             >
@@ -189,14 +190,44 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={2}
-            />
+          <PopoverContent className="w-auto flex flex-col sm:flex-row p-0" align="end">
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 border-b sm:border-b-0 sm:border-r border-border p-3 min-w-[150px]">
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                setDateRange({ from: new Date(), to: new Date() })
+                setIsCalendarOpen(false)
+              }}>Today</Button>
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                const yesterday = subDays(new Date(), 1);
+                setDateRange({ from: yesterday, to: yesterday });
+                setIsCalendarOpen(false)
+              }}>Yesterday</Button>
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                setDateRange({ from: subDays(new Date(), 2), to: new Date() })
+                setIsCalendarOpen(false)
+              }}>Last 3 days</Button>
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                setDateRange({ from: subDays(new Date(), 6), to: new Date() })
+                setIsCalendarOpen(false)
+              }}>Last 7 days</Button>
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                setDateRange({ from: subDays(new Date(), 14), to: new Date() })
+                setIsCalendarOpen(false)
+              }}>Last 15 days</Button>
+              <Button variant="ghost" size="sm" className="justify-start text-left font-normal w-full" onClick={() => {
+                setDateRange({ from: subDays(new Date(), 29), to: new Date() })
+                setIsCalendarOpen(false)
+              }}>Last 30 days</Button>
+            </div>
+            <div className="p-3">
+              <Calendar
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={1}
+                disabled={(date) => date > new Date()}
+              />
+            </div>
           </PopoverContent>
         </Popover>
       </div>

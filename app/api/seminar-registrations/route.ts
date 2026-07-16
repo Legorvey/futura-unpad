@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   const isGroup = parsed.data.registration_type === "group";
   const groupId = isGroup ? crypto.randomUUID() : null;
 
-  const inserts = [
+  const inserts: any[] = [
     {
       user_id: user.id,
       nama_lengkap: parsed.data.nama_lengkap,

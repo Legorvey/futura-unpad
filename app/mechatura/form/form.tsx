@@ -64,6 +64,7 @@ export default function MechaturaRegistrationForm() {
       leader_name: "",
       leader_email: "",
       leader_phone: "",
+      member_count: 0,
       member2_name: "",
       member2_email: "",
       member2_phone: "",

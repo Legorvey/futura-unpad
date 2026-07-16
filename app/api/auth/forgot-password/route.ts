@@ -78,13 +78,34 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       from: "Futura Support <onboarding@resend.dev>",
       to: parsed.data.email,
-      subject: "Reset Your Password",
+      subject: "Reset Kata Sandi Akun Anda",
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Reset Your Password</h2>
-          <p>We received a request to reset your password. Click the button below to choose a new password:</p>
-          <a href="${customLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; margin-top: 16px;">Reset Password</a>
-          <p style="margin-top: 32px; font-size: 14px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+        <div style="font-family: 'Inter', Helvetica, sans-serif; max-width: 600px; margin: 40px auto; padding: 32px; border: 1px solid #e5e5e5; border-radius: 12px; background-color: #ffffff; color: #171717;">
+          <div style="text-align: center; margin-bottom: 32px;">
+            <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #171717;">Reset Kata Sandi</h1>
+          </div>
+          
+          <p style="font-size: 16px; line-height: 24px; margin: 0 0 24px 0; color: #525252;">Halo,</p>
+          
+          <p style="font-size: 16px; line-height: 24px; margin: 0 0 32px 0; color: #525252;">
+            Kami menerima permintaan untuk mereset kata sandi akun <strong>Futura Unpad</strong> Anda. Silakan klik tombol di bawah ini untuk mengatur kata sandi baru:
+          </p>
+          
+          <div style="text-align: center; margin-bottom: 32px;">
+            <a href="${customLink}" style="display: inline-block; padding: 14px 28px; background-color: #171717; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500;">Atur Ulang Kata Sandi</a>
+          </div>
+          
+          <p style="font-size: 14px; line-height: 24px; margin: 0 0 32px 0; color: #737373;">
+            Tautan ini hanya berlaku untuk sementara waktu. Jika Anda tidak pernah merasa meminta reset kata sandi, Anda dapat mengabaikan email ini dengan aman.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 0 0 24px 0;" />
+          
+          <p style="font-size: 12px; line-height: 20px; margin: 0; color: #a3a3a3; text-align: center;">
+            &copy; ${new Date().getFullYear()} Futura Unpad. Seluruh hak cipta dilindungi.<br>
+            Jika tombol di atas tidak berfungsi, salin dan tempel tautan berikut ke browser Anda:<br>
+            <a href="${customLink}" style="color: #404040; word-break: break-all;">${customLink}</a>
+          </p>
         </div>
       `,
     }),

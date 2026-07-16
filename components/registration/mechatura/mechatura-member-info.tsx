@@ -7,21 +7,25 @@ import { MechaturaFormValues } from "@/lib/validation"
 import { Button } from "@/components/ui/button"
 
 export default function MechaturaMemberInfo(){
-    const { getValues, setValue, clearErrors } = useFormContext<MechaturaFormValues>()
-    const [memberCount, setMemberCount] = useState(0)
+    const { getValues, setValue, clearErrors, watch } = useFormContext<MechaturaFormValues>()
+    const memberCount = watch("member_count") || 0
 
     useEffect(() => {
-        // Initialize memberCount based on existing values if restoring from draft
-        if (getValues("member3_name")) {
-            setMemberCount(2)
-        } else if (getValues("member2_name")) {
-            setMemberCount(1)
+        const count = getValues("member_count");
+        if (!count) { // catches 0 or undefined
+            if (getValues("member3_name") || getValues("member3_email") || getValues("member3_phone")) {
+                setValue("member_count", 2, { shouldDirty: true })
+            } else if (getValues("member2_name") || getValues("member2_email") || getValues("member2_phone")) {
+                setValue("member_count", 1, { shouldDirty: true })
+            } else if (count === undefined) {
+                setValue("member_count", 0, { shouldDirty: true })
+            }
         }
-    }, [getValues])
+    }, [getValues, setValue])
 
     const addMember = () => {
         if (memberCount < 2) {
-            setMemberCount((prev) => prev + 1)
+            setValue("member_count", memberCount + 1, { shouldDirty: true })
         }
     }
 
@@ -45,13 +49,13 @@ export default function MechaturaMemberInfo(){
                 setValue("member2_phone", "", { shouldDirty: true })
                 clearErrors(["member2_name", "member2_email", "member2_phone"])
             }
-            setMemberCount((prev) => prev - 1)
+            setValue("member_count", memberCount - 1, { shouldDirty: true })
         } else if (index === 2) { // Removing Member 2 (member3_*)
             setValue("member3_name", "", { shouldDirty: true })
             setValue("member3_email", "", { shouldDirty: true })
             setValue("member3_phone", "", { shouldDirty: true })
             clearErrors(["member3_name", "member3_email", "member3_phone"])
-            setMemberCount(1)
+            setValue("member_count", 1, { shouldDirty: true })
         }
     }
 

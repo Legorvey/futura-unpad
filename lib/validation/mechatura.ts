@@ -75,6 +75,8 @@ const mechaturaIdentityShape = {
     leader_email: emailSchema("Email ketua"),
     leader_phone: requiredPhone("Nomor ketua"),
 
+    member_count: z.number().min(0).max(2).optional().default(0),
+
     // Team Member Identity
     member2_name: z.string().trim().max(120).optional().or(z.literal("")),
     member2_email: emailSchema("Email member ke-2").optional().or(z.literal("")),
@@ -153,15 +155,17 @@ function requireCoachWhenSelected<T extends z.ZodRawShape>(schema: z.ZodObject<T
 
 function requireMembersWhenPartiallyFilled<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
     return schema.superRefine((values, ctx) => {
+        const memberCount = (values as any).member_count || 0;
+
         // Anggota 2 Validation
         const m2Name = !!(values as any).member2_name?.trim();
         const m2Email = !!(values as any).member2_email?.trim();
         const m2Phone = !!(values as any).member2_phone?.trim();
 
-        if (m2Name || m2Email || m2Phone) {
-            if (!m2Name) addIssue(ctx, "member2_name", "Nama anggota 1 wajib diisi jika email atau telepon diisi.");
-            if (!m2Email) addIssue(ctx, "member2_email", "Email anggota 1 wajib diisi jika nama atau telepon diisi.");
-            if (!m2Phone) addIssue(ctx, "member2_phone", "Nomor telepon anggota 1 wajib diisi jika nama atau email diisi.");
+        if (memberCount >= 1 || m2Name || m2Email || m2Phone) {
+            if (!m2Name) addIssue(ctx, "member2_name", "Nama anggota 1 wajib diisi.");
+            if (!m2Email) addIssue(ctx, "member2_email", "Email anggota 1 wajib diisi.");
+            if (!m2Phone) addIssue(ctx, "member2_phone", "Nomor telepon anggota 1 wajib diisi.");
         }
 
         // Anggota 3 Validation
@@ -169,10 +173,10 @@ function requireMembersWhenPartiallyFilled<T extends z.ZodRawShape>(schema: z.Zo
         const m3Email = !!(values as any).member3_email?.trim();
         const m3Phone = !!(values as any).member3_phone?.trim();
 
-        if (m3Name || m3Email || m3Phone) {
-            if (!m3Name) addIssue(ctx, "member3_name", "Nama anggota 2 wajib diisi jika email atau telepon diisi.");
-            if (!m3Email) addIssue(ctx, "member3_email", "Email anggota 2 wajib diisi jika nama atau telepon diisi.");
-            if (!m3Phone) addIssue(ctx, "member3_phone", "Nomor telepon anggota 2 wajib diisi jika nama atau email diisi.");
+        if (memberCount === 2 || m3Name || m3Email || m3Phone) {
+            if (!m3Name) addIssue(ctx, "member3_name", "Nama anggota 2 wajib diisi.");
+            if (!m3Email) addIssue(ctx, "member3_email", "Email anggota 2 wajib diisi.");
+            if (!m3Phone) addIssue(ctx, "member3_phone", "Nomor telepon anggota 2 wajib diisi.");
         }
     });
 }

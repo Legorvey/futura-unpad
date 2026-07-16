@@ -141,6 +141,7 @@ export async function POST(request: Request) {
     member3_name: textValue(formData, "member3_name"),
     member3_email: textValue(formData, "member3_email"),
     member3_phone: textValue(formData, "member3_phone"),
+    member_count: Number(textValue(formData, "member_count") || 0),
     has_coach: boolValue(formData, "has_coach"),
     coach_name: textValue(formData, "coach_name"),
     coach_email: textValue(formData, "coach_email"),

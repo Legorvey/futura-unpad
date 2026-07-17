@@ -3,7 +3,7 @@
 import type { BaseSyntheticEvent } from "react";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import type { FieldPath } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 

@@ -4,7 +4,7 @@ import { EB_Garamond, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { NavbarDemo } from "@/components/layout/navbar";
-import NavigationLoading from "@/components/navigation-loading";
+import NextTopLoader from 'nextjs-toploader';
 import { AuthProvider } from "@/components/auth-provider";
 import QueryProvider from "@/components/query-provider";
 import type { AuthSession } from "@/lib/api/auth-session";
@@ -69,9 +69,7 @@ export default async function RootLayout({
       <body className="dark">
         <QueryProvider>
           <AuthProvider initialSession={initialSession}>
-            <Suspense fallback={null}>
-              <NavigationLoading />
-            </Suspense>
+            <NextTopLoader color="#ffffff" showSpinner={false} />
             <NavbarDemo />
             <div className="w-full flex-1">
               {children}

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Mail, MoreHorizontal, Phone, Tags, Trash, User } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/confirm-dialog";
@@ -95,9 +96,13 @@ function AttendanceCheckbox({ team }: { team: MechaturaTeamData }) {
     );
 }
 
-const copyText = async (value: string | null | undefined) => {
-    if (!value) return;
+const copyText = async (value: string | null | undefined, label: string) => {
+    if (!value) {
+        toast.error(`No ${label.toLowerCase()} available to copy`);
+        return;
+    }
     await navigator.clipboard.writeText(value);
+    toast.success(`Copied ${label.toLowerCase()} to clipboard`);
 };
 
 function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideViewDetails?: boolean }) {
@@ -106,8 +111,14 @@ function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideV
     const [deleteOpen, setDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
-        await deleteTeam.mutateAsync(team.id);
-        router.refresh();
+        try {
+            await deleteTeam.mutateAsync(team.id);
+            toast.success("Team deleted successfully");
+            router.refresh();
+        } catch (e) {
+            toast.error("Failed to delete team");
+            throw e; // Let ConfirmDialog catch it for internal error handling too
+        }
     };
 
     return (
@@ -137,15 +148,15 @@ function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideV
 
                     <DropdownMenuGroup>
                         <DropdownMenuLabel>Copy</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => copyText(team.team_id)}>
+                        <DropdownMenuItem onClick={() => copyText(team.team_id, "Team ID")}>
                             <Tags className="h-4 w-4" />
                             Team ID
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyText(team.leader?.email)}>
+                        <DropdownMenuItem onClick={() => copyText(team.leader?.email, "Leader Email")}>
                             <Mail className="h-4 w-4" />
                             Leader Email
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyText(team.leader?.phone)}>
+                        <DropdownMenuItem onClick={() => copyText(team.leader?.phone, "Leader Phone")}>
                             <Phone className="h-4 w-4" />
                             Leader Phone
                         </DropdownMenuItem>

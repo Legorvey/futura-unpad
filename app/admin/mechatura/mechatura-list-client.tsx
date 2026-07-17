@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { mechaturaCompetitionLabels, paymentStatusLabels } from "@/lib/payment";
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid, Swords, Truck, CircleDollarSign, Clock, CheckCircle2, BadgeCheck, XCircle, List, Ban } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { DataTable } from "./data-table";
 import { columns, type AdminMechaturaLeader, type AdminMechaturaRegistration } from "./teams";

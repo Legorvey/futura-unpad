@@ -4,8 +4,9 @@
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Mail, MoreHorizontal, Phone, Trash, User } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/confirm-dialog";
@@ -172,8 +173,14 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
     const [deleteOpen, setDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
-        await deleteParticipant.mutateAsync(participant.id);
-        router.refresh();
+        try {
+            await deleteParticipant.mutateAsync(participant.id);
+            toast.success("Participant deleted successfully");
+            router.refresh();
+        } catch (e) {
+            toast.error("Failed to delete participant");
+            throw e; // Let ConfirmDialog handle UI error state
+        }
     };
 
     return (
@@ -209,9 +216,15 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
                             return (
                                 <DropdownMenuItem
                                     key={action.label}
-                                    onClick={() =>
-                                        navigator.clipboard.writeText(action.getValue(participant))
-                                    }
+                                    onClick={async () => {
+                                        const val = action.getValue(participant);
+                                        if (!val) {
+                                            toast.error(`No ${action.label.toLowerCase()} available to copy`);
+                                            return;
+                                        }
+                                        await navigator.clipboard.writeText(val);
+                                        toast.success(`Copied ${action.label.toLowerCase()} to clipboard`);
+                                    }}
                                 >
                                     <Icon className="h-4 w-4" />
                                     {action.label}

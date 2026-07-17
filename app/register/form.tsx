@@ -3,7 +3,7 @@
 import Link from "next/link";
 import GoogleLoginButton from "../login/google-login";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";

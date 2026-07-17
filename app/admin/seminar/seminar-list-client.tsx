@@ -6,7 +6,7 @@ import { columns } from "./participants"
 import type { Participants } from "./participants"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, GraduationCap, Users, User, Briefcase, CheckCircle2, XCircle, List, Globe, Clock, Map, UserCheck, UsersRound, BookOpen } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "nextjs-toploader/app"
 import Link from "next/link"
 import {
     DropdownMenu,

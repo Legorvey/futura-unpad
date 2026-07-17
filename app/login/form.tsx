@@ -3,7 +3,8 @@
 import Link from "next/link";
 import GoogleLoginButton from "./google-login";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";;
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export default function LoginForm() {
         defaultValues: {
             identifier: "",
             password: "",
-            keepSignedIn: false,
+            keepSignedIn: true,
         },
     });
     const keepSignedIn = form.watch("keepSignedIn");

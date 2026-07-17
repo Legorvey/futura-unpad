@@ -3,7 +3,8 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { LayoutDashboard, Users, Trophy, Cpu, LogOut, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { cn } from "@/lib/utils"

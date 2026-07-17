@@ -1,9 +1,9 @@
 "use client"
 
 import { createClient } from "@/utils/supabase/client"
-import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
 
 const getSafeRedirectPath = (value: string | null) => {
     if (
@@ -21,6 +21,9 @@ const getSafeRedirectPath = (value: string | null) => {
     return value
 }
 
+// Ensure this environment variable is set
+const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
+
 export default function GoogleLoginButton({
     keepSignedIn = true,
     onBeforeLogin,
@@ -29,50 +32,75 @@ export default function GoogleLoginButton({
     onBeforeLogin?: () => boolean
 }) {
     const supabase = createClient()
+    const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
-
-
-    const loginWithGoogle = async () => {
+    const handleSuccess = async (credentialResponse: any) => {
         if (onBeforeLogin && !onBeforeLogin()) {
+            return
+        }
+
+        if (!credentialResponse.credential) {
+            console.error("No credential received from Google")
+            alert("Google login failed. Please try again.")
             return
         }
 
         setIsLoading(true)
 
-        const currentUrl = new URL(window.location.href)
-        const callbackUrl = new URL("/auth/callback", window.location.origin)
-        callbackUrl.searchParams.set("next", getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile"))
+        try {
+            const { error } = await supabase.auth.signInWithIdToken({
+                provider: "google",
+                token: credentialResponse.credential,
+            })
 
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: {
-                redirectTo: callbackUrl.toString(),
-            },
-        })
+            if (error) {
+                console.error("Supabase auth error:", error)
+                alert("Google login failed. Please try again.")
+                setIsLoading(false)
+                return
+            }
 
-        if (error) {
-            console.error(error)
+            // On success, manually redirect the user since we aren't using the server-side callback anymore
+            const currentUrl = new URL(window.location.href)
+            const nextPath = getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile")
+            
+            // Use router.push to navigate without full page reload, or router.replace
+            router.push(nextPath)
+            router.refresh()
+
+        } catch (error) {
+            console.error("Unexpected error during Google login:", error)
             alert("Google login failed. Please try again.")
             setIsLoading(false)
         }
     }
 
+    if (!clientId) {
+        return (
+            <div className="p-3 border border-red-500/50 bg-red-500/10 rounded-md text-red-500 text-sm text-center">
+                Missing Google Client ID
+            </div>
+        )
+    }
+
     return (
-        <Button
-            type="button"
-            variant="outline"
-            className="h-11 rounded-[8px] cursor-pointer space-x-1"
-            disabled={isLoading}
-            onClick={loginWithGoogle}
-        >
-            <Image 
-                src="/google_icon.svg" 
-                alt="Google Icon"
-                width={22}
-                height={22}
-            />
-            <p>{isLoading ? "Redirecting..." : "Continue with Google"}</p>
-        </Button>
+        <GoogleOAuthProvider clientId={clientId}>
+            <div className={`flex justify-center w-full ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <GoogleLogin
+                    onSuccess={handleSuccess}
+                    onError={() => {
+                        console.error("Google popup closed or failed")
+                        alert("Google login failed. Please try again.")
+                    }}
+                    theme="outline"
+                    size="large"
+                    shape="rectangular"
+                    text="continue_with"
+                    logo_alignment="center"
+                    width="400" // Google button max width is 400px
+                />
+            </div>
+        </GoogleOAuthProvider>
     )
 }

@@ -19,6 +19,7 @@ import {
     normalizePageSize,
     normalizePositiveInt,
     paymentFilters,
+    statusFilters,
     toSearchPattern,
 } from "./_lib/mechatura-utils";
 import { Suspense } from "react"
@@ -34,10 +35,12 @@ async function MechaturaAdminData({
     const categoryParam = firstParam(params.category);
     const paymentParam = firstParam(params.payment);
     const searchParam = firstParam(params.search);
+    const statusParam = firstParam(params.status);
     const pageParam = firstParam(params.page);
     const pageSizeParam = firstParam(params.pageSize);
     const categoryFilter = normalizeFilter(categoryParam, categoryFilters, "all");
     const paymentFilter = normalizeFilter(paymentParam, paymentFilters, "all");
+    const statusFilter = normalizeFilter(statusParam, statusFilters, "all");
     const searchFilter = (searchParam ?? "").trim();
     const searchPattern = toSearchPattern(searchFilter);
     const requestedPage = normalizePositiveInt(pageParam, 1);
@@ -68,6 +71,7 @@ async function MechaturaAdminData({
     const filterOptions = {
         categoryFilter,
         paymentFilter,
+        statusFilter,
         searchPattern,
         leaderRegistrationIds,
     };
@@ -142,6 +146,7 @@ async function MechaturaAdminData({
             searchParam={searchParam}
             categoryFilter={categoryFilter}
             paymentFilter={paymentFilter}
+            statusFilter={statusFilter}
             pageSize={pageSize}
             pagination={{
                 page,

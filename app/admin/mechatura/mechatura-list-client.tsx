@@ -8,7 +8,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mechaturaCompetitionLabels, paymentStatusLabels } from "@/lib/payment";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid, Swords, Truck, CircleDollarSign, Clock, CheckCircle2, BadgeCheck, XCircle, List, Ban } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid, Swords, Truck, CircleDollarSign, Clock, CheckCircle2, BadgeCheck, XCircle, List, Ban, FileText } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { DataTable } from "./data-table";
@@ -19,6 +19,8 @@ import {
     paymentFilters,
     type MechaturaCategoryFilter,
     type MechaturaPaymentFilter,
+    type MechaturaStatusFilter,
+    statusFilters,
 } from "./_lib/mechatura-utils";
 
 type MechaturaListClientProps = {
@@ -27,6 +29,7 @@ type MechaturaListClientProps = {
     searchParam?: string;
     categoryFilter: MechaturaCategoryFilter;
     paymentFilter: MechaturaPaymentFilter;
+    statusFilter: MechaturaStatusFilter;
     pageSize: number;
     pagination: {
         page: number;
@@ -65,13 +68,14 @@ export default function MechaturaListClient({
     searchParam,
     categoryFilter,
     paymentFilter,
+    statusFilter,
     pageSize,
     pagination,
     stats,
 }: MechaturaListClientProps) {
     const router = useRouter();
     const hasActiveFilters =
-        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all";
+        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || statusFilter !== "all";
     const leaderByRegistrationId = new Map(
         leaders.map((leader) => [leader.registration_id, leader])
     );
@@ -88,6 +92,7 @@ export default function MechaturaListClient({
             search: searchParam,
             category: categoryFilter,
             payment: paymentFilter,
+            status: statusFilter,
         });
 
     const updateFilter = (key: string, value: string | undefined) => {
@@ -97,6 +102,7 @@ export default function MechaturaListClient({
             search: key === "search" ? value : searchParam,
             category: key === "category" ? (value as any) : categoryFilter,
             payment: key === "payment" ? (value as any) : paymentFilter,
+            status: key === "status" ? (value as any) : statusFilter,
         });
         router.push(newHref);
     };
@@ -123,6 +129,15 @@ export default function MechaturaListClient({
             key: "payment",
             label: `Payment: ${label}`,
             onRemove: () => updateFilter("payment", "all")
+        });
+    }
+    if (statusFilter !== "all") {
+        const label = statusFilter === "waiting_payment" ? "Waiting Payment" : 
+                      statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+        activeFilterPills.push({
+            key: "status",
+            label: `Status: ${label}`,
+            onRemove: () => updateFilter("status", "all")
         });
     }
 
@@ -177,8 +192,8 @@ export default function MechaturaListClient({
             </div>
 
             <div className="flex flex-col gap-5">
-                <form onSubmit={onSubmit} className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
-                    <div className="relative flex-1 w-full md:max-w-md">
+                <form onSubmit={onSubmit} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
+                    <div className="relative flex-1 w-full xl:max-w-md">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <input
                             key={searchParam ?? "empty"}
@@ -243,23 +258,29 @@ export default function MechaturaListClient({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
+                                <Button type="button" variant="outline" className="h-10 w-[180px] justify-between rounded-lg bg-background">
                                     <span className="truncate flex items-center gap-2">
-                                        <List className="h-4 w-4" />
-                                        {pageSize} rows
+                                        <FileText className="h-4 w-4" />
+                                        {statusFilter === "all" ? "All Statuses" : 
+                                         statusFilter === "waiting_payment" ? "Waiting Payment" : 
+                                         statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
                                     </span>
                                     <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[140px]">
-                                {pageSizeOptions.map((option) => (
-                                    <DropdownMenuItem key={option} onSelect={() => updateFilter("pageSize", String(option))}>
-                                        <List className="mr-2 h-4 w-4" />
-                                        {option} rows
+                            <DropdownMenuContent className="w-[180px]">
+                                {statusFilters.map((status) => (
+                                    <DropdownMenuItem key={status} onSelect={() => updateFilter("status", status)}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        {status === "all" ? "All Statuses" : 
+                                         status === "waiting_payment" ? "Waiting Payment" : 
+                                         status.charAt(0).toUpperCase() + status.slice(1)}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+
                     </div>
                 </form>
 
@@ -281,7 +302,7 @@ export default function MechaturaListClient({
                         ))}
                         <button 
                             type="button"
-                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all" }))}
+                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all", status: "all" }))}
                             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
                         >
                             Clear all
@@ -292,42 +313,69 @@ export default function MechaturaListClient({
 
             <DataTable columns={columns} data={teamData} />
 
-            <div className="flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                    Showing {pagination.startItem}-{pagination.endItem} of {pagination.totalItems} teams
-                </p>
-                <div className="flex items-center gap-3">
-                    {pagination.page <= 1 ? (
-                        <Button variant="outline" className="h-9 rounded-[8px]" disabled>
-                            <ChevronLeft className="h-4 w-4" />
-                            Previous
-                        </Button>
-                    ) : (
-                        <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page - 1)} prefetch={false}>
-                                <ChevronLeft className="h-4 w-4" />
-                                Previous
-                            </Link>
-                        </Button>
-                    )}
-
-                    <span className="min-w-20 text-center text-sm text-muted-foreground">
-                        Page {pagination.page} of {pagination.totalPages}
-                    </span>
-
-                    {pagination.page >= pagination.totalPages ? (
-                        <Button variant="outline" className="h-9 rounded-[8px]" disabled>
-                            Next
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    ) : (
-                        <Button variant="outline" className="h-9 rounded-[8px]" asChild>
-                            <Link href={buildPageHref(pagination.page + 1)} prefetch={false}>
-                                Next
-                                <ChevronRight className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    )}
+            <div className="flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground hidden sm:block">Rows per page</p>
+                    <p className="font-medium text-foreground sm:hidden">Rows</p>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 w-[70px] justify-between px-2">
+                                {pageSize}
+                                <ChevronDown className="h-4 w-4 opacity-50" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="top" align="start" className="w-[70px]">
+                            {pageSizeOptions.map((option) => (
+                                <DropdownMenuItem key={option} onSelect={() => updateFilter("pageSize", String(option))}>
+                                    {option}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
+                    <div className="text-sm text-muted-foreground font-medium">
+                        Showing {pagination.startItem}-{pagination.endItem} of {pagination.totalItems}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                            Page {pagination.page} of {pagination.totalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                className="h-8 w-8 p-0"
+                                disabled={pagination.page <= 1}
+                                asChild={pagination.page > 1}
+                            >
+                                {pagination.page <= 1 ? (
+                                    <ChevronLeft className="h-4 w-4" />
+                                ) : (
+                                    <Link href={buildPageHref(pagination.page - 1)} prefetch={false}>
+                                        <span className="sr-only">Go to previous page</span>
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Link>
+                                )}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="h-8 w-8 p-0"
+                                disabled={pagination.page >= pagination.totalPages}
+                                asChild={pagination.page < pagination.totalPages}
+                            >
+                                {pagination.page >= pagination.totalPages ? (
+                                    <ChevronRight className="h-4 w-4" />
+                                ) : (
+                                    <Link href={buildPageHref(pagination.page + 1)} prefetch={false}>
+                                        <span className="sr-only">Go to next page</span>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Link>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

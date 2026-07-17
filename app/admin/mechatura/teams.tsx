@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Mail, MoreHorizontal, Phone, Tags, Trash, User } from "lucide-react";
+import { CheckCircle, Eye, FileText, Mail, MoreHorizontal, Phone, Tags, Trash, User, XCircle } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { toast } from "sonner";
+import { getMechaturaDocumentUrl, updateMechaturaRegistrationStatus } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/confirm-dialog";
@@ -41,6 +42,9 @@ export type AdminMechaturaRegistration = {
     attended: boolean | null;
     check_in_time: string | null;
     created_at: string | null;
+    registration_status: "approved" | "rejected" | "registered" | "waiting_payment" | null;
+    member_document_path: string | null;
+    robot_document_path: string | null;
 };
 
 export type AdminMechaturaLeader = {
@@ -105,10 +109,40 @@ const copyText = async (value: string | null | undefined, label: string) => {
     toast.success(`Copied ${label.toLowerCase()} to clipboard`);
 };
 
-function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideViewDetails?: boolean }) {
+export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideViewDetails?: boolean }) {
     const router = useRouter();
     const deleteTeam = useDeleteMechaturaRegistrationMutation();
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [approveOpen, setApproveOpen] = useState(false);
+    const [rejectOpen, setRejectOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
+    const handleDownload = async (path: string | null, label: string) => {
+        if (!path) {
+            toast.error(`No ${label.toLowerCase()} available`);
+            return;
+        }
+        
+        try {
+            const url = await getMechaturaDocumentUrl(path);
+            if (!url) throw new Error("URL generation failed");
+            window.open(url, '_blank');
+            toast.success(`Opening ${label.toLowerCase()}`);
+        } catch (error) {
+            toast.error(`Failed to download ${label.toLowerCase()}`);
+        }
+    };
+
+    const handleStatusUpdate = async (status: "approved" | "rejected") => {
+        try {
+            await updateMechaturaRegistrationStatus(team.id, status);
+            toast.success(`Application ${status} successfully`);
+            router.refresh();
+        } catch (error) {
+            toast.error(`Failed to update application status`);
+            throw error;
+        }
+    };
 
     const handleDelete = async () => {
         try {
@@ -162,6 +196,49 @@ function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideV
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
+                    
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Documents</DropdownMenuLabel>
+                        <DropdownMenuItem 
+                            onClick={() => handleDownload(team.member_document_path, "Member Document")}
+                            disabled={!team.member_document_path}
+                        >
+                            <FileText className="h-4 w-4" />
+                            Member Doc
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                            onClick={() => handleDownload(team.robot_document_path, "Robot Document")}
+                            disabled={!team.robot_document_path}
+                        >
+                            <FileText className="h-4 w-4" />
+                            Robot Doc
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Application</DropdownMenuLabel>
+                        <DropdownMenuItem 
+                            onClick={(e) => { e.preventDefault(); setApproveOpen(true); }}
+                            disabled={isPending || team.registration_status === "approved"}
+                            className="text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950"
+                        >
+                            <CheckCircle className="h-4 w-4" />
+                            Approve
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                            onClick={(e) => { e.preventDefault(); setRejectOpen(true); }}
+                            disabled={isPending || team.registration_status === "rejected"}
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                        >
+                            <XCircle className="h-4 w-4" />
+                            Reject
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    
+                    <DropdownMenuSeparator />
+                    
                     <DropdownMenuItem
                         variant="destructive"
                         onClick={() => setDeleteOpen(true)}
@@ -180,6 +257,26 @@ function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData, hideV
                 cancelText="Cancel"
                 variant="destructive"
                 onConfirm={handleDelete}
+            />
+            <ConfirmDialog
+                open={approveOpen}
+                onOpenChange={setApproveOpen}
+                title="Approve Team Application?"
+                description={`This will mark ${team.team_name}'s application as approved.`}
+                confirmText="Approve Application"
+                cancelText="Cancel"
+                variant="default"
+                onConfirm={() => handleStatusUpdate("approved")}
+            />
+            <ConfirmDialog
+                open={rejectOpen}
+                onOpenChange={setRejectOpen}
+                title="Reject Team Application?"
+                description={`This will mark ${team.team_name}'s application as rejected. Please make sure you have a valid reason.`}
+                confirmText="Reject Application"
+                cancelText="Cancel"
+                variant="destructive"
+                onConfirm={() => handleStatusUpdate("rejected")}
             />
         </>
     );
@@ -265,13 +362,16 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
         },
     },
     {
-        accessorKey: "created_at",
-        header: "Submitted",
-        cell: ({ row }) => (
-            <p className="text-sm font-medium">
-                {formatMechaturaDateTime(row.original.created_at)}
-            </p>
-        ),
+        accessorKey: "registration_status",
+        header: "Status",
+        cell: ({ row }) => {
+            const status = row.original.registration_status;
+            if (status === 'approved') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-800">Approved</span>;
+            if (status === 'rejected') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800">Rejected</span>;
+            if (status === 'waiting_payment') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-800">Waiting Payment</span>;
+            if (status === 'registered') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-800">Registered</span>;
+            return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-zinc-100 text-zinc-700">Unknown</span>;
+        },
     },
     {
         id: "actions",

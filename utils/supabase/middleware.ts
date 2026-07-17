@@ -31,7 +31,9 @@ export const updateSession = async (request: NextRequest) => {
           request.cookies.set(name, value)
         );
         supabaseResponse = NextResponse.next({
-          request,
+          request: {
+            headers: request.headers,
+          },
         });
         Object.entries(headers).forEach(([key, value]) =>
           supabaseResponse.headers.set(key, value)

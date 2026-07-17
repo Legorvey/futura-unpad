@@ -7,8 +7,10 @@ import {
 export type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>;
 export type MechaturaCategoryFilter = "all" | MechaturaCompetitionType;
 export type MechaturaPaymentFilter = "all" | PaymentStatus;
+export type MechaturaStatusFilter = "all" | "waiting_payment" | "registered" | "approved" | "rejected";
 
 export const categoryFilters: MechaturaCategoryFilter[] = ["all", "sumo", "transporter"];
+export const statusFilters: MechaturaStatusFilter[] = ["all", "waiting_payment", "registered", "approved", "rejected"];
 export const paymentFilters: MechaturaPaymentFilter[] = [
     "all",
     "unpaid",
@@ -34,6 +36,9 @@ export const mechaturaRegistrationColumns = [
     "attended",
     "check_in_time",
     "created_at",
+    "registration_status",
+    "member_document_path",
+    "robot_document_path",
 ].join(",");
 
 export const firstParam = (value: string | string[] | undefined) =>
@@ -76,11 +81,13 @@ export const applyMechaturaFilters = <T,>(
     {
         categoryFilter,
         paymentFilter,
+        statusFilter,
         searchPattern,
         leaderRegistrationIds,
     }: {
         categoryFilter: MechaturaCategoryFilter;
         paymentFilter: MechaturaPaymentFilter;
+        statusFilter: MechaturaStatusFilter;
         searchPattern: string;
         leaderRegistrationIds: string[];
     }
@@ -89,6 +96,10 @@ export const applyMechaturaFilters = <T,>(
 
     if (categoryFilter !== "all") {
         filteredQuery = filteredQuery.eq("competition_type", categoryFilter);
+    }
+
+    if (statusFilter !== "all") {
+        filteredQuery = filteredQuery.eq("registration_status", statusFilter);
     }
 
     if (paymentFilter === "unpaid") {
@@ -121,18 +132,21 @@ export const buildMechaturaPageHref = ({
     search,
     category,
     payment,
+    status,
 }: {
     page: number;
     pageSize: number;
     search?: string;
     category: MechaturaCategoryFilter;
     payment: MechaturaPaymentFilter;
+    status: MechaturaStatusFilter;
 }) => {
     const query = new URLSearchParams();
 
     if (search?.trim()) query.set("search", search.trim());
     if (category !== "all") query.set("category", category);
     if (payment !== "all") query.set("payment", payment);
+    if (status !== "all") query.set("status", status);
     if (page > 1) query.set("page", String(page));
     if (pageSize !== defaultPageSize) query.set("pageSize", String(pageSize));
 

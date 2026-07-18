@@ -29,7 +29,7 @@ const safeRedirect = (value: string | null) => {
         : null;
 };
 
-export default function LoginForm() {
+export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const login = useLoginMutation();
@@ -44,6 +44,14 @@ export default function LoginForm() {
             keepSignedIn: true,
         },
     });
+
+    useEffect(() => {
+        if (isVerified) {
+            const channel = new BroadcastChannel('auth-sync');
+            channel.postMessage('email_verified');
+            channel.close();
+        }
+    }, [isVerified]);
 
     useEffect(() => {
         if (isErrorHandled.current) return;

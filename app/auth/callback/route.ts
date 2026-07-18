@@ -48,6 +48,21 @@ export async function GET(request: Request) {
         if (error) {
             return NextResponse.redirect(new URL("/login?error=oauth_failed", requestUrl.origin))
         }
+
+        if (type === 'signup') {
+            await supabase.auth.signOut()
+            const response = NextResponse.redirect(new URL("/login", requestUrl.origin))
+            
+            response.cookies.set("email_verified_flash", "1", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 30, // Expires in 30 seconds
+                path: "/login",
+            });
+            
+            return response;
+        }
     } else if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (error) {

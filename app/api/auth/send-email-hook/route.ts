@@ -20,7 +20,10 @@ export async function POST(request: Request) {
     let subject = "Notification from Futura";
     let html = "";
     
-    const magicLink = `${email_data.site_url}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent(email_data.redirect_to)}`;
+    // Intelligently extract the correct app domain from the redirect_to URL
+    // (Bypasses misconfigured Site URLs in the Supabase Dashboard)
+    const appOrigin = email_data.redirect_to ? new URL(email_data.redirect_to).origin : "https://futuraunpad.com";
+    const magicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent(email_data.redirect_to)}`;
 
     const emailWrapper = (content: string) => `
       <!DOCTYPE html>

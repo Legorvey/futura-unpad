@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import GoogleLoginButton from "../login/google-login";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,6 +43,9 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
     const [submitError, setSubmitError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [legalDialog, setLegalDialog] = useState<LegalDialogType | null>(null);
+    const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
+    const [otp, setOtp] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(signupSchema),
@@ -67,7 +70,21 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
     const passwordValue = watch("password");
     const termsAccepted = watch("termsAccepted");
 
+    // Listen for cross-tab verification (e.g. user clicked Magic Link in another tab)
+    useEffect(() => {
+        if (!verifyEmail) return;
 
+        const channel = new BroadcastChannel('auth-sync');
+        channel.onmessage = (event) => {
+            if (event.data === 'email_verified') {
+                toast.success("Email verified in another tab!");
+                setVerifyEmail(null);
+                router.push("/login");
+            }
+        };
+
+        return () => channel.close();
+    }, [verifyEmail, router]);
 
     const passwordStrength = getPasswordStrength(passwordValue);
 
@@ -113,9 +130,10 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
             return;
         }
 
-        setSuccessMessage("Registration successful. Please check your email if confirmation is required.");
+        setVerifyEmail(values.email);
+        setSuccessMessage("Registration successful. Please verify your email.");
         toast.success("Registration successful", {
-            description: "Please check your email if confirmation is required."
+            description: "Please enter the OTP sent to your email to verify your account."
         });
     };
 
@@ -293,6 +311,64 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                     }
                 }}
             />
+
+            <Dialog 
+                open={!!verifyEmail} 
+                onOpenChange={(open) => {
+                    if (!open && !isVerifying) {
+                        setVerifyEmail(null);
+                        setOtp("");
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-semibold tracking-tight">Check your email</DialogTitle>
+                        <DialogDescription className="text-base text-muted-foreground pt-2">
+                            We&apos;ve sent a confirmation code to <span className="font-medium text-foreground">{verifyEmail}</span>.
+                            Please enter it below to activate your account. The code expires in 1 hour.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col space-y-6 py-4">
+                        <input
+                            type="text"
+                            maxLength={8}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                            placeholder="00000000"
+                            className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-input bg-background px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            className="w-full h-11 text-base rounded-[8px]"
+                            disabled={otp.length < 6 || isVerifying}
+                            onClick={async () => {
+                                setIsVerifying(true);
+                                try {
+                                    const res = await fetch("/api/auth/verify-otp", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ email: verifyEmail, token: otp }),
+                                    });
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.error || "Verification failed");
+                                    
+                                    toast.success("Email verified successfully!");
+                                    router.push("/login");
+                                } catch (err: any) {
+                                    toast.error(err.message);
+                                } finally {
+                                    setIsVerifying(false);
+                                }
+                            }}
+                        >
+                            {isVerifying ? "Verifying..." : "Verify Account"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

@@ -136,7 +136,7 @@ export default function MechaturaListClient({
                       statusFilter === "approved" ? "Disetujui" :
                       statusFilter === "rejected" ? "Ditolak" :
                       statusFilter === "registered" ? "Terdaftar" :
-                      statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+                      (statusFilter as string).charAt(0).toUpperCase() + (statusFilter as string).slice(1);
         activeFilterPills.push({
             key: "status",
             label: `Status: ${label}`,
@@ -269,7 +269,7 @@ export default function MechaturaListClient({
                                          statusFilter === "approved" ? "Disetujui" :
                                          statusFilter === "rejected" ? "Ditolak" :
                                          statusFilter === "registered" ? "Terdaftar" :
-                                         statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                                         (statusFilter as string).charAt(0).toUpperCase() + (statusFilter as string).slice(1)}
                                     </span>
                                     <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
@@ -283,7 +283,7 @@ export default function MechaturaListClient({
                                          status === "approved" ? "Disetujui" :
                                          status === "rejected" ? "Ditolak" :
                                          status === "registered" ? "Terdaftar" :
-                                         status.charAt(0).toUpperCase() + status.slice(1)}
+                                         (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>

@@ -30,6 +30,11 @@ export const readJsonBody = async (
   request: Request,
   maxBytes = 16_384
 ): Promise<JsonBodyResult> => {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    return { ok: false, response: invalidRequest() };
+  }
+
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
   if (Number.isFinite(contentLength) && contentLength > maxBytes) {

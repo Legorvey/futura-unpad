@@ -18,6 +18,7 @@ export async function fetchJson<TSchema extends z.ZodType>(
   init?: RequestInit
 ): Promise<z.infer<TSchema>> {
   const response = await fetch(input, {
+    credentials: "same-origin",
     ...init,
     headers: {
       Accept: "application/json",
@@ -48,6 +49,7 @@ export function postJson<TSchema extends z.ZodType>(
   init?: RequestInit
 ) {
   return fetchJson(input, schema, {
+    credentials: "same-origin",
     ...init,
     method: init?.method ?? "POST",
     headers: {

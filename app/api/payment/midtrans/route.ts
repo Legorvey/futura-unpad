@@ -70,7 +70,15 @@ export async function POST(request: Request) {
     } = await authSupabase.auth.getUser();
 
     if (existingOrder.userId !== user?.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      console.error("[Midtrans Payment] Forbidden Mismatch:", {
+        orderUserId: existingOrder.userId,
+        sessionUserId: user?.id,
+        sessionExists: !!user,
+      });
+      return NextResponse.json({ 
+        error: "Forbidden", 
+        details: "You do not have permission to pay for this order." 
+      }, { status: 403 });
     }
   }
 

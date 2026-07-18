@@ -52,7 +52,10 @@ export async function GET(request: Request) {
             if (type === "recovery") {
                 await supabase.auth.signOut()
                 const response = NextResponse.redirect(new URL("/reset-password?error=oauth_failed", requestUrl.origin))
-                response.cookies.delete(PASSWORD_RECOVERY_COOKIE)
+                response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
+                    ...passwordRecoveryCookieOptions,
+                    maxAge: 0,
+                })
                 return response
             }
             return NextResponse.redirect(new URL("/login?error=oauth_failed", requestUrl.origin))
@@ -124,21 +127,20 @@ export async function GET(request: Request) {
         finalNextUrl = urlObj.pathname + urlObj.search + urlObj.hash;
     }
 
-    const cookieStore = await cookies()
+    const response = NextResponse.redirect(new URL(finalNextUrl, requestUrl.origin))
+
     if (keepSignedIn) {
-        cookieStore.set(AUTH_PERSISTENCE_COOKIE, "", {
+        response.cookies.set(AUTH_PERSISTENCE_COOKIE, "", {
             ...authPersistenceCookieOptions,
             maxAge: 0,
         })
     } else {
-        cookieStore.set(
+        response.cookies.set(
             AUTH_PERSISTENCE_COOKIE,
             SESSION_AUTH_PERSISTENCE,
             authPersistenceCookieOptions
         )
     }
-
-    const response = NextResponse.redirect(new URL(finalNextUrl, requestUrl.origin))
 
     if (isPasswordRecoveryRedirect) {
         response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {

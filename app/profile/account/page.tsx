@@ -82,7 +82,23 @@ export default async function AccountPage() {
                 <Mail className="h-4 w-4" />
                 Email Address
               </div>
-              <p className="text-base text-foreground font-medium">{user.email ?? "-"}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-base text-foreground font-medium">{user.email ?? "-"}</p>
+                {user.email_confirmed_at && (
+                  <span className="inline-flex items-center rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                    Verified
+                  </span>
+                )}
+              </div>
+              {user.new_email && (
+                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1.5 flex items-center gap-1.5 font-medium">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  Pending verification for: {user.new_email}
+                </p>
+              )}
             </div>
             
             <div className="space-y-1">

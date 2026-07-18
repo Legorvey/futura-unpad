@@ -44,6 +44,8 @@ export async function GET(request: Request) {
         authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
     })
 
+    let isEmailChangeFlow = false
+
     if (token_hash && type) {
         const { error } = await supabase.auth.verifyOtp({ token_hash, type })
         if (error) {
@@ -69,6 +71,10 @@ export async function GET(request: Request) {
             });
             
             return response;
+        }
+
+        if (type === 'email_change') {
+            isEmailChangeFlow = true
         }
     } else if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
@@ -106,6 +112,16 @@ export async function GET(request: Request) {
         if (adminData && (!safeNextUrl || safeNextUrl === "/profile")) {
             finalNextUrl = "/admin"
         }
+    }
+
+    if (user && isEmailChangeFlow) {
+        const urlObj = new URL(finalNextUrl, requestUrl.origin);
+        if (user.new_email) {
+            urlObj.searchParams.set("email_change", "pending");
+        } else {
+            urlObj.searchParams.set("email_change", "success");
+        }
+        finalNextUrl = urlObj.pathname + urlObj.search + urlObj.hash;
     }
 
     const cookieStore = await cookies()

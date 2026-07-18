@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     // Always use the explicitly configured application URL to prevent Token Leakage
     // via Open Redirect on the client-side redirect_to payload.
     const appOrigin = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://futuraunpad.com";
+    const magicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent(email_data.redirect_to || '/profile/account')}`;
 
     const emailWrapper = (content: string) => `
       <!DOCTYPE html>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,9 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
 import { useResetPasswordMutation } from "@/hooks/mutations/use-auth-mutations"
+import { createClient } from "@/utils/supabase/client"
+import { ErrorState } from "@/components/ui/error-state"
+import { CheckCircle2 } from "lucide-react"
 
 export default function ResetPasswordForm() {
     const router = useRouter()
@@ -19,6 +22,12 @@ export default function ResetPasswordForm() {
     const [errorMessage, setErrorMessage] = useState("")
     const [successMessage, setSuccessMessage] = useState("")
     const [isComplete, setIsComplete] = useState(false)
+
+    useEffect(() => {
+        const channel = new window.BroadcastChannel('auth-sync');
+        channel.postMessage('email_verified');
+        channel.close();
+    }, []);
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -40,16 +49,10 @@ export default function ResetPasswordForm() {
                 password,
                 confirmPassword,
             })
+            window.location.href = "/login?reset=success";
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : "Password update failed. Please request a new reset link.")
-            return
         }
-
-        setIsComplete(true)
-        setSuccessMessage("Password updated successfully. Please sign in with your new password.")
-        setTimeout(() => {
-            router.replace("/login")
-        }, 2000)
     }
 
     return (
@@ -104,27 +107,15 @@ export default function ResetPasswordForm() {
                             {errorMessage}
                         </p>
                     ) : null}
-                    
-                    {successMessage ? (
-                        <p className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                            {successMessage}
-                        </p>
-                    ) : null}
 
                     <Field className="gap-3">
-                        {isComplete ? (
-                            <Button asChild className="h-11 rounded-xl">
-                                <Link href="/login" prefetch={false}>Back to login</Link>
-                            </Button>
-                        ) : (
-                            <Button
-                                type="submit"
-                                className="h-11 rounded-xl"
-                                disabled={resetPassword.isPending}
-                            >
-                                {resetPassword.isPending ? "Updating password..." : "Update password"}
-                            </Button>
-                        )}
+                        <Button
+                            type="submit"
+                            className="h-11 rounded-xl"
+                            disabled={resetPassword.isPending}
+                        >
+                            {resetPassword.isPending ? "Updating password..." : "Update password"}
+                        </Button>
                     </Field>
                 </FieldGroup>
             </form>

@@ -24,17 +24,23 @@ function ExpiredResetLink() {
     )
 }
 
-export default async function ResetPasswordPage() {
+type ResetPasswordSearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function ResetPasswordPage({
+    searchParams,
+}: {
+    searchParams: ResetPasswordSearchParams
+}) {
+    const params = await searchParams;
+
+    if (params.error === "oauth_failed") {
+        return <ExpiredResetLink />
+    }
+
     const cookieStore = await cookies()
     const hasRecoveryContext = cookieStore.has(PASSWORD_RECOVERY_COOKIE)
 
     if (!hasRecoveryContext) {
-        return <ExpiredResetLink />
-    }
-
-    const { user } = await getCachedAuth()
-
-    if (!user) {
         return <ExpiredResetLink />
     }
 

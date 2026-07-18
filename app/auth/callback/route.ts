@@ -47,6 +47,12 @@ export async function GET(request: Request) {
     if (token_hash && type) {
         const { error } = await supabase.auth.verifyOtp({ token_hash, type })
         if (error) {
+            if (type === "recovery") {
+                await supabase.auth.signOut()
+                const response = NextResponse.redirect(new URL("/reset-password?error=oauth_failed", requestUrl.origin))
+                response.cookies.delete(PASSWORD_RECOVERY_COOKIE)
+                return response
+            }
             return NextResponse.redirect(new URL("/login?error=oauth_failed", requestUrl.origin))
         }
 

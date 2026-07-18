@@ -75,14 +75,8 @@ export async function POST(request: Request) {
   await supabase.auth.signOut();
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
-    ...passwordRecoveryCookieOptions,
-    maxAge: 0,
-  });
-  response.cookies.set(AUTH_PERSISTENCE_COOKIE, "", {
-    ...authPersistenceCookieOptions,
-    maxAge: 0,
-  });
+  response.cookies.delete(PASSWORD_RECOVERY_COOKIE);
+  response.cookies.delete(AUTH_PERSISTENCE_COOKIE);
 
   return response;
 }

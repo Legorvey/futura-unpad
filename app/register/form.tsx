@@ -74,7 +74,7 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
     useEffect(() => {
         if (!verifyEmail) return;
 
-        const channel = new BroadcastChannel('auth-sync');
+        const channel = new window.BroadcastChannel('auth-sync');
         channel.onmessage = (event) => {
             if (event.data === 'email_verified') {
                 toast.success("Email verified in another tab!");

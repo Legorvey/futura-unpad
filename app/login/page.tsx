@@ -59,6 +59,21 @@ export default async function LoginPage({
         )
     }
 
+    if (params.reset === "success") {
+        return (
+            <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-6 pb-16 pt-32 sm:px-8">
+                <ErrorState 
+                    icon={CheckCircle2}
+                    title="Password Reset Successfully"
+                    description="Your password has been securely updated. You can now log in to your account."
+                    actionHref="/login"
+                    actionLabel="Go to Login"
+                    className="[&_svg]:text-emerald-500 [&_div]:bg-emerald-50 dark:[&_div]:bg-emerald-500/10"
+                />
+            </main>
+        )
+    }
+
     const cookieStore = await cookies();
     const isVerified = cookieStore.get("email_verified_flash")?.value === "1";
 

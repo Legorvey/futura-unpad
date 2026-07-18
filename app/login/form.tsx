@@ -47,7 +47,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
 
     useEffect(() => {
         if (isVerified) {
-            const channel = new BroadcastChannel('auth-sync');
+            const channel = new window.BroadcastChannel('auth-sync');
             channel.postMessage('email_verified');
             channel.close();
         }

@@ -71,5 +71,12 @@ export const updateSession = async (request: NextRequest) => {
     return NextResponse.redirect(url);
   }
 
+  const hasRecoveryContext = request.cookies.has("futura_password_recovery");
+  if (user && hasRecoveryContext && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/reset-password';
+    return NextResponse.redirect(url);
+  }
+
   return supabaseResponse;
 };

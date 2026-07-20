@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const runtime = 'edge';
 import { redirect } from "next/navigation";
 
@@ -10,6 +11,10 @@ import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 import ExpiredRegistrationDialog from "./expired-registration-dialog";
 import MechaturaRegistrationForm from "./form";
+
+export const metadata: Metadata = {
+  title: "Form Pendaftaran Mechatura"
+}
 
 export default async function MechaturaPage() {
     const { user } = await getCachedAuth();

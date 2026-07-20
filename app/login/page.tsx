@@ -30,8 +30,7 @@ const getSafeRedirectPath = (value: string | string[] | undefined) => {
 }
 
 export const metadata: Metadata = {
-  title: "Log in",
-  description: "Please fill your Futura account identity"
+  title: "Log in"
 }
 
 export default async function LoginPage({

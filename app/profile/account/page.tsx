@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { CalendarDays, Mail, UserRound, AtSign } from "lucide-react"
 
@@ -30,6 +31,10 @@ const formatDate = (value?: string | null) => {
   }
 
   return dateFormatter.format(new Date(value))
+}
+
+export const metadata: Metadata = {
+  title: "Pengaturan Akun"
 }
 
 export default async function AccountPage() {

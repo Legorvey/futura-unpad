@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const runtime = 'edge';
 
 import Link from "next/link"
@@ -25,6 +26,10 @@ function ExpiredResetLink() {
 }
 
 type ResetPasswordSearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export const metadata: Metadata = {
+  title: "Reset Kata Sandi"
+}
 
 export default async function ResetPasswordPage({
     searchParams,

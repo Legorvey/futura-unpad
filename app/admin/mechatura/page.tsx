@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
@@ -165,4 +166,8 @@ async function MechaturaAdminData({
         />
     );
 }
+export const metadata: Metadata = {
+  title: "Admin Mechatura"
+}
+
 export default function MechaturaAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><MechaturaAdminData searchParams={searchParams} /></Suspense> }

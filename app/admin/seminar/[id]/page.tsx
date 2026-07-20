@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Info, Users, Clock, Fingerprint } from "lucide-react"
@@ -124,6 +125,10 @@ const AdminSidebarContent = ({ registration, isGroup, formattedDate }: { registr
         </section>
     </div>
 );
+
+export const metadata: Metadata = {
+  title: "Detail Peserta Seminar Admin"
+}
 
 export default async function SeminarRegistrationDetails({
     params,

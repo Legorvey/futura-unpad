@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const runtime = 'edge';
 import SeminarRegistrationForm from "./form";
 import { getCachedAuth } from "@/lib/auth";
@@ -8,6 +9,10 @@ import Countdown from "@/components/countdown";
 import { TARGET_DATE } from "@/lib/landing/helper";
 import StepProgress from "@/components/registration/step-progress";
 import { seminarRegistrationSteps } from "@/lib/registration-steps";
+
+export const metadata: Metadata = {
+  title: "Form Pendaftaran Seminar Nasional"
+}
 
 export default async function SeminarRegistrationPage() {
     const { user } = await getCachedAuth();

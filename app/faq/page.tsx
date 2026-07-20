@@ -3,8 +3,7 @@ import { FAQSection } from "@/components/landing/faq-section"
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
 
 export const metadata: Metadata = {
-  title: "FAQs | Futura",
-  description: "Frequently Asked Questions about Futura 2026",
+  title: "FAQ"
 }
 
 export default function FAQPage() {

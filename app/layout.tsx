@@ -32,7 +32,10 @@ const geistMono = Geist_Mono({
 import { getCachedAuth } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Futura 2026",
+  title: {
+    template: "%s | Futura 2026",
+    default: "Futura 2026",
+  },
   description: "oleh HMTE Universitas Padjadjaran",
 };
 

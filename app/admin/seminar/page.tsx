@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 /* eslint-disable */
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
@@ -398,4 +399,8 @@ async function SeminarListData({
         />
     )
 }
+export const metadata: Metadata = {
+  title: "Admin Seminar Nasional"
+}
+
 export default function SeminarList({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><SeminarListData searchParams={searchParams} /></Suspense> }

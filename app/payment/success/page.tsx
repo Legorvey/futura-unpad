@@ -26,7 +26,7 @@ import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 export const metadata: Metadata = {
-  title: "Pembayaran Selesai | Futura",
+  title: "Pembayaran Berhasil"
 };
 
 type SuccessSearchParams = Promise<

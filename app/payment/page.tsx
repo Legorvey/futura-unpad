@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 
 import Link from "next/link";
 import { CreditCard, LucideGlobeLock } from "lucide-react";
@@ -100,6 +101,10 @@ const findMechaturaOrder = async (
 };
 
 const findOrder = findMechaturaOrder;
+
+export const metadata: Metadata = {
+  title: "Pembayaran"
+}
 
 export default async function PaymentPage({
   searchParams,

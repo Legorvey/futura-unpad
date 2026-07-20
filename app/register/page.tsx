@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const runtime = 'edge';
 
 import { redirect } from "next/navigation"
@@ -21,6 +22,10 @@ const getSafeRedirectPath = (value: string | string[] | undefined) => {
     }
 
     return next
+}
+
+export const metadata: Metadata = {
+  title: "Buat Akun"
 }
 
 export default async function LoginPage({

@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { useForgotPasswordMutation } from "@/hooks/mutations/use-auth-mutations"
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/lib/validation"
 
+
 export default function ForgotPasswordPage() {
     const router = useRouter()
     const [successMessage, setSuccessMessage] = useState("")

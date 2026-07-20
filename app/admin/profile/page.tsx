@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { requireAdminOrRedirect } from "@/lib/auth"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -8,6 +9,10 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 const formatDate = (dateString?: string) => {
     if (!dateString) return "-"
     return dateFormatter.format(new Date(dateString))
+}
+
+export const metadata: Metadata = {
+  title: "Profil Admin"
 }
 
 export default async function AdminProfilePage() {

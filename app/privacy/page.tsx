@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Kebijakan Privasi - Futura Universitas Padjadjaran",
-    description: "Kebijakan Privasi layanan registrasi dan informasi Futura Universitas Padjadjaran",
+  title: "Kebijakan Privasi"
 };
 
 export default function PrivacyPolicyPage() {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
 
@@ -68,4 +69,8 @@ async function LKTIAdminData({
         </div>
     )
 }
+export const metadata: Metadata = {
+  title: "Admin Lomba Essay"
+}
+
 export default function LKTIAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><LKTIAdminData searchParams={searchParams} /></Suspense> }

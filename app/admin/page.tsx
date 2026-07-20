@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
 
@@ -168,4 +169,8 @@ async function AdminDashboardData() {
         </div>
     )
 }
+export const metadata: Metadata = {
+  title: "Dashboard Admin"
+}
+
 export default function AdminPage() { return <Suspense fallback={<AdminLoading />}><AdminDashboardData /></Suspense> }

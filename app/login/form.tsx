@@ -84,7 +84,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     return (
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                <FieldGroup className="gap-6">
+                <FieldGroup className="gap-8">
                     <FormTextField<LoginFormValues>
                         name="identifier"
                         label="Email atau Username"

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { HeroSection } from "@/components/mechatura/hero-section";
 import OurMemories from "@/components/mechatura/our-memories";
 import { KategoriKompetisi } from "@/components/mechatura/kategori-kompetisi";
@@ -6,6 +7,10 @@ import LocationSection from "@/components/mechatura/location-section";
 import { MechaturaFAQ } from "@/components/mechatura/mechatura-faq";
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+
+export const metadata: Metadata = {
+  title: "Mechatura"
+}
 
 export default function Mechatura() {
     return (

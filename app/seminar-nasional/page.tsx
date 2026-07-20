@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { HeroSection } from "@/components/seminar/hero-section"
 import { RuangLingkup } from "@/components/seminar/ruang-lingkup"
 import { SeminarTimeline } from "@/components/seminar/seminar-timeline"
@@ -8,6 +9,10 @@ import PembicaraTalkshow from "@/components/seminar/pembicara-talk-show"
 import LocationSection from "@/components/seminar/location-section"
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
+
+export const metadata: Metadata = {
+  title: "Seminar Nasional"
+}
 
 export default function SeminarNasional() {
     return (

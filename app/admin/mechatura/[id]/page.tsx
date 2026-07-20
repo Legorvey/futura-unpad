@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2 } from "lucide-react";
@@ -266,6 +267,10 @@ const AdminSidebarContent = ({
         </section>
     </div>
 );
+
+export const metadata: Metadata = {
+  title: "Detail Tim Mechatura Admin"
+}
 
 export default async function MechaturaRegistrationDetails({
     params,

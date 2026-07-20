@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 /* eslint-disable */
 export const runtime = 'edge';
 import Link from "next/link"
@@ -69,6 +70,10 @@ const formatDate = (value?: string | null) => {
 
 const isProfileGroupRegistration = (registration: ProfileRegistration | null | undefined) =>
   registration?.registration_type === "group" || registration?.registration_type === "grup"
+
+export const metadata: Metadata = {
+  title: "Profil"
+}
 
 export default async function ProfilePage() {
   const { user, adminAccess } = await getCachedAuth()

@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Syarat dan Ketentuan - Futura Universitas Padjadjaran",
-    description: "Syarat dan Ketentuan layanan registrasi dan informasi Futura Universitas Padjadjaran",
+  title: "Syarat dan Ketentuan"
 };
 
 export default function TermsOfServicePage() {

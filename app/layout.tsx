@@ -10,6 +10,8 @@ import QueryProvider from "@/components/query-provider";
 import type { AuthSession } from "@/lib/api/auth-session";
 import HoverFooter from "@/components/layout/footer"
 import { Toaster } from "@/components/ui/sonner";
+import { getCachedAuth } from "@/lib/auth";
+import { Analytics } from "@vercel/analytics/react";
 
 const space_grotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -29,7 +31,6 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-import { getCachedAuth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: {
@@ -81,6 +82,7 @@ export default async function RootLayout({
             <Toaster position="top-right" richColors theme="dark" />
           </AuthProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   );

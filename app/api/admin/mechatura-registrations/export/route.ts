@@ -51,7 +51,12 @@ const memberColumns = [
 
 const escapeCSV = (field: string | number | null | undefined) => {
     if (field === null || field === undefined) return "";
-    const stringField = String(field);
+    let stringField = String(field);
+
+    // Prevent CSV Formula Injection
+    if (/^[=+\-@]/.test(stringField)) {
+        stringField = "'" + stringField;
+    }
 
     if (stringField.includes(",") || stringField.includes('"') || stringField.includes("\n")) {
         return `"${stringField.replace(/"/g, '""')}"`;
@@ -67,8 +72,6 @@ const formatPaymentStatus = (status: string | null) =>
 
 const formatCompetition = (value: unknown) =>
     isMechaturaCompetitionType(value) ? mechaturaCompetitionLabels[value] : "";
-
-// Member unrolling is handled inline now
 
 const chunk = <T,>(items: T[], size: number) => {
     const chunks: T[][] = [];
@@ -199,6 +202,7 @@ export async function GET() {
 
         return [...baseRow, ...memberCols].join(",");
     });
+
     const csvContent = [headers.join(","), ...rows].join("\n");
 
     return new NextResponse(csvContent, {

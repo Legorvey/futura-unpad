@@ -16,7 +16,7 @@ export default function AboutSection() {
                         FUTURA oleh Himpunan Mahasiswa Teknik Elektro UNPAD
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-base leading-8">
-                        FUTURA adalah acara tahunan yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro UNPAD yang bertujuan untuk <span className="font-serif italic">mempertemukan mahasiswa, peneliti, dan profesional guna berbagi pengetahuan, ide, dan inovasi di bidang teknik elektro.</span>
+                        FUTURA adalah acara tahunan yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro Unpad yang bertujuan untuk memperluas pengetahuan ilmu pengetahuan di bidang teknologi dan menunjukkan implementasi dalam bentuk kompetisi dan pameran teknologi.
                     </p>
 
                     {/* <div className="mt-8 w-full text-sm font-medium">

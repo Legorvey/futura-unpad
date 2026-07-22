@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Timeline } from "@/components/ui/timeline";
 import { useLiteMotion } from "@/hooks/use-lite-motion";
 
-type TimelineTabId = "seminar" | "mechatura" | "essay";
+type TimelineTabId = "seminar" | "mechatura" | "esai";
 
 type GrandTimelineItem = {
   category: string;
@@ -128,48 +128,48 @@ const timelineTabs = [
     ],
   },
   {
-    id: "essay",
-    label: "Lomba Essay",
+    id: "esai",
+    label: "Lomba Esai",
     description:
-      "Timeline Lomba Essay Futura, mulai dari registrasi & pengumpulan, seleksi naskah, pengumuman finalis, dan diakhiri dengan awarding.",
+      "Timeline Lomba Esai Futura, mulai dari registrasi & pengumpulan, seleksi naskah, pengumuman finalis, dan diakhiri dengan awarding.",
     items: [
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Registrasi & Pengumpulan",
         date: "21 September - 22 Oktober 2026",
         description:
-          "Peserta melakukan registrasi sekaligus mengumpulkan naskah essay",
+          "Peserta melakukan registrasi sekaligus mengumpulkan naskah esai",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Seleksi Naskah",
         date: "23 Oktober - 2 November 2026",
-        description: "Tahap kurasi dan penilaian awal naskah essay peserta.",
+        description: "Tahap kurasi dan penilaian awal naskah esai peserta.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Pengumuman Finalis",
         date: "4 November 2026",
-        description: "Finalis Lomba Essay diumumkan secara resmi.",
+        description: "Finalis Lomba Esai diumumkan secara resmi.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Upload Video Presentasi Finalis",
         date: "5 - 12 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Seleksi Finalis",
         date: "13 - 27 November 2026",
-        description: "Penilaian final untuk menentukan pemenang Lomba Essay.",
+        description: "Penilaian final untuk menentukan pemenang Lomba Esai.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Awarding",
         date: "28 November 2026",
-        description: "Pengumuman dan apresiasi pemenang Lomba Essay.",
+        description: "Pengumuman dan apresiasi pemenang Lomba Esai.",
       },
     ],
   },

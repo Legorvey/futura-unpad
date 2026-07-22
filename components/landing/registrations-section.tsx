@@ -6,15 +6,14 @@ import { ButtonV2 } from "../ui/button-v2"
 const events = [
     {
         title: "Seminar Nasional",
-        date: "Sabtu, 7 November 2026",
-        location: "Auditorium Unpad",
-        description: "Bergabunglah dalam diskusi mendalam mengenai Implementasi Energi Cerdas di Era Industri 5.0. Kami mengundang para ahli untuk membahas optimalisasi Smart Grid dan Energi Baru Terbarukan demi masa depan yang lebih hijau.",
+        date: "Sabtu, 28 November 2026",
+        location: "Bale Rumawat Unpad, Dipatiukur",
+        description: "Bergabunglah dalam diskusi mendalam mengenai Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030.",
         highlightsTitle: "Pembicara Utama",
         highlights: [
-            "Aditya Cakti C.",
-            "Farras Faqih",
+            "To Be Announced"
         ],
-        speaker: "Linus Torvalds",
+        speaker: "To Be Announced",
         image: "https://avatars.githubusercontent.com/u/1024025?v=4",
         href: "/seminar-nasional",
         price: "Gratis!",
@@ -22,8 +21,8 @@ const events = [
     },
     {
         title: "Mechatura",
-        date: "Minggu, 8 November 2026",
-        location: "Gedung PPBS Unpad",
+        date: "Sabtu, 7 November 2026",
+        location: "Gedung PPBS Unpad, Jatinangor",
         description: "Kompetisi robotika tingkat nasional yang menantang para inovator muda untuk memecahkan masalah energi melalui teknologi otomasi dan mekatronika. Tunjukkan karya terbaikmu!",
         highlightsTitle: "Kategori Lomba",
         highlights: [
@@ -37,19 +36,20 @@ const events = [
         reverse: true
     },
     {
-        title: "Lomba Essay",
-        date: "1 - 31 Oktober 2026",
+        title: "Lomba Esai",
+        date: "21 September - 28 November 2026",
         location: "Online / Daring",
-        description: "Wadahi gagasan kreatif dan solutifmu melalui tulisan. Tema tahun ini berfokus pada inovasi mahasiswa dalam mendukung transisi energi berkelanjutan di Indonesia.",
+        description: "Wadahi gagasan kreatif dan solutifmu melalui tulisan. Tema tahun ini berfokus pada inovasi mahasiswa untuk masa depan industri Indonesia di tahun 2030.",
         highlightsTitle: "Tema Utama",
         highlights: [
-            "Inovasi Smart Grid",
-            "Pengembangan EBT",
+            "Transformasi Digital untuk Meningkatkan Daya Saing Industri Nasional",
+            "Inovasi Teknologi Berkelanjutan dalam Mewujudkan Industri Hijau",
+            "Pengembangan Talenta dan Ekosistem Inovasi sebagai Fondasi Industri 2030",
         ],
         speaker: "Lomba Essay",
         image: "https://images.unsplash.com/photo-1455390582262-044cdead27d8?q=80&w=800&auto=format&fit=crop",
         href: "/lomba-essay",
-        price: "Rp. 175.000",
+        price: "Rp. 75.000",
         reverse: false
     }
 ]
@@ -57,7 +57,7 @@ const events = [
 export default function RegistrationsSection() {
     return (
         <section id="registrations" className="px-6 lg:px-12 max-w-7xl mx-auto flex flex-col justify-center items-center gap-24">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">Acara Futura</h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">Rangkaian Kegiatan Futura 2026</h1>
             {events.map((event, index) => (
                 <div key={event.title} className={`flex flex-col lg:items-center gap-10 lg:gap-16 w-full ${event.reverse ? "lg:flex-row-reverse" : "lg:flex-row"}`}>
 

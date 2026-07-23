@@ -148,10 +148,7 @@ export async function GET(request: Request) {
             maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
         })
     } else {
-        response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
-            ...passwordRecoveryCookieOptions,
-            maxAge: 0,
-        })
+        response.cookies.delete(PASSWORD_RECOVERY_COOKIE)
     }
 
     return response

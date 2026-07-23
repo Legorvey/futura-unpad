@@ -56,10 +56,7 @@ export async function POST(request: Request) {
       { error: "Reset link is invalid or expired" },
       { status: 401 }
     );
-    response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
-      ...passwordRecoveryCookieOptions,
-      maxAge: 0,
-    });
+    response.cookies.delete(PASSWORD_RECOVERY_COOKIE);
     return response;
   }
 
@@ -75,10 +72,7 @@ export async function POST(request: Request) {
   await supabase.auth.signOut();
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(PASSWORD_RECOVERY_COOKIE, "", {
-    ...passwordRecoveryCookieOptions,
-    maxAge: 0,
-  });
+  response.cookies.delete(PASSWORD_RECOVERY_COOKIE);
   response.cookies.set(AUTH_PERSISTENCE_COOKIE, "", {
     ...authPersistenceCookieOptions,
     maxAge: 0,

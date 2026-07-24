@@ -50,10 +50,10 @@ export default async function RootLayout({
   const initialSession: AuthSession = {
     user: user
       ? {
-          id: user.id,
-          email: user.email ?? null,
-          user_metadata: user.user_metadata,
-        }
+        id: user.id,
+        email: user.email ?? null,
+        user_metadata: user.user_metadata,
+      }
       : null,
     adminAccess,
   };

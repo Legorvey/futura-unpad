@@ -12,6 +12,7 @@ import { CountdownPrizeSection } from "@/components/landing/countdown-prize-sect
 import OurLocation from "@/components/landing/our-location"
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
+import { SectionDivider } from "@/components/ui/section-divider"
 
 export const metadata: Metadata = {
   title: "Beranda",
@@ -20,25 +21,25 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="space-y-36">
+    <main className="space-y-36 pb-20">
       <HeroSection />
-      <hr className="border-border w-1/2 mx-auto" />
+      <SectionDivider />
       <ScrollReveal>
         <AboutSection />
       </ScrollReveal>
-      <hr className="border-border w-1/2 mx-auto" />
+      <SectionDivider />
       <ScrollReveal>
         <RegistrationTimeline />
       </ScrollReveal>
-      <hr className="border-border w-1/2 mx-auto" />
+      <SectionDivider />
       <ScrollReveal>
         <RegistrationsSection />
       </ScrollReveal>
-      <hr className="border-border w-1/2 mx-auto" />
+      <SectionDivider />
       <ScrollReveal>
         <OurLocation />
       </ScrollReveal>
-      <hr className="border-border w-1/2 mx-auto" />
+      <SectionDivider />
       <ScrollReveal>
         <FAQSection limitGroups={true} />
       </ScrollReveal>

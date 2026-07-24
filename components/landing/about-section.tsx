@@ -9,8 +9,8 @@ export default function AboutSection() {
             <div className="relative z-10 mx-auto max-w-[82rem] gap-16">
                 <div className="mx-auto max-w-4xl text-center">
                     <div className="flex items-center justify-center gap-4 sm:gap-12 mb-8">
+                        <Image src="/image-eeunpad.png" alt="image-eeunpad.png" width={170} height={170} className="w-42 sm:w-[170px] h-auto" />
                         <Image src="/hmte-unpad.png" width={170} height={170} alt="hmte-unpad.png" className="w-28 sm:w-[170px] h-auto" />
-                        <Image src="/futura-logo-2025.png" alt="futura-logo-2025.png" width={250} height={250} className="w-42 sm:w-[250px] h-auto" />
                     </div>
                     <h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-balance">
                         FUTURA oleh Himpunan Mahasiswa Teknik Elektro UNPAD

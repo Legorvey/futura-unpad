@@ -132,7 +132,7 @@ import { AnimatePresence, motion } from "framer-motion";
 export function RegistrationCards({ title = "I'm static and I know it.", image, speaker }: { title?: string; image?: string; speaker?: string }) {
 
   return (
-    <div className="border border-black/[0.2] group/canvas-card flex items-center justify-center dark:border-white/[0.2] max-w-xs w-full p-4 relative h-[24rem] sm:h-[30rem] bg-white dark:bg-black">
+    <div className="border border-black/[0.2] group/canvas-card flex items-center justify-center dark:border-white/[0.2] max-w-xs md:w-64 lg:w-72 xl:w-80 md:max-w-none w-full p-4 relative h-[22rem] sm:h-[26rem] md:h-[26rem] lg:h-[30rem] bg-white dark:bg-black">
       <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black z-30" />
       <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black z-30" />
       <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black z-30" />

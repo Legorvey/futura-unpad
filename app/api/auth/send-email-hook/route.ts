@@ -156,8 +156,8 @@ export async function POST(request: Request) {
       case "email_change":
         const emailPromises = [];
 
-        if (email_data.token_hash_new) {
-          const oldMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash_new}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
+        if (email_data.token_hash) {
+          const oldMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
           emailPromises.push(
             resend.emails.send({
               from: `Futura Security <security@${EMAIL_DOMAIN}>`,
@@ -176,8 +176,8 @@ export async function POST(request: Request) {
           );
         }
         
-        if (email_data.token_hash && user.new_email) {
-          const newMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
+        if (email_data.token_hash_new && user.new_email) {
+          const newMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash_new}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
           emailPromises.push(
             resend.emails.send({
               from: `Futura Security <security@${EMAIL_DOMAIN}>`,

@@ -111,7 +111,9 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
     }
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser(updates)
+      const { error: updateError } = await supabase.auth.updateUser(updates, {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile/account`
+      })
 
       if (updateError) {
         throw updateError

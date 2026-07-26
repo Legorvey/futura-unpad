@@ -134,15 +134,10 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                             {login.isPending ? "Sedang masuk..." : "Masuk"}
                         </Button>
 
-                        <div className="relative my-0.5">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-border" />
-                            </div>
-                            <div className="relative flex justify-center text-sm lowercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                    Atau
-                                </span>
-                            </div>
+                        <div className="flex items-center gap-4 my-2">
+                            <div className="h-px flex-1 bg-white/20"></div>
+                            <span className="text-sm text-white/70 font-medium lowercase">atau</span>
+                            <div className="h-px flex-1 bg-white/20"></div>
                         </div>
 
                         <GoogleLoginButton keepSignedIn={keepSignedIn} />

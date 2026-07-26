@@ -88,7 +88,9 @@ export default function Footer() {
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
     pathname === "/profile" ||
-    pathname.startsWith("/profile/")
+    pathname.startsWith("/profile/") ||
+    pathname === "/login" ||
+    pathname === "/register"
   ) {
     return null;
   }

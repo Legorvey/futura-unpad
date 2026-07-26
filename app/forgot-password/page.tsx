@@ -140,28 +140,36 @@ export default function ForgotPasswordPage() {
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-md" onInteractOutside={(e) => {
+                <DialogContent className="sm:max-w-md dark bg-[#00205B] border-white/20 text-white custom-scrollbar" onInteractOutside={(e) => {
                     if (isVerifiedInOtherTab) return;
                     e.preventDefault();
                 }}>
                     {isVerifiedInOtherTab ? (
                         <div className="flex flex-col items-center justify-center space-y-4 py-8 text-center">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20">
-                                <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-500" />
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                                <CheckCircle2 className="h-8 w-8 text-emerald-400" />
                             </div>
-                            <h2 className="text-xl font-semibold">Berhasil Diverifikasi</h2>
-                            <p className="text-sm text-muted-foreground max-w-sm">
+                            <h2 className="text-xl font-semibold text-white">Berhasil Diverifikasi</h2>
+                            <p className="text-sm text-white/70 max-w-sm">
                                 Email Anda telah diverifikasi di tab lain. Anda dapat menutup jendela ini dan melanjutkan reset kata sandi Anda di tab tersebut.
                             </p>
                         </div>
                     ) : (
                         <>
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-semibold tracking-tight">Periksa email Anda</DialogTitle>
-                                <DialogDescription className="text-base text-muted-foreground pt-2">
-                                    Kami telah mengirimkan kode reset kata sandi ke <span className="font-medium text-foreground">{verifyEmail}</span>.
-                                    Silakan masukkan di bawah ini untuk mereset kata sandi Anda. Kode kedaluwarsa dalam 1 jam.
-                                </DialogDescription>
+                            <DialogHeader className="space-y-4">
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/20 ring-1 ring-blue-500/50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                </div>
+                                <div className="space-y-2">
+                                    <DialogTitle className="text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                                        Periksa Email Anda
+                                    </DialogTitle>
+                                    <DialogDescription className="text-center text-[15px] sm:text-base leading-relaxed text-white/80">
+                                        Kami telah mengirimkan kode 8 digit ke <br/>
+                                        <span className="font-semibold text-white tracking-wide">{verifyEmail}</span>.<br/>
+                                        Masukkan kode di bawah ini untuk mereset kata sandi.
+                                    </DialogDescription>
+                                </div>
                             </DialogHeader>
                             <div className="flex flex-col space-y-6 py-4">
                                 <input
@@ -172,14 +180,14 @@ export default function ForgotPasswordPage() {
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                     placeholder="00000000"
-                                    className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-input bg-background px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-white/20 bg-white/10 px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors text-white placeholder:text-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
-                            <DialogFooter>
+                            <DialogFooter className="sm:justify-center">
                                 <Button
                                     type="button"
-                                    className="w-full h-11 text-base rounded-[8px]"
-                                    disabled={otp.length < 6 || isVerifying}
+                                    className="w-full max-w-[320px] mx-auto h-12 text-base font-bold tracking-wide rounded-lg bg-white hover:bg-white/90 text-[#00205B] transition-all duration-300"
+                                    disabled={otp.length < 8 || isVerifying}
                                     onClick={async () => {
                                         setIsVerifying(true);
                                         try {

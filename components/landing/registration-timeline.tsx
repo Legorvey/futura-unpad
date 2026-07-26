@@ -1,9 +1,8 @@
 /* eslint-disable */
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Timeline } from "@/components/ui/timeline";
+import { useState, useRef } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useLiteMotion } from "@/hooks/use-lite-motion";
 
 type TimelineTabId = "seminar" | "mechatura" | "essay";
@@ -13,57 +12,12 @@ type GrandTimelineItem = {
   event: string;
   date: string;
   description: string;
-  status?: string;
 };
-
-const grandTimelineStyles = {
-  wrapper: "relative w-full overflow-clip",
-  tabsShell: "md:px-10 md:flex",
-  tabsWrap: "mx-auto max-w-[82rem] px-4 pb-6 md:px-0 md:pb-8",
-  tabsList:
-    "grid w-full grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm sm:inline-flex sm:w-auto sm:max-w-full sm:flex-wrap sm:gap-2 sm:rounded-full",
-  tab:
-    "relative min-w-0 rounded-xl px-2 py-2 text-center text-[0.72rem] font-medium leading-tight transition-colors duration-300 sm:rounded-full sm:px-4 sm:text-sm",
-  tabActive: "text-white",
-  tabInactive: "text-neutral-400 hover:text-white",
-  activeTabPill:
-    "absolute inset-0 rounded-[inherit] bg-blue-500",
-  activeTabPillLite: "absolute inset-0 rounded-[inherit]",
-  tabLabel: "relative z-10 block sm:inline",
-  card:
-    "rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-sm",
-  category:
-    "mb-4 inline-flex rounded-full border border-purple-300/30 bg-purple-500/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-purple-200",
-  description: "text-sm leading-6 text-neutral-400",
-  status:
-    "mt-5 inline-flex rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300",
-} as const;
-
-const grandTimelineMotion = {
-  tabPill: {
-    type: "spring",
-    stiffness: 420,
-    damping: 34,
-    mass: 0.7,
-  },
-  switch: {
-    duration: 0.45,
-    ease: [0.16, 1, 0.3, 1],
-  },
-  blur: "14px",
-  offsetY: 18,
-} as const;
-
-const grandTimelineCopy = {
-  titleSuffix: "Jadwal",
-} as const;
 
 const timelineTabs = [
   {
     id: "seminar",
     label: "Seminar Nasional",
-    description:
-      "Jadwal Seminar Nasional Futura, mulai dari pembukaan registrasi sampai hari pelaksanaan seminar.",
     items: [
       {
         category: "Seminar Nasional",
@@ -94,8 +48,6 @@ const timelineTabs = [
   {
     id: "mechatura",
     label: "Mechatura",
-    description:
-      "Jadwal Mechatura Futura, mulai dari registrasi tim, pengarahan teknis, sampai hari pelaksanaan lomba robot.",
     items: [
       {
         category: "Mechatura",
@@ -114,14 +66,13 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Technical Meeting",
-        date: "Akan Diumumkan",
+        date: "22 Oktober 2026",
         description:
           "Sesi pengarahan teknis untuk peserta sebelum pelaksanaan lomba.",
-        status: "Akan Diumumkan",
       },
       {
         category: "Mechatura",
-        event: "Pelaksanaan",
+        event: "Pelaksanaan Lomba",
         date: "7 November 2026",
         description: "Hari pelaksanaan utama kompetisi robot Mechatura.",
       },
@@ -129,151 +80,253 @@ const timelineTabs = [
   },
   {
     id: "essay",
-    label: "Lomba Essay",
-    description:
-      "Jadwal Lomba Essay Futura, mulai dari pengumpulan esai, seleksi finalis, final judging, sampai awarding.",
+    label: "Lomba Esai",
     items: [
       {
-        category: "Lomba Essay",
-        event: "Registrasi & Pengumpulan Essay",
-        date: "21 September - 21 Oktober 2026",
+        category: "Lomba Esai",
+        event: "Pengumpulan Esai",
+        date: "21 Sep - 21 Okt 2026",
         description:
-          "Peserta melakukan registrasi sekaligus mengumpulkan naskah essay",
+          "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Seleksi Naskah",
-        date: "22 Oktober - 2 November 2026",
-        description: "Tahap kurasi dan penilaian awal naskah essay peserta.",
+        date: "22 Okt - 2 Nov 2026",
+        description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Pengumuman Finalis",
         date: "3 November 2026",
-        description: "Finalis Lomba Essay diumumkan secara resmi.",
+        description: "Finalis Lomba Esai diumumkan secara resmi.",
       },
       {
-        category: "Lomba Essay",
-        event: "Upload Video Presentasi Finalis",
+        category: "Lomba Esai",
+        event: "Video Presentasi",
         date: "3 - 7 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Final Judging",
         date: "8 - 15 November 2026",
-        description: "Penilaian final untuk menentukan pemenang Lomba Essay.",
+        description: "Penilaian final untuk menentukan pemenang Lomba Esai.",
       },
       {
-        category: "Lomba Essay",
+        category: "Lomba Esai",
         event: "Awarding",
         date: "21 November 2026",
-        description: "Pengumuman dan apresiasi pemenang Lomba Essay.",
+        description: "Pengumuman dan apresiasi pemenang Lomba Esai.",
       },
     ],
   },
 ] satisfies Array<{
   id: TimelineTabId;
   label: string;
-  description: string;
   items: GrandTimelineItem[];
 }>;
 
-const buildTimelineData = (items: GrandTimelineItem[]) =>
-  items.map((item) => ({
-    title: item.event,
-    date: item.date,
-    content: (
-      <article className={grandTimelineStyles.card}>
-        <span className={grandTimelineStyles.category}>{item.category}</span>
-        <p className={grandTimelineStyles.description}>{item.description}</p>
-        {item.status && (
-          <span className={grandTimelineStyles.status}>{item.status}</span>
-        )}
-      </article>
-    ),
-  }));
+const RevealText = ({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) => {
+  return (
+    <span className={`inline-flex flex-wrap ${className || ""}`}>
+      {text.split("").map((char, index) => (
+        <span key={index} className="inline-flex overflow-hidden align-bottom">
+          <motion.span
+            variants={{
+              hidden: { y: "110%" },
+              visible: {
+                y: "0%",
+                transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+              },
+              exit: { opacity: 0, transition: { duration: 0.1 } },
+            }}
+            className="inline-block whitespace-pre"
+          >
+            {char}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+const RevealWords = ({ text, className }: { text: string; className?: string }) => {
+  return (
+    <span className={`inline-flex flex-wrap ${className || ""}`}>
+      {text.split(" ").map((word, index) => (
+        <span key={index} className="inline-flex overflow-hidden align-bottom mr-[0.25em]">
+          <motion.span
+            variants={{
+              hidden: { y: "110%" },
+              visible: { opacity: 1, y: "0%", transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+              exit: { opacity: 0, transition: { duration: 0.1 } }
+            }}
+            className="inline-block"
+          >
+            {word}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimelineItem, index: number, isLiteMotion: boolean }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 90%", "end 10%"],
+  });
+
+  // Toned down parallax values so mobile elements don't completely overlap
+  const yDate = useTransform(scrollYProgress, [0, 1], ["15%", "-15%"]);
+  const yEvent = useTransform(scrollYProgress, [0, 1], ["30%", "-30%"]);
+  const yDesc = useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]);
+  const yNumber = useTransform(scrollYProgress, [0, 1], ["60%", "-60%"]);
+
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [20, 0, -20]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.2, 1, 1, 0.2]);
+
+  return (
+    <motion.div
+      ref={ref}
+      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : {}}
+      className="flex flex-col md:flex-row w-full py-8 md:py-16 group relative z-10"
+    >
+      {/* 3D Background Number replacing the line and dot */}
+      <motion.div 
+        style={!isLiteMotion ? { y: yNumber, opacity: opacity } : { opacity: 0.1 }}
+        className="absolute top-0 right-0 md:right-auto md:left-[-5%] text-[8rem] md:text-[12rem] lg:text-[18rem] font-bold text-white/5 pointer-events-none select-none leading-none z-[-1]"
+      >
+        {String(index + 1).padStart(2, '0')}
+      </motion.div>
+
+      {/* Left Column of Timeline Item: Date */}
+      <div className="w-full md:w-[35%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
+        <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
+          <RevealText 
+            text={item.date} 
+            className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
+          />
+        </motion.div>
+      </div>
+
+      {/* Right Column of Timeline Item: Title & Offset Description */}
+      <div className="w-full md:w-[65%] flex flex-col relative z-30">
+        <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
+          <RevealText 
+            text={item.event}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-white"
+          />
+        </motion.div>
+
+        <motion.div style={!isLiteMotion ? { y: yDesc } : {}} className="mt-3 w-full max-w-md relative z-10">
+          <RevealWords 
+            text={item.description}
+            className="text-base md:text-lg lg:text-xl leading-relaxed text-white/80 tracking-[-0.04em] font-light"
+          />
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
 
 export function RegistrationTimeline() {
   const [activeTab, setActiveTab] = useState<TimelineTabId>("seminar");
   const isLiteMotion = useLiteMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start center", "end center"],
+  });
+
   const selectedTab =
     timelineTabs.find((tab) => tab.id === activeTab) ?? timelineTabs[0];
-  const tabPillMotion = isLiteMotion
-    ? { duration: 0.18, ease: "easeOut" as const }
-    : grandTimelineMotion.tabPill;
-  const switchMotion = isLiteMotion
-    ? { duration: 0.2, ease: "easeOut" as const }
-    : grandTimelineMotion.switch;
-  const switchBlur = isLiteMotion ? "0px" : grandTimelineMotion.blur;
-  const switchOffsetY = isLiteMotion ? 6 : grandTimelineMotion.offsetY;
 
   return (
-    <div id="timeline" className={grandTimelineStyles.wrapper}>
-      <div className={grandTimelineStyles.tabsShell}>
-        <div className={grandTimelineStyles.tabsWrap}>
-          <div className={grandTimelineStyles.tabsList} role="tablist">
-            {timelineTabs.map((tab) => {
-              const isActive = tab.id === activeTab;
+    <section
+      id="timeline"
+      className="w-full bg-background relative overflow-clip py-10 md:py-16"
+    >
+      {/* Structural Perimeter Lines Removed */}
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`${grandTimelineStyles.tab} ${isActive
-                    ? grandTimelineStyles.tabActive
-                    : grandTimelineStyles.tabInactive
+      <div className="mx-auto max-w-[100rem] px-5 sm:px-8 relative z-20 flex flex-col items-center">
+        
+        {/* Inner Constrained Wrapper mimicking Hero Section layout */}
+        <div className="w-full flex flex-col md:flex-row relative">
+          
+          {/* Left Column (Sticky Title & Picker) */}
+          <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-12 md:pb-0 relative z-30 pt-10 md:pt-16">
+            {/* Section Title */}
+            <div className="mb-4 md:mb-6 w-full">
+              <h2 className="pl-6 sm:pl-8 md:pl-12 lg:pl-16 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
+                Timeline
+              </h2>
+            </div>
+
+            {/* Abstract Picker: Floating Text */}
+            <div className="w-full pl-6 sm:pl-8 md:pl-12 lg:pl-16 flex flex-row md:flex-col flex-wrap gap-2 relative z-30">
+              {timelineTabs.map((tab) => {
+                const isActive = tab.id === activeTab;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`text-left text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${
+                      isActive ? "text-amber-300" : "text-white hover:text-amber-200"
                     }`}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="grand-timeline-active-tab"
-                      transition={tabPillMotion}
-                      className={
-                        isLiteMotion
-                          ? grandTimelineStyles.activeTabPillLite
-                          : grandTimelineStyles.activeTabPill
-                      }
-                    />
-                  )}
-                  <span className={grandTimelineStyles.tabLabel}>
+                  >
                     {tab.label}
-                  </span>
-                </button>
-              );
-            })}
+                  </button>
+                )
+              })}
+            </div>
           </div>
+
+          {/* Right Column (Timeline Content) */}
+          <div className="w-full md:w-2/3 relative pt-10 md:pt-16" ref={containerRef}>
+            {/* Persistent Structural Axis Removed (Now using floating 3D numbers) */}
+
+
+            {/* Timeline */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedTab.id}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={{
+                  hidden: { opacity: 1 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: isLiteMotion ? 0 : 0.008 }
+                  },
+                  exit: {
+                    opacity: 0,
+                    transition: { duration: 0.2 }
+                  }
+                }}
+                className="w-full flex flex-col"
+              >
+                {selectedTab.items.map((item, i) => (
+                  <ParallaxTimelineItem key={i} item={item} index={i} isLiteMotion={isLiteMotion} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
         </div>
       </div>
-
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={selectedTab.id}
-          initial={{
-            opacity: 0,
-            y: switchOffsetY,
-            filter: `blur(${switchBlur})`,
-          }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={{
-            opacity: 0,
-            y: -switchOffsetY,
-            filter: `blur(${switchBlur})`,
-          }}
-          transition={switchMotion}
-        >
-          <Timeline
-            data={buildTimelineData(selectedTab.items)}
-            title={`${selectedTab.label} ${grandTimelineCopy.titleSuffix}`}
-            description={selectedTab.description}
-          />
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  )
+    </section>
+  );
 }
-

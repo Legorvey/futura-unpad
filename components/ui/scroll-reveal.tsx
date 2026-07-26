@@ -36,7 +36,7 @@ export function ScrollReveal({ children, className, delay = 0 }: ScrollRevealPro
         <div
             ref={ref}
             style={{ 
-                transitionDuration: '600ms',
+                transitionDuration: '400ms',
                 transitionDelay: `${delay}s` 
             }}
             className={cn(

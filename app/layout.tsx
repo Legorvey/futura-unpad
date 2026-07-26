@@ -9,6 +9,7 @@ import { AuthProvider } from "@/components/auth-provider";
 import QueryProvider from "@/components/query-provider";
 import type { AuthSession } from "@/lib/api/auth-session";
 import HoverFooter from "@/components/layout/footer"
+import { SmoothScroll } from "@/components/providers/smooth-scroll"
 import { Toaster } from "@/components/ui/sonner";
 import { getCachedAuth } from "@/lib/auth";
 import { Analytics } from "@vercel/analytics/react";
@@ -71,18 +72,20 @@ export default async function RootLayout({
       )}
     >
       <body className="dark">
-        <QueryProvider>
-          <AuthProvider initialSession={initialSession}>
-            <NextTopLoader color="#ffffff" showSpinner={false} />
-            <NavbarDemo />
-            <div className="w-full flex-1">
-              {children}
-            </div>
-            <HoverFooter />
-            <Toaster position="top-right" richColors theme="dark" />
-          </AuthProvider>
-        </QueryProvider>
-        <Analytics />
+        <SmoothScroll>
+          <QueryProvider>
+            <AuthProvider initialSession={initialSession}>
+              <NextTopLoader color="#ffffff" showSpinner={false} />
+              <NavbarDemo />
+              <div className="w-full flex-1">
+                {children}
+              </div>
+              <HoverFooter />
+              <Toaster position="top-right" richColors theme="dark" />
+            </AuthProvider>
+          </QueryProvider>
+          <Analytics />
+        </SmoothScroll>
       </body>
     </html>
   );

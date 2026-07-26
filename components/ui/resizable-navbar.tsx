@@ -179,7 +179,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         WebkitBackdropFilter: visible ? "blur(16px)" : "blur(0px)",
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden flex-row items-center justify-between self-start -mt-2 rounded-full bg-transparent px-3 py-3 lg:flex dark:bg-transparent",
+        "relative z-[60] mx-auto hidden flex-row items-center justify-between self-start -mt-2 rounded-full bg-transparent px-4 py-3 lg:flex dark:bg-transparent",
         visible && navbarSettings.classes.scrolledSurface,
         className,
       )}
@@ -336,7 +336,7 @@ export const NavbarButton = ({
   ...props
 }: NavbarButtonProps) => {
   const baseStyles =
-    "px-4 py-2 rounded-md bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-500 ease-out inline-block text-center";
+    "px-4 py-2 rounded-full bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-500 ease-out inline-block text-center";
 
   const variantStyles = {
     primary:

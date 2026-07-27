@@ -60,6 +60,11 @@ const generalFaqs = [
     answer:
       "Pilih program yang diinginkan, lengkapi formulir pendaftaran, dan ikuti petunjuk konfirmasi dari panitia.",
   },
+  {
+    question: "Apakah juara wajib datang ke Unpad untuk mendapatkan hadiah?",
+    answer:
+      "Ya, finalis yang mendapatkan juara akan mendapat undangan khusus untuk hadir di acara puncak di Unpad Dipatiukur, namun ketentuan ini juga menyesuaikan dengan kebersediaan juara. Kebersediaan untuk menghandiri undangan tidak akan mempengaruhi penilaian juara.",
+  },
 ]
 
 export const nationalSeminarFaqs: FAQ[] = [

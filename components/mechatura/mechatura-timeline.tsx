@@ -67,7 +67,7 @@ export function MechaturaTimeline() {
     <section className={mechaturaTimelineStyles.wrapper}>
       <Timeline
         data={mechaturaTimelineData}
-        title="Mechatura Timeline"
+        title="Timeline Mechatura"
         description="Jadwal lengkap kompetisi robotika Mechatura, mulai dari pendaftaran hingga hari pertandingan."
       />
     </section>

@@ -55,7 +55,7 @@ const grandTimelineMotion = {
 } as const;
 
 const grandTimelineCopy = {
-  titleSuffix: "Jadwal",
+  titlePrefix: "Timeline",
 } as const;
 
 const timelineTabs = [
@@ -68,25 +68,25 @@ const timelineTabs = [
       {
         category: "Seminar Nasional",
         event: "Mulai Registrasi",
-        date: "21 September 2026",
+        date: "Online/Daring, 21 September 2026",
         description: "Periode registrasi peserta Seminar Nasional Futura.",
       },
       {
         category: "Seminar Nasional",
         event: "Akhir Registrasi",
-        date: "21 Oktober 2026",
+        date: "Online/Daring, 28 November 2026",
         description: "Akhir registrasi peserta Seminar Nasional Futura",
       },
       {
         category: "Seminar Nasional",
         event: "Pelaksanaan",
-        date: "21 November 2026",
+        date: "Bale Rumawat Unpad Dipatiukur, 21 November 2026",
         description: "Hari pelaksanaan Seminar Nasional Futura.",
       },
       {
         category: "Seminar Nasional",
         event: "Pembagian Sertifikat",
-        date: "67 November 2026",
+        date: "Online/Desember, 1 Desember 2026",
         description: "Hari pembagian sertifikat Seminar Nasional Futura.",
       },
     ],
@@ -100,21 +100,21 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Registrasi Batch 1",
-        date: "20 Juli - 31 Agustus 2026",
+        date: "Online/Daring, 20 Juli - 31 Agustus 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
       },
       {
         category: "Mechatura",
         event: "Registrasi Batch 2",
-        date: "1 September - 1 Oktober 2026",
+        date: "Online/Daring, 1 September - 1 Oktober 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
       },
       {
         category: "Mechatura",
         event: "Technical Meeting",
-        date: "Akan Diumumkan",
+        date: "Online/Daring, TBA (To Be Announced)",
         description:
           "Sesi pengarahan teknis untuk peserta sebelum pelaksanaan lomba.",
         status: "Akan Diumumkan",
@@ -122,7 +122,7 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Pelaksanaan",
-        date: "7 November 2026",
+        date: "Gd. PPBS Unpad Jatinangor, 7 November 2026",
         description: "Hari pelaksanaan utama kompetisi robot Mechatura.",
       },
     ],
@@ -136,39 +136,39 @@ const timelineTabs = [
       {
         category: "Lomba Essay",
         event: "Registrasi & Pengumpulan Essay",
-        date: "21 September - 21 Oktober 2026",
+        date: "Online/Daring, 21 September - 22 Oktober 2026",
         description:
           "Peserta melakukan registrasi sekaligus mengumpulkan naskah essay",
       },
       {
         category: "Lomba Essay",
         event: "Seleksi Naskah",
-        date: "22 Oktober - 2 November 2026",
+        date: "23 Oktober - 2 November 2026",
         description: "Tahap kurasi dan penilaian awal naskah essay peserta.",
       },
       {
         category: "Lomba Essay",
         event: "Pengumuman Finalis",
-        date: "3 November 2026",
+        date: "By Email, 4 November 2026",
         description: "Finalis Lomba Essay diumumkan secara resmi.",
       },
       {
         category: "Lomba Essay",
         event: "Upload Video Presentasi Finalis",
-        date: "3 - 7 November 2026",
+        date: "TBA (To Be Announced), 5 - 12 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
       },
       {
         category: "Lomba Essay",
-        event: "Final Judging",
-        date: "8 - 15 November 2026",
+        event: "Seleksi Finalis",
+        date: "13 - 27 November 2026",
         description: "Penilaian final untuk menentukan pemenang Lomba Essay.",
       },
       {
         category: "Lomba Essay",
-        event: "Awarding",
-        date: "21 November 2026",
+        event: "Pengumuman Juara",
+        date: "Bale Rumawat, 28 November 2026",
         description: "Pengumuman dan apresiasi pemenang Lomba Essay.",
       },
     ],
@@ -268,7 +268,7 @@ export function RegistrationTimeline() {
         >
           <Timeline
             data={buildTimelineData(selectedTab.items)}
-            title={`${selectedTab.label} ${grandTimelineCopy.titleSuffix}`}
+            title={`${grandTimelineCopy.titlePrefix} ${selectedTab.label}`}
             description={selectedTab.description}
           />
         </motion.div>

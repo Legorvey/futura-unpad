@@ -67,7 +67,7 @@ export function SeminarTimeline() {
     <section className={seminarTimelineStyles.wrapper}>
       <Timeline
         data={seminarTimelineData}
-        title="Seminar Nasional Timeline"
+        title="Timeline Seminar Nasional"
         description="Timeline Seminar Nasional Futura, mulai dari pembukaan registrasi sampai hari pelaksanaan seminar."
       />
     </section>

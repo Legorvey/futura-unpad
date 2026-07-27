@@ -33,7 +33,12 @@ const events = [
         speaker: "Mechatura Event",
         image: "/green-renewable-1.webp",
         href: "/mechatura",
-        price: "Rp. 250.000",
+        price: (
+            <>
+                Batch 1 (Transporter & Sumo): Rp175.000<br />
+                Batch 2 (Transporter & Sumo): Rp200.000
+            </>
+        ),
         reverse: true
     },
     {
@@ -49,7 +54,7 @@ const events = [
         speaker: "Lomba Essay",
         image: "https://images.unsplash.com/photo-1455390582262-044cdead27d8?q=80&w=800&auto=format&fit=crop",
         href: "/lomba-essay",
-        price: "Rp. 175.000",
+        price: "Rp75.000",
         reverse: false
     }
 ]

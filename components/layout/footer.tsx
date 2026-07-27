@@ -58,7 +58,7 @@ export default function HoverFooter() {
     {
       title: "Tautan Bantuan",
       links: [
-        { label: "Tanya Jawab (FAQ)", href: "/faq" },
+        { label: "Pertanyaan Umum (FAQ)", href: "/faq" },
         { label: "Syarat & Ketentuan", href: "/terms" },
         { label: "Kebijakan Privasi", href: "/privacy" },
         { label: "Pemulihan Akun", href: "/forgot-password" },
@@ -107,7 +107,7 @@ export default function HoverFooter() {
               <span className="text-3xl font-bold">Futura</span>
             </div>
             <p className="text-sm leading-relaxed text-balance">
-              Futura adalah acara teknologi universitas yang menampilkan seminar, kompetisi robotik, dan diseminasi riset.
+              Futura adalah rangkaian program mahasiswa teknik elektro unpad yang menampilkan seminar, pameran teknologi, kompetisi robotik & esai.
             </p>
           </div>
 

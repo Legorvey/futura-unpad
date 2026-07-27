@@ -221,7 +221,7 @@ type FAQSectionProps = {
 
 export function FAQSection({
   id = "faq",
-  title = "Pertanyaan Umum.",
+  title = "Frequently Asked Questions",
   groups = faqGroups,
   showAllButton = true,
   limitGroups = false,

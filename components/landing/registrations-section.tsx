@@ -54,7 +54,7 @@ const events = [
         speaker: "Lomba Essay",
         image: "https://images.unsplash.com/photo-1455390582262-044cdead27d8?q=80&w=800&auto=format&fit=crop",
         href: "/lomba-essay",
-        price: "Rp. 75.000",
+        price: "Rp75.000",
         reverse: false
     }
 ]

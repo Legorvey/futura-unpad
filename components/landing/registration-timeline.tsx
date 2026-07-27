@@ -86,7 +86,7 @@ const timelineTabs = [
       {
         category: "Seminar Nasional",
         event: "Pembagian Sertifikat",
-        date: "1 Desember 2026",
+        date: "Online/Daring, 1 Desember 2026",
         description: "Hari pembagian sertifikat Seminar Nasional Futura.",
       },
     ],
@@ -136,7 +136,7 @@ const timelineTabs = [
       {
         category: "Lomba Esai",
         event: "Registrasi & Pengumpulan",
-        date: "21 September - 22 Oktober 2026",
+        date: "Online/Daring, 21 September - 22 Oktober 2026",
         description:
           "Peserta melakukan registrasi sekaligus mengumpulkan naskah esai",
       },
@@ -149,13 +149,13 @@ const timelineTabs = [
       {
         category: "Lomba Esai",
         event: "Pengumuman Finalis",
-        date: "4 November 2026",
+        date: "By Email, 4 November 2026",
         description: "Finalis Lomba Esai diumumkan secara resmi.",
       },
       {
         category: "Lomba Esai",
         event: "Upload Video Presentasi Finalis",
-        date: "5 - 12 November 2026",
+        date: "TBA (To Be Announced), 5 - 12 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
       },
@@ -167,8 +167,8 @@ const timelineTabs = [
       },
       {
         category: "Lomba Esai",
-        event: "Awarding",
-        date: "28 November 2026",
+        event: "Pengumuman Juara",
+        date: "Bale Rumawat, 28 November 2026",
         description: "Pengumuman dan apresiasi pemenang Lomba Esai.",
       },
     ],

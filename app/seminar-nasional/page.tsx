@@ -9,6 +9,7 @@ import PembicaraTalkshow from "@/components/seminar/pembicara-talk-show"
 import LocationSection from "@/components/seminar/location-section"
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
+import { SectionDivider } from "@/components/ui/section-divider"
 
 export const metadata: Metadata = {
   title: "Seminar Nasional"
@@ -21,23 +22,23 @@ export default function SeminarNasional() {
             <ScrollReveal>
                 <OurMemories />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <RuangLingkup />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <SeminarTimeline />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <PembicaraSeminarPleno />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <PembicaraTalkshow />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <LocationSection />
             </ScrollReveal>

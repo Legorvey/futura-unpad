@@ -7,6 +7,7 @@ import LocationSection from "@/components/mechatura/location-section";
 import { MechaturaFAQ } from "@/components/mechatura/mechatura-faq";
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { SectionDivider } from "@/components/ui/section-divider";
 
 export const metadata: Metadata = {
   title: "Mechatura"
@@ -19,15 +20,15 @@ export default function Mechatura() {
             <ScrollReveal>
                 <OurMemories />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <KategoriKompetisi />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <MechaturaTimeline />
             </ScrollReveal>
-            <hr className="border-border w-1/2 mx-auto" />
+            <SectionDivider />
             <ScrollReveal>
                 <LocationSection />
             </ScrollReveal>

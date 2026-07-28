@@ -50,11 +50,11 @@ const navbarSettings = {
   },
   classes: {
     scrolledSurface:
-      "bg-white/70 backdrop-blur-xl dark:bg-neutral-950/70",
+      "bg-white/70 backdrop-blur-xl dark:bg-neutral-950/30",
     navText:
       "text-zinc-600 hover:text-zinc-800 dark:text-neutral-300 dark:hover:text-white",
     itemText: "text-neutral-600 dark:text-neutral-300",
-    hoverPill: "bg-gray-100 dark:bg-neutral-800",
+    hoverPill: "bg-gray-100 dark:bg-neutral-900/20",
   },
   motion: {
     surface: {

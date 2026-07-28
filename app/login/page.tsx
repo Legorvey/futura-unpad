@@ -150,7 +150,7 @@ export default async function LoginPage({
 
             <ParallaxBackgrounds isStatic className="absolute inset-0 z-[2] mix-blend-screen opacity-40" />
 
-            <div className="relative z-10 w-full max-w-md space-y-10">
+            <div className="relative z-10 w-full max-w-lg space-y-10 border p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/10">
                 <section className="space-y-1">
                     <h1 className="text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans text-white">
                         Masuk ke akun Futura

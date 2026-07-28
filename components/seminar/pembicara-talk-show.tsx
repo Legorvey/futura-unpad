@@ -17,7 +17,7 @@ const moderatorsData = [
 const pembicarasData = [
     {
         id: 1,
-        quote:
+        description:
             "",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -25,7 +25,7 @@ const pembicarasData = [
     },
     {
         id: 2,
-        quote:
+        description:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -33,7 +33,7 @@ const pembicarasData = [
     },
     {
         id: 3,
-        quote:
+        description:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -43,7 +43,7 @@ const pembicarasData = [
 
 export default function PembicaraTalkshow() {
     return (
-        <main className="max-w-7xl mx-auto px-4">
+        <main className="max-w-7xl mx-auto">
             <PembicaraCards
                 title="Pembicara Talkshow"
                 subtitle="Berikut merupakan pembicara-pembicara yang akan hadir dalam talkshow"

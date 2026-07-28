@@ -186,7 +186,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
     offset: ["start 90%", "end 10%"],
   });
 
-  // Toned down parallax values so mobile elements don't completely overlap
+  // Original parallax values
   const yDate = useTransform(scrollYProgress, [0, 1], ["15%", "-15%"]);
   const yEvent = useTransform(scrollYProgress, [0, 1], ["30%", "-30%"]);
   const yDesc = useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]);
@@ -200,7 +200,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
     <motion.div
       ref={ref}
       style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : {}}
-      className="flex flex-col md:flex-row w-full py-8 md:py-16 group relative z-10"
+      className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
     >
       {/* 3D Background Number replacing the line and dot */}
       <motion.div 
@@ -266,23 +266,23 @@ export function RegistrationTimeline() {
         <div className="w-full flex flex-col md:flex-row relative">
           
           {/* Left Column (Sticky Title & Picker) */}
-          <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-12 md:pb-0 relative z-30 pt-10 md:pt-16">
+          <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
             {/* Section Title */}
-            <div className="mb-4 md:mb-6 w-full">
-              <h2 className="pl-6 sm:pl-8 md:pl-12 lg:pl-16 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
+            <div className="mb-2 md:mb-6 w-full">
+              <h2 className="md:pl-12 lg:pl-16 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
                 Timeline
               </h2>
             </div>
 
             {/* Abstract Picker: Floating Text */}
-            <div className="w-full pl-6 sm:pl-8 md:pl-12 lg:pl-16 flex flex-row md:flex-col flex-wrap gap-2 relative z-30">
+            <div className="w-full md:pl-12 lg:pl-16 flex flex-row md:flex-col flex-wrap gap-2 relative z-30">
               {timelineTabs.map((tab) => {
                 const isActive = tab.id === activeTab;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`text-left text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${
+                    className={`text-left text-base md:text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${
                       isActive ? "text-amber-300" : "text-white hover:text-amber-200"
                     }`}
                   >

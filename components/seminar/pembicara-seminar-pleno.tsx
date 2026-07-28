@@ -17,7 +17,7 @@ const moderatorsData = [
 const pembicarasData = [
     {
         id: 1,
-        quote:
+        description:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -25,7 +25,7 @@ const pembicarasData = [
     },
     {
         id: 2,
-        quote:
+        description:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -33,7 +33,7 @@ const pembicarasData = [
     },
     {
         id: 3,
-        quote:
+        description:
             "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
         name: "Linus Torvalds",
         position: "Linux Foundation",
@@ -43,7 +43,7 @@ const pembicarasData = [
 
 export default function PembicaraSeminarPleno() {
     return (
-        <main className="max-w-7xl mx-auto px-4">
+        <main className="max-w-7xl mx-auto px-2">
             <PembicaraCards
                 title="Pembicara Seminar Pleno"
                 subtitle="Berikut merupakan pembicara-pembicara yang akan hadir dalam seminar pleno"

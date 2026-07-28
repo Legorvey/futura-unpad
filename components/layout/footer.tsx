@@ -133,7 +133,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative w-full text-neutral-300 pt-24 pb-12 mt-10">
+    <footer className="relative w-full text-neutral-300 pt-24 pb-12 mt-10 border-t bg-neutral-950/20 backdrop-blur-sm rounded-4xl">
       <div className="max-w-[100rem] mx-auto px-6 md:px-12 lg:px-20 relative z-10">
         <div className="flex flex-col lg:flex-row justify-between gap-16 lg:gap-8 mb-20">
           

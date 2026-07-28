@@ -5,7 +5,7 @@ import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useLiteMotion } from "@/hooks/use-lite-motion"
-import Link from "next/link"
+import { ButtonV2 } from "../ui/button-v2"
 
 const faqSettings = {
   defaultOpen: false,
@@ -225,7 +225,7 @@ export function FAQSection({
   return (
     <section
       id={id}
-      className="mb-48 relative bg-background px-5 sm:px-8"
+      className="mb-48 relative px-5 sm:px-8"
     >
       <div className="absolute left-[-10%] top-1/2 -translate-y-1/2 w-[40%] h-[60%] bg-primary/5 blur-[120px] pointer-events-none rounded-[100%]" />
 
@@ -253,10 +253,11 @@ export function FAQSection({
           ))}
 
           {showAllButton && (
-            <div className="mt-12 flex justify-center">
-              <Link href="/faq" className="group relative inline-flex overflow-hidden rounded-full border-2 px-8 py-4 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-950 hover:text-white hover:shadow-lg hover:shadow-black/10">
-                Lihat Semua FAQ
-              </Link>
+            <div className="flex justify-center">
+              <ButtonV2 
+                text="Lihat Semua"
+                href="/faq"
+              />  
             </div>
           )}
         </div>

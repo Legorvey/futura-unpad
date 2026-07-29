@@ -1,10 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import Image from "next/image";
 
 export default function PembicaraTalkshow() {
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: {},
         visible: {
             transition: {
@@ -13,7 +13,7 @@ export default function PembicaraTalkshow() {
         },
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
             opacity: 1,
@@ -52,7 +52,7 @@ export default function PembicaraTalkshow() {
                         <div className="group relative flex w-full aspect-3/4 flex-col overflow-hidden rounded-xl bg-card shadow-sm">
                             <div className="absolute inset-0 z-0">
                                 <Image
-                                    src="https://avatars.githubusercontent.com/u/1024025?v=4"
+                                    src="/seminar/mystery-pembicara-moderator.png"
                                     alt="Pembicara"
                                     fill
                                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -91,7 +91,7 @@ export default function PembicaraTalkshow() {
                         <div className="group relative flex w-full aspect-3/4 flex-col overflow-hidden rounded-xl bg-card shadow-sm">
                             <div className="absolute inset-0 z-0">
                                 <Image
-                                    src="https://avatars.githubusercontent.com/u/1024025?v=4"
+                                    src="/seminar/mystery-pembicara-moderator.png"
                                     alt="Moderator"
                                     fill
                                     sizes="(max-width: 768px) 100vw, 50vw"

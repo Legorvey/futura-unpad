@@ -10,9 +10,9 @@ const events = [
         date: "Sabtu, 28 November 2026",
         location: "Bale Rumawat Unpad Dipatiukur",
         price: "Gratis",
-        description: "Diskusi mendalam mengenai implementasi energi cerdas di era industri 5.0. Para ahli akan membahas optimalisasi smart grid dan energi baru terbarukan demi masa depan yang lebih hijau.",
+        description: "Diskusi Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030 memfasilitasi para ahli untuk mengkaji kesiapan teknis industri nasional secara spesifik melalui integrasi konektivitas dan energi.",
         highlights_title: "Pembicara",
-        highlights: "Aditya Cakti C. & Farras Faqih",
+        highlights: "To Be Announced",
         href: "/seminar-nasional",
     },
     {
@@ -22,7 +22,7 @@ const events = [
         price: "Rp. 175.000/Team",
         description: "Kompetisi robotika tingkat nasional yang menantang para inovator muda untuk memecahkan masalah energi melalui teknologi otomasi dan mekatronika. Tunjukkan karya terbaikmu!",
         highlights_title: "Tipe Lomba",
-        highlights: "Robot Cepat & Robot Transporter",
+        highlights: "Robot Transporter & Robot Transporter",
         href: "/mechatura",
     },
     {

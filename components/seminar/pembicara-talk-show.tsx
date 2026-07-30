@@ -55,8 +55,8 @@ export default function PembicaraTalkshow() {
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.05em] text-white leading-none">
                         Talkshow
                     </h2>
-                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-xl">
-                        Berikut merupakan pembicara-pembicara yang akan hadir dalam talkshow
+                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-5xl">
+                        Talkshow Futura merupakan rangkaian acara yang berfokus pada pertukaran wawasan melalui diskusi interaktif antara peserta dan narasumber. Acara ini menghadirkan influencer maupun individu yang telah memiliki pengalaman, prestasi, atau kontribusi di bidangnya untuk berbagi pengetahuan, pengalaman, serta perspektif mengenai isu dan perkembangan terkini.
                     </p>
                 </div>
 

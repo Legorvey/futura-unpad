@@ -37,7 +37,7 @@ function AnimatedSocialLink({ href, icon, label }: { href: string, icon: React.R
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       setMousePos({ x, y });
-      
+
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
       const dist = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
@@ -48,8 +48,8 @@ function AnimatedSocialLink({ href, icon, label }: { href: string, icon: React.R
   };
 
   return (
-    <motion.a 
-      href={href} 
+    <motion.a
+      href={href}
       target="_blank"
       rel="noreferrer"
       aria-label={label}
@@ -107,7 +107,7 @@ export default function Footer() {
     {
       title: "Tautan Bantuan",
       links: [
-        { label: "Tanya Jawab (FAQ)", href: "/faq" },
+        { label: "Pertanyaan Umum (FAQ)", href: "/faq" },
         { label: "Syarat & Ketentuan", href: "/terms" },
         { label: "Kebijakan Privasi", href: "/privacy" },
         { label: "Pemulihan Akun", href: "/forgot-password" },
@@ -136,31 +136,31 @@ export default function Footer() {
     <footer className="relative w-full text-neutral-300 pt-24 pb-12 mt-10 border-t bg-neutral-950/20 backdrop-blur-sm rounded-4xl">
       <div className="max-w-[100rem] mx-auto px-6 md:px-12 lg:px-20 relative z-10">
         <div className="flex flex-col lg:flex-row justify-between gap-16 lg:gap-8 mb-20">
-          
+
           {/* Left: Brand & Description */}
           <div className="flex flex-col items-start max-w-sm">
-             <Link href="/" className="inline-block mb-6">
-               <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tighter">
-                 Futura
-               </h2>
-             </Link>
-             <p className="font-light leading-relaxed mb-8 text-balance">
-               Futura adalah acara teknologi universitas yang menampilkan seminar, kompetisi robotik, dan diseminasi riset.
-             </p>
-             
-             {/* Socials */}
-             <div className="flex gap-4">
-               <AnimatedSocialLink 
-                 href="https://instagram.com/futuraunpad.hmte" 
-                 icon={<Camera size={20} />} 
-                 label="Instagram" 
-               />
-               <AnimatedSocialLink 
-                 href="/" 
-                 icon={<EarthIcon size={20} />} 
-                 label="Website" 
-               />
-             </div>
+            <Link href="/" className="inline-block mb-6">
+              <h2 className="text-4xl md:text-5xl font-semibold text-white tracking-tighter">
+                Futura
+              </h2>
+            </Link>
+            <p className="font-light leading-relaxed mb-8 text-balance">
+              Futura adalah acara teknologi universitas yang menampilkan seminar, kompetisi robotik, dan diseminasi riset.
+            </p>
+
+            {/* Socials */}
+            <div className="flex gap-4">
+              <AnimatedSocialLink
+                href="https://instagram.com/futuraunpad.hmte"
+                icon={<Camera size={20} />}
+                label="Instagram"
+              />
+              <AnimatedSocialLink
+                href="/"
+                icon={<EarthIcon size={20} />}
+                label="Website"
+              />
+            </div>
           </div>
 
           {/* Right: Links Grid */}
@@ -173,8 +173,8 @@ export default function Footer() {
                     <li key={link.label}>
                       <Link href={link.href} className="group flex items-center hover:text-amber-300 transition-colors text-sm font-light">
                         <span className="relative overflow-hidden pb-1">
-                           {link.label}
-                           <span className="absolute left-0 bottom-0 w-full h-[1px] bg-amber-300 -translate-x-[101%] group-hover:translate-x-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" />
+                          {link.label}
+                          <span className="absolute left-0 bottom-0 w-full h-[1px] bg-amber-300 -translate-x-[101%] group-hover:translate-x-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" />
                         </span>
                       </Link>
                     </li>
@@ -182,7 +182,7 @@ export default function Footer() {
                 </ul>
               </div>
             ))}
-            
+
             {/* Contact Information */}
             <div className="flex flex-col">
               <h3 className="text-white font-medium tracking-tight mb-6">Hubungi Kami</h3>

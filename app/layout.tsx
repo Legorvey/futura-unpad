@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     default: "Futura 2026",
   },
   description: "oleh HMTE Universitas Padjadjaran",
+  icons: {
+    icon: "/favicon-fix.png"
+  }
 };
 
 export default async function RootLayout({
@@ -51,10 +54,10 @@ export default async function RootLayout({
   const initialSession: AuthSession = {
     user: user
       ? {
-          id: user.id,
-          email: user.email ?? null,
-          user_metadata: user.user_metadata,
-        }
+        id: user.id,
+        email: user.email ?? null,
+        user_metadata: user.user_metadata,
+      }
       : null,
     adminAccess,
   };

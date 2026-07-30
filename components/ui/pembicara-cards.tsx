@@ -18,7 +18,7 @@ interface PembicaraCardsProps {
   pembicaras: Pembicara[];
 }
 
-const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
+export const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,

@@ -13,7 +13,7 @@ export interface ModeratorCardProps {
   description?: string;
 }
 
-const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) => {
+export const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -26,11 +26,11 @@ const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) => {
   return (
     <div 
       ref={ref} 
-      className="relative flex flex-col md:flex-row items-center w-full max-w-4xl gap-8 md:gap-12 group" 
+      className="relative flex flex-col items-center w-full gap-6 md:gap-8 group" 
     >
       {/* Static Wrapper */}
       <div 
-        className="relative shrink-0 w-full max-w-[320px] aspect-[4/5] md:w-64 md:h-80 md:aspect-auto rounded-[2rem] overflow-hidden shadow-2xl z-0"
+        className="relative w-full max-w-[320px] aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl z-0"
       >
         <motion.div style={{ y: yImage, scale: 1.25 }} className="absolute inset-0 w-full h-full">
           <Image 
@@ -44,18 +44,16 @@ const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) => {
       </div>
 
       {/* Typography */}
-      <div 
-        className="flex flex-col flex-1 z-10 w-full px-4 md:px-0 text-center md:text-left"
-      >
-        <h4 className="text-lg md:text-lg font-light tracking-tighter text-white/40">
+      <div className="flex flex-col items-center text-center z-10 w-full px-4">
+        <h4 className="text-sm md:text-base font-light tracking-tight text-white/40 mb-1">
           Moderator
         </h4>
-        <h3 className="text-3xl md:text-5xl font-medium tracking-[-0.05em] text-white leading-tight transition-colors duration-500 group-hover:text-amber-300">
+        <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight transition-colors duration-500 group-hover:text-amber-300">
           {moderator.name}
         </h3>
         
         {moderator.job && (
-          <p className="mt-4 text-base md:text-xl font-light tracking-tight text-white/60">
+          <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/60">
             {moderator.job}
           </p>
         )}

@@ -123,8 +123,8 @@ export default function Footer() {
     },
     {
       icon: <Phone size={16} />,
-      text: "+62 HUMAS",
-      href: "tel:",
+      text: "+62 821-2727-1389",
+      href: "https://wa.me/+6282127271389",
     },
     {
       icon: <MapPin size={16} />,

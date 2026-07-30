@@ -115,7 +115,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
     <motion.div
       ref={ref}
       style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : {}}
-      className="flex flex-col md:flex-row w-full py-8 md:py-16 group relative z-10"
+      className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
     >
       {/* 3D Background Number */}
       <motion.div 
@@ -126,14 +126,14 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </motion.div>
 
       {/* Left Column of Timeline Item: Date */}
-      <div className="w-full md:w-[35%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
+      <div className="w-full md:w-[45%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
         <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
           <RevealText 
             text={item.date} 
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
           />
           {item.location && (
-            <div className="mt-2 text-xs md:text-sm font-medium text-white/60 tracking-[-0.02em] flex items-center gap-1.5">
+            <div className="mt-2 text-xs md:text-sm font-medium text-amber-400 tracking-[-0.02em] flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               {item.location}
             </div>
@@ -142,11 +142,11 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
-      <div className="w-full md:w-[65%] flex flex-col relative z-30">
+      <div className="w-full md:w-[80%] flex flex-col relative z-30">
         <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
           <RevealText 
             text={item.event}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-balance text-white"
           />
         </motion.div>
 
@@ -173,22 +173,22 @@ export function SeminarTimeline() {
   return (
     <section
       id="timeline"
-      className="w-full relative overflow-clip py-10 md:py-16"
+      className="w-full bg-background relative overflow-clip py-10 md:py-16"
     >
-      <div className="mx-auto max-w-[100rem] px-5 sm:px-8 relative z-20 flex flex-col items-center">
+      <div className="mx-auto max-w-[100rem] px-5 sm:px-10 relative z-20 flex flex-col items-center">
         
         {/* Inner Constrained Wrapper mimicking Hero Section layout */}
-        <div className="w-full flex flex-col md:flex-row relative">
+        <div className="w-full flex flex-col md:flex-row md:gap-8 lg:gap-12 relative">
           
           {/* Left Column (Sticky Title) */}
-          <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
+          <div className="w-full md:w-1/3 flex-shrink-0 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
             <div className="mb-2 w-full">
-              <h2 className="md:pl-12 lg:pl-16 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
+              <h2 className="lg:pl-6 xl:pl-10 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
                 Timeline
               </h2>
             </div>
 
-            <div className="w-full md:pl-12 lg:pl-16 flex flex-col gap-2 relative z-30">
+            <div className="w-full lg:pl-6 xl:pl-10 flex flex-col gap-2 relative z-30">
               <span className="text-left text-base md:text-lg font-medium tracking-[-0.04em] text-amber-300">
                 Seminar Nasional
               </span>
@@ -199,7 +199,7 @@ export function SeminarTimeline() {
           </div>
 
           {/* Right Column (Timeline Content) */}
-          <div className="w-full md:w-2/3 relative pt-10 md:pt-16" ref={containerRef}>
+          <div className="w-full flex-1 relative pt-10 md:pt-16 min-w-0" ref={containerRef}>
             <motion.div
               initial="hidden"
               whileInView="visible"

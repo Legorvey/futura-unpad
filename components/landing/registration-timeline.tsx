@@ -226,14 +226,14 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </motion.div>
 
       {/* Left Column of Timeline Item: Date */}
-      <div className="w-full md:w-[35%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
+      <div className="w-full md:w-[45%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
         <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
           <RevealText
             text={item.date}
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
           />
           {item.location && (
-            <div className="mt-2 text-xs md:text-sm font-medium text-white/60 tracking-[-0.02em] flex items-center gap-1.5">
+            <div className="mt-2 text-xs md:text-sm font-medium text-amber-400 tracking-[-0.02em] flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
               {item.location}
             </div>
@@ -242,11 +242,11 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
-      <div className="w-full md:w-[65%] flex flex-col relative z-30">
+      <div className="w-full md:w-[80%] flex flex-col relative z-30">
         <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
           <RevealText
             text={item.event}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-balance text-white"
           />
         </motion.div>
 
@@ -263,6 +263,19 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
 
 export function RegistrationTimeline() {
   const [activeTab, setActiveTab] = useState<TimelineTabId>("seminar");
+  const [transitioningTab, setTransitioningTab] = useState<TimelineTabId | null>(null);
+
+  const handleDesktopTabClick = (id: TimelineTabId) => {
+    if (id === activeTab || transitioningTab) return;
+    setTransitioningTab(id);
+    setTimeout(() => {
+      setActiveTab(id);
+      setTimeout(() => {
+        setTransitioningTab(null);
+      }, 600);
+    }, 400);
+  };
+
   const isLiteMotion = useLiteMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -281,29 +294,29 @@ export function RegistrationTimeline() {
     >
       {/* Structural Perimeter Lines Removed */}
 
-      <div className="mx-auto max-w-[100rem] px-5 sm:px-8 relative z-20 flex flex-col items-center">
-
+      <div className="mx-auto max-w-[100rem] px-5 sm:px-10 relative z-20 flex flex-col items-center">
+        <h1 className="w-full text-left md:text-center text-5xl md:text-6xl lg:text-8xl tracking-[-0.07em] font-bold mb-8 md:mb-12">Grand Timeline</h1> 
         {/* Inner Constrained Wrapper mimicking Hero Section layout */}
-        <div className="w-full flex flex-col md:flex-row relative">
+        <div className="w-full flex flex-col md:flex-row md:gap-8 lg:gap-12 relative">
 
           {/* Left Column (Sticky Title & Picker) */}
-          <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
+          <div className="w-full md:w-1/3 flex-shrink-0 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
             {/* Section Title */}
-            <div className="mb-2 md:mb-6 w-full">
-              <h2 className="md:pl-12 lg:pl-16 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
-                Timeline
+            <div className="mb-6 md:mb-8 w-full">
+              <h2 className="lg:pl-6 xl:pl-10 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
+                Choose Your Timeline
               </h2>
             </div>
 
-            {/* Abstract Picker: Floating Text */}
-            <div className="w-full md:pl-12 lg:pl-16 flex flex-row md:flex-col flex-wrap gap-2 relative z-30">
+            {/* Mobile Picker: Original pill concept */}
+            <div className="w-full lg:pl-6 xl:pl-10 flex md:hidden flex-row flex-wrap gap-3 relative z-30">
               {timelineTabs.map((tab) => {
                 const isActive = tab.id === activeTab;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`text-left text-base md:text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${isActive ? "text-amber-300" : "text-white hover:text-amber-200"
+                    className={`whitespace-nowrap px-4 py-2 rounded-full text-left text-sm font-medium tracking-[-0.04em] transition-colors duration-300 ${isActive ? "bg-white/10 text-amber-300" : "bg-transparent text-white/80 hover:text-white"
                       }`}
                   >
                     {tab.label}
@@ -311,12 +324,35 @@ export function RegistrationTimeline() {
                 )
               })}
             </div>
+
+            {/* Desktop Picker: Smooth reordering and fading */}
+            <div className="w-full lg:pl-6 xl:pl-10 hidden md:flex flex-col gap-4 relative z-30">
+              {timelineTabs.map((tab) => {
+                const isActive = tab.id === activeTab;
+                const isFading = transitioningTab !== null && tab.id !== transitioningTab;
+                return (
+                  <motion.button
+                    layout
+                    transition={{
+                      layout: { type: "tween", ease: "easeInOut", duration: 0.6 },
+                      opacity: { duration: 0.4, ease: "easeInOut" }
+                    }}
+                    key={tab.id}
+                    onClick={() => handleDesktopTabClick(tab.id)}
+                    animate={{ opacity: isFading ? 0 : 1 }}
+                    className={`flex items-center gap-3 text-left tracking-[-0.04em] transition-colors duration-500 ${isActive ? "order-first text-3xl lg:text-4xl font-bold text-amber-300" : "text-lg lg:text-xl font-medium text-white/80 hover:text-white"
+                      }`}
+                  >
+                    <span>{tab.label}</span>
+                  </motion.button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Right Column (Timeline Content) */}
-          <div className="w-full md:w-2/3 relative pt-10 md:pt-16" ref={containerRef}>
+          <div className="w-full flex-1 relative pt-10 md:pt-16 min-w-0" ref={containerRef}>
             {/* Persistent Structural Axis Removed (Now using floating 3D numbers) */}
-
 
             {/* Timeline */}
             <AnimatePresence mode="wait">

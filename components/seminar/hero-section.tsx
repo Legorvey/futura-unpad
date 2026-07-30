@@ -68,7 +68,7 @@ function ScrambledSeminar() {
 export function HeroSection() {
   return (
     <section id="home" className="relative w-full overflow-hidden bg-background">
-      <div className="relative mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col justify-center min-h-screen py-20">
+      <div className="relative mx-auto max-w-[100rem] pt-34 w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col justify-center min-h-screen py-20">
         
         {/* Typographic Hero Stack */}
         <div className="flex flex-col w-full relative">

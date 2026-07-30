@@ -55,7 +55,7 @@ export default function PembicaraSeminarPleno() {
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.05em] text-white leading-none">
                         Seminar Pleno
                     </h2>
-                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-xl">
+                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-5xl">
                         Seminar Nasional Futura adalah forum ilmiah yang mengkaji inovasi teknologi global. Acara ini menghadirkan akademisi, praktisi industri, dan perwakilan pemerintah untuk memaparkan tren teknologi terkini.
                     </p>
                 </div>

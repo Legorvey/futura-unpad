@@ -58,8 +58,7 @@ export default function AboutSection() {
                     className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
                 >
                     <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-12">
-                        <Image src="/futura-logo-2025.png" width={80} height={80} alt="Futura Logo" className="object-contain w-12 sm:w-16 md:w-20" />
-                        <div className="w-[2px] h-10 sm:h-12 md:h-16 bg-white/20" />
+                        <Image src="/image-eeunpad.png" width={80} height={80} alt="Futura Logo" className="object-contain w-12 sm:w-16 md:w-20" />
                         <Image src="/hmte-unpad.png" width={80} height={80} alt="HMTE UNPAD Logo" className="object-contain w-12 sm:w-16 md:w-20" />
                     </div>
                     

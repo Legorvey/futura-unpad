@@ -18,7 +18,7 @@ interface PembicaraCardsProps {
   pembicaras: Pembicara[];
 }
 
-const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
+export const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -52,6 +52,9 @@ const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
 
       {/* Typography */}
       <div className="flex flex-col items-center text-center z-10 w-full px-4">
+        <h4 className="text-sm md:text-base font-light tracking-tight text-white/40 mb-1">
+          Pembicara
+        </h4>
         <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight transition-colors duration-500 group-hover:text-amber-300">
           {pembicara.name}
         </h3>

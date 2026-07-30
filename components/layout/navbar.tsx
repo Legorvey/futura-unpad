@@ -44,6 +44,10 @@ export function NavbarDemo() {
       name: "Pendaftaran",
       link: "/#registrations",
     },
+    {
+      name: "FAQ",
+      link: "/#faq",
+    },
   ];
  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

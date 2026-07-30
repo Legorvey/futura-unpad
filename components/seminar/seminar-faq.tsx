@@ -16,7 +16,7 @@ export function SeminarFAQ() {
   return (
     <FAQSection
       id="seminar-faq"
-      title="FAQ Seminar Nasionals"
+      title="FAQ Seminar Nasional"
       groups={seminarFaqGroups}
       showAllButton={false}
     />

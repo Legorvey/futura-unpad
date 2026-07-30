@@ -12,6 +12,7 @@ type GrandTimelineItem = {
   event: string;
   date: string;
   description: string;
+  location?: string;
 };
 
 const timelineTabs = [
@@ -24,24 +25,28 @@ const timelineTabs = [
         event: "Mulai Registrasi",
         date: "21 September 2026",
         description: "Periode registrasi peserta Seminar Nasional Futura.",
+        location: "Online/Daring",
       },
       {
         category: "Seminar Nasional",
         event: "Akhir Registrasi",
         date: "21 Oktober 2026",
-        description: "Akhir registrasi peserta Seminar Nasional Futura",
+        description: "Akhir registrasi peserta Seminar Nasional Futura.",
+        location: "Online/Daring",
       },
       {
         category: "Seminar Nasional",
         event: "Pelaksanaan",
-        date: "21 November 2026",
+        date: "28 November 2026",
         description: "Hari pelaksanaan Seminar Nasional Futura.",
+        location: "Bale Rumawat Unpad Dipatiukur",
       },
       {
         category: "Seminar Nasional",
         event: "Pembagian Sertifikat",
-        date: "67 November 2026",
+        date: "1 Desember 2026",
         description: "Hari pembagian sertifikat Seminar Nasional Futura.",
+        location: "Online/Daring",
       },
     ],
   },
@@ -55,6 +60,7 @@ const timelineTabs = [
         date: "20 Juli - 31 Agustus 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
+        location: "Online/Daring",
       },
       {
         category: "Mechatura",
@@ -62,19 +68,22 @@ const timelineTabs = [
         date: "1 September - 1 Oktober 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
+        location: "Online/Daring",
       },
       {
         category: "Mechatura",
         event: "Technical Meeting",
-        date: "22 Oktober 2026",
+        date: "TBA (To Be Announced)",
         description:
           "Sesi pengarahan teknis untuk peserta sebelum pelaksanaan lomba.",
+        location: "Online/Daring",
       },
       {
         category: "Mechatura",
-        event: "Pelaksanaan Lomba",
+        event: "Pelaksanaan",
         date: "7 November 2026",
         description: "Hari pelaksanaan utama kompetisi robot Mechatura.",
+        location: "Gd. PPBS Unpad Jatinangor",
       },
     ],
   },
@@ -84,41 +93,47 @@ const timelineTabs = [
     items: [
       {
         category: "Lomba Esai",
-        event: "Pengumpulan Esai",
-        date: "21 Sep - 21 Okt 2026",
+        event: "Registrasi & Pengumpulan",
+        date: "21 September - 22 Oktober 2026",
         description:
           "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
+        location: "Online/Daring",
       },
       {
         category: "Lomba Esai",
         event: "Seleksi Naskah",
-        date: "22 Okt - 2 Nov 2026",
+        date: "23 Oktober - 2 November 2026",
         description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
+        location: "Oleh Panitia",
       },
       {
         category: "Lomba Esai",
         event: "Pengumuman Finalis",
-        date: "3 November 2026",
+        date: "4 November 2026",
         description: "Finalis Lomba Esai diumumkan secara resmi.",
+        location: "By Email",
       },
       {
         category: "Lomba Esai",
-        event: "Video Presentasi",
-        date: "3 - 7 November 2026",
+        event: "Upload Video Presentasi Finalis",
+        date: "5 - 12 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
+        location: "TBA (To be Announced)",
       },
       {
         category: "Lomba Esai",
-        event: "Final Judging",
-        date: "8 - 15 November 2026",
+        event: "Seleksi Finalis",
+        date: "13 - 27 November 2026",
         description: "Penilaian final untuk menentukan pemenang Lomba Esai.",
+        location: "Oleh Panitia",
       },
       {
         category: "Lomba Esai",
-        event: "Awarding",
-        date: "21 November 2026",
+        event: "Pengumuman Juara",
+        date: "28 November 2026",
         description: "Pengumuman dan apresiasi pemenang Lomba Esai.",
+        location: "Bale Rumawat",
       },
     ],
   },
@@ -203,7 +218,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
     >
       {/* 3D Background Number replacing the line and dot */}
-      <motion.div 
+      <motion.div
         style={!isLiteMotion ? { y: yNumber, opacity: opacity } : { opacity: 0.1 }}
         className="absolute top-0 right-0 md:right-auto md:left-[-5%] text-[8rem] md:text-[12rem] lg:text-[18rem] font-bold text-white/5 pointer-events-none select-none leading-none z-[-1]"
       >
@@ -213,24 +228,30 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       {/* Left Column of Timeline Item: Date */}
       <div className="w-full md:w-[35%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
         <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
-          <RevealText 
-            text={item.date} 
+          <RevealText
+            text={item.date}
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
           />
+          {item.location && (
+            <div className="mt-2 text-xs md:text-sm font-medium text-white/60 tracking-[-0.02em] flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+              {item.location}
+            </div>
+          )}
         </motion.div>
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
       <div className="w-full md:w-[65%] flex flex-col relative z-30">
         <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
-          <RevealText 
+          <RevealText
             text={item.event}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-white"
           />
         </motion.div>
 
         <motion.div style={!isLiteMotion ? { y: yDesc } : {}} className="mt-3 w-full max-w-md relative z-10">
-          <RevealWords 
+          <RevealWords
             text={item.description}
             className="text-base md:text-lg lg:text-xl leading-relaxed text-white/80 tracking-[-0.04em] font-light"
           />
@@ -261,10 +282,10 @@ export function RegistrationTimeline() {
       {/* Structural Perimeter Lines Removed */}
 
       <div className="mx-auto max-w-[100rem] px-5 sm:px-8 relative z-20 flex flex-col items-center">
-        
+
         {/* Inner Constrained Wrapper mimicking Hero Section layout */}
         <div className="w-full flex flex-col md:flex-row relative">
-          
+
           {/* Left Column (Sticky Title & Picker) */}
           <div className="w-full md:w-1/3 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
             {/* Section Title */}
@@ -282,9 +303,8 @@ export function RegistrationTimeline() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`text-left text-base md:text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${
-                      isActive ? "text-amber-300" : "text-white hover:text-amber-200"
-                    }`}
+                    className={`text-left text-base md:text-lg font-medium tracking-[-0.04em] transition-colors duration-500 ${isActive ? "text-amber-300" : "text-white hover:text-amber-200"
+                      }`}
                   >
                     {tab.label}
                   </button>

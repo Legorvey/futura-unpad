@@ -15,7 +15,7 @@ export function HeroSection() {
                         Mechatura
                     </h1>
                     <p className="text-md lg:text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 text-balance">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat cumque quia natus officia in similique porro, non, explicabo molestias, at repellendus consequuntur quaerat nihil expedita iste rerum eligendi minima velit.
+                        Mechatura adalah kompetisi teknologi dan robotika yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro (HMTE) Universitas Padjadjaran. Ajang ini menjadi wadah bagi pelajar dan mahasiswa untuk menguji kompetensi serta inovasi mereka melalui berbagai format perlombaan.
                     </p>
                 </div>
 

@@ -10,6 +10,7 @@ type GrandTimelineItem = {
   event: string;
   date: string;
   description: string;
+  location?: string;
 };
 
 const seminarTimelineItems: GrandTimelineItem[] = [
@@ -18,24 +19,28 @@ const seminarTimelineItems: GrandTimelineItem[] = [
     event: "Mulai Registrasi",
     date: "21 September 2026",
     description: "Periode registrasi peserta Seminar Nasional Futura.",
+    location: "Online/Daring",
   },
   {
     category: "Seminar Nasional",
     event: "Akhir Registrasi",
     date: "21 Oktober 2026",
     description: "Akhir registrasi peserta Seminar Nasional Futura.",
+    location: "Online/Daring",
   },
   {
     category: "Seminar Nasional",
     event: "Pelaksanaan",
-    date: "21 November 2026",
+    date: "28 November 2026",
     description: "Hari pelaksanaan Seminar Nasional Futura.",
+    location: "Bale Rumawat Unpad Dipatiukur",
   },
   {
     category: "Seminar Nasional",
     event: "Pembagian Sertifikat",
-    date: "27 November 2026",
+    date: "1 Desember 2026",
     description: "Hari pembagian sertifikat Seminar Nasional Futura.",
+    location: "Online/Daring",
   },
 ];
 
@@ -127,6 +132,12 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
             text={item.date} 
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
           />
+          {item.location && (
+            <div className="mt-2 text-xs md:text-sm font-medium text-white/60 tracking-[-0.02em] flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              {item.location}
+            </div>
+          )}
         </motion.div>
       </div>
 

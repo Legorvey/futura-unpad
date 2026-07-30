@@ -216,7 +216,7 @@ type FAQSectionProps = {
 
 export function FAQSection({
   id = "faq",
-  title = "Pertanyaan Umum.",
+  title = "Frequently Asked Questions.",
   groups = faqGroups,
   showAllButton = true,
   limitGroups = false,
@@ -254,10 +254,10 @@ export function FAQSection({
 
           {showAllButton && (
             <div className="flex justify-center">
-              <ButtonV2 
+              <ButtonV2
                 text="Lihat Semua"
                 href="/faq"
-              />  
+              />
             </div>
           )}
         </div>

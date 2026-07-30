@@ -7,14 +7,14 @@ import Link from "next/link"
 export default function AboutSection() {
     const targetRef = useRef<HTMLDivElement>(null)
     const [isMobile, setIsMobile] = useState(false)
-    
+
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768)
         checkMobile()
         window.addEventListener("resize", checkMobile)
         return () => window.removeEventListener("resize", checkMobile)
     }, [])
-    
+
     // Track scroll progress over a 500vh container
     const { scrollYProgress } = useScroll({
         target: targetRef,
@@ -53,31 +53,30 @@ export default function AboutSection() {
 
     return (
         <section id="about" ref={targetRef} className="relative h-[500vh]">
-            
+
             <div className="sticky top-0 h-screen w-full overflow-hidden">
-                
+
 
                 {/* --- SLIDE 1: Intro --- */}
-                <motion.div 
-                    style={{ x: slide1X, opacity: slide1Opacity }} 
+                <motion.div
+                    style={{ x: slide1X, opacity: slide1Opacity }}
                     className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
                 >
-                    <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-12">
-                        <Image src="/futura-logo-2025.png" width={80} height={80} alt="Futura Logo" className="object-contain w-12 sm:w-16 md:w-20" />
-                        <div className="w-[2px] h-10 sm:h-12 md:h-16 bg-white/20" />
-                        <Image src="/hmte-unpad.png" width={80} height={80} alt="HMTE UNPAD Logo" className="object-contain w-12 sm:w-16 md:w-20" />
-                    </div>
-                    
-                    <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white">
-                        FUTURA
-                        <br/>
-                        <span className="block mt-2 text-white/80">BY HMTE UNPAD</span>
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-6 sm:mb-8 md:mb-10 lg:mb-14">
+                        FUTURA UNPAD
+                        <br />
+                        <span className="block mt-2 sm:mt-3 md:mt-4 text-white/80">ORGANIZERS</span>
                     </h1>
+
+                    <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
+                        <Image src="/image-eeunpad.png" width={160} height={160} alt="Futura Logo" className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40" />
+                        <Image src="/hmte-unpad.png" width={160} height={160} alt="HMTE UNPAD Logo" className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40" />
+                    </div>
                 </motion.div>
 
                 {/* --- SLIDE 2: The Explanation (Abstract Typography Layout) --- */}
-                <motion.div 
-                    style={{ x: slide2X, opacity: slide2Opacity }} 
+                <motion.div
+                    style={{ x: slide2X, opacity: slide2Opacity }}
                     className="absolute inset-0 w-screen h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Massive Abstract Background Typography */}
@@ -89,7 +88,7 @@ export default function AboutSection() {
 
                     {/* Foreground Abstract Organized Content */}
                     <div className="relative z-10 w-full max-w-[100rem] h-full mx-auto flex flex-col justify-center md:justify-start gap-10 sm:gap-16 md:gap-0">
-                        
+
                         {/* Top Section: Centered on mobile, Anchored above middle line on desktop */}
                         <div className="w-full flex flex-col justify-center md:justify-end items-start md:h-1/2 md:pb-12 gap-2">
                             <h3 className="text-sm md:text-lg font-bold tracking-tight uppercase">
@@ -113,20 +112,20 @@ export default function AboutSection() {
                 </motion.div>
 
                 {/* --- SLIDE 3: Documentation Gallery --- */}
-                <motion.div 
-                    style={{ x: slide3X, opacity: slide3Opacity }} 
+                <motion.div
+                    style={{ x: slide3X, opacity: slide3Opacity }}
                     className="absolute inset-0 w-screen h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Surrounding Gallery Images */}
                     <div className="absolute inset-0 z-10 pointer-events-none">
-                        
+
                         {/* Top Left (Col 1) */}
                         <motion.div style={{ x: img1X }} className="group absolute top-[8%] md:top-[12%] left-[4%] md:left-[5%] flex flex-col gap-2 pointer-events-auto">
                             <div className="relative w-[45vw] sm:w-[30vw] md:w-[20vw] aspect-video bg-zinc-900 border border-white/5 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl">
                                 <Image src="/seminar/IMG_5476.JPG" alt="Documentation" fill className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0" />
                             </div>
                             <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[-0.04em] uppercase text-white/40 group-hover:text-white transition-colors duration-300">
-                                PLACEHOLDER TITLE 1
+                                Penyerahan Sertifikat untuk Moderator
                             </div>
                         </motion.div>
 
@@ -136,7 +135,7 @@ export default function AboutSection() {
                                 <Image src="/seminar/DSC_0588.JPG" alt="Documentation" fill className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0" />
                             </div>
                             <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[-0.04em] uppercase text-white/40 group-hover:text-white transition-colors duration-300">
-                                PLACEHOLDER TITLE 4
+                                Talkshow dengan Firu Designer
                             </div>
                         </motion.div>
 
@@ -146,7 +145,7 @@ export default function AboutSection() {
                                 <Image src="/mechatura/IMG_3931.JPG" alt="Documentation" fill className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0" />
                             </div>
                             <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[-0.04em] uppercase text-white/40 group-hover:text-white transition-colors duration-300 text-right">
-                                PLACEHOLDER TITLE 3
+                                1st winner robotik sumo
                             </div>
                         </motion.div>
 
@@ -156,7 +155,7 @@ export default function AboutSection() {
                                 <Image src="/mechatura/IMG_3939.JPG" alt="Documentation" fill className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0" />
                             </div>
                             <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[-0.04em] uppercase text-white/40 group-hover:text-white transition-colors duration-300 text-right">
-                                PLACEHOLDER TITLE 2
+                                Para pemenang Mechatura 2025
                             </div>
                         </motion.div>
                     </div>
@@ -168,29 +167,29 @@ export default function AboutSection() {
                                 <Image src="/seminar/IMG_5526.JPG" alt="Featured Documentation" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
                             </div>
                             <div className="text-sm md:text-base lg:text-lg font-black tracking-[-0.05em] uppercase text-white/50 group-hover:text-white transition-colors duration-300 whitespace-nowrap">
-                                MAIN EVENT PLACEHOLDER
+                                Pemenang Doorprize Futura 2026
                             </div>
                         </motion.div>
                     </div>
                 </motion.div>
 
                 {/* --- SLIDE 4: The Final Parallax Ending --- */}
-                <motion.div 
-                    style={{ x: slide4X }} 
+                <motion.div
+                    style={{ x: slide4X }}
                     className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
                 >
                     {/* Parallax Background Text */}
                     <motion.div style={{ x: slide4BgTextX }} className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                         <h2 className="text-[10rem] sm:text-[15rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
-                             READY TO WIN?
-                         </h2>
+                        <h2 className="text-[10rem] sm:text-[15rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
+                            READY TO WIN?
+                        </h2>
                     </motion.div>
 
                     {/* Main Foreground Text with independent parallax */}
                     <motion.div style={{ x: slide4TextX }} className="relative z-10 flex flex-col items-center">
-                         <h2 className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black uppercase tracking-tighter text-white text-center leading-none">
-                             READY TO WIN?
-                         </h2>
+                        <h2 className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black uppercase tracking-tighter text-white text-center leading-none">
+                            READY TO WIN?
+                        </h2>
                     </motion.div>
                 </motion.div>
 

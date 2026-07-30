@@ -7,11 +7,11 @@ import { Variants } from "motion/react";
 const moderatorsData = [
     {
         id: 1,
-        name: "Aditya Cakti C.",
-        imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
-        job: "Kepala Bidang Komunikasi dan Informasi",
-        experience: "2023 - Sekarang",
-        description: "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum "
+        name: "To Be Announced",
+        imageSrc: "/seminar/mystery-pembicara-moderator.png",
+        job: "",
+        experience: "",
+        description: ""
     }
 ]
 
@@ -19,10 +19,10 @@ const pembicarasData = [
     {
         id: 1,
         description:
-            "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
-        name: "Linus Torvalds",
-        position: "Linux Foundation",
-        imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
+            "",
+        name: "To Be Announced",
+        position: "",
+        imageSrc: "/seminar/mystery-pembicara-moderator.png",
     }
 ];
 
@@ -56,7 +56,7 @@ export default function PembicaraSeminarPleno() {
                         Seminar Pleno
                     </h2>
                     <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-xl">
-                        Berikut merupakan pembicara-pembicara yang akan hadir dalam seminar pleno
+                        Seminar Nasional Futura adalah forum ilmiah yang mengkaji inovasi teknologi global. Acara ini menghadirkan akademisi, praktisi industri, dan perwakilan pemerintah untuk memaparkan tren teknologi terkini.
                     </p>
                 </div>
 

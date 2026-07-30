@@ -7,11 +7,11 @@ import { Variants } from "motion/react";
 const moderatorsData = [
     {
         id: 1,
-        name: "Aditya Cakti C.",
-        imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
-        job: "Kepala Bidang Komunikasi dan Informasi",
-        experience: "2023 - Sekarang",
-        description: "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum "
+        name: "To Be Announced",
+        imageSrc: "/seminar/mystery-pembicara-moderator.png",
+        job: "",
+        experience: "",
+        description: ""
     }
 ]
 
@@ -20,9 +20,9 @@ const pembicarasData = [
         id: 1,
         description:
             "",
-        name: "Linus Torvalds",
-        position: "Linux Foundation",
-        imageSrc: "https://avatars.githubusercontent.com/u/1024025?v=4",
+        name: "To Be Announced",
+        position: "",
+        imageSrc: "/seminar/mystery-pembicara-moderator.png",
     }
 ];
 

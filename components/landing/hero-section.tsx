@@ -82,7 +82,7 @@ export function HeroSection() {
               POWER ON THE<ScrambledFuture />
             </h1>
             <div className="flex justify-center mt-8">
-              <ButtonV3 text="Register Now" href="#registration" />
+              <ButtonV3 text="Register Now" href="#registrations" />
             </div>
           </div>
 

@@ -34,7 +34,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
             </span>
           </div>
 
-          <span className="mt-3 sm:mt-4 text-[0.6rem] sm:text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+          <span className="mt-3 sm:mt-4 text-[0.6rem] sm:text-xs font-medium uppercase tracking-[0.2em]">
             {block.label}
           </span>
         </div>

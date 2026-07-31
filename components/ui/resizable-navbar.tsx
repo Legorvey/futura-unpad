@@ -2,7 +2,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { isInternalAppHref } from "@/lib/navigation";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import {
   motion,
@@ -50,11 +50,11 @@ const navbarSettings = {
   },
   classes: {
     scrolledSurface:
-      "bg-white/70 backdrop-blur-xl dark:bg-neutral-950/70",
+      "bg-white/70 backdrop-blur-xl dark:bg-neutral-950/30",
     navText:
       "text-zinc-600 hover:text-zinc-800 dark:text-neutral-300 dark:hover:text-white",
     itemText: "text-neutral-600 dark:text-neutral-300",
-    hoverPill: "bg-gray-100 dark:bg-neutral-800",
+    hoverPill: "bg-gray-100 dark:bg-neutral-900/20",
   },
   motion: {
     surface: {
@@ -179,7 +179,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         WebkitBackdropFilter: visible ? "blur(16px)" : "blur(0px)",
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden flex-row items-center justify-between self-start -mt-2 rounded-full bg-transparent px-3 py-3 lg:flex dark:bg-transparent",
+        "relative z-[60] mx-auto hidden flex-row items-center justify-between self-start -mt-2 rounded-full bg-transparent px-4 py-3 lg:flex dark:bg-transparent",
         visible && navbarSettings.classes.scrolledSurface,
         className,
       )}
@@ -310,9 +310,9 @@ export const MobileNavToggle = ({
   onClick: () => void;
 }) => {
   return isOpen ? (
-    <IconX className="text-black dark:text-white" onClick={onClick} />
+    <X className="text-black dark:text-white" onClick={onClick} />
   ) : (
-    <IconMenu2 className="text-black dark:text-white" onClick={onClick} />
+    <Menu className="text-black dark:text-white" onClick={onClick} />
   );
 };
 
@@ -336,7 +336,7 @@ export const NavbarButton = ({
   ...props
 }: NavbarButtonProps) => {
   const baseStyles =
-    "px-4 py-2 rounded-md bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-500 ease-out inline-block text-center";
+    "px-4 py-2 rounded-full bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-500 ease-out inline-block text-center";
 
   const variantStyles = {
     primary:

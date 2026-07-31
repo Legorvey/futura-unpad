@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useInView } from "motion/react"
-import { ButtonV2 } from "../ui/button-v2"
-import { BackgroundBeams } from "../ui/background-beams"
-import InfoPill from "../ui/information-pill"
+import { ButtonV3 } from "../ui/button-v3"
 
 const SCRAMBLE_TARGET = "Future"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
@@ -60,6 +58,7 @@ function ScrambledFuture() {
   }, [isInView])
 
   return (
+
     <span ref={ref} aria-label={SCRAMBLE_TARGET} className="inline-block min-w-[6ch]">
       {word}
     </span>
@@ -68,36 +67,24 @@ function ScrambledFuture() {
 
 export function HeroSection() {
   return (
-    <section id="home" className="relative overflow-hidden bg-background">
-      <div className="relative mx-auto min-h-[calc(108svh-0px)] content-center gap-16 px-5 py-8 sm:px-8 z-10">
-
-        {/* BACKGROUND */}
-        <BackgroundBeams className="-z-10" />
-
-        {/* MAIN TITLE */}
-        <div className="flex flex-col items-center text-center space-y-6 relative z-10">
-          <InfoPill
-            title="Registrasi Mechatura telah dibuka"
-            href="/mechatura/"
-          />
-          <h1 className="z-10 text-5xl sm:text-6xl lg:text-8xl font-bold tracking-tighter leading-none text-balance uppercase">
-            Power on the<ScrambledFuture />
-          </h1>
-          {/* <h1 className="-mt-6 text-5xl sm:text-6xl lg:text-8xl font-light tracking-tighter leading-none text-balance text-neutral-500 uppercase">
-            Futura
-          </h1> */}
-          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 text-balance">
-            Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030
-          </p>
-
-          <ButtonV2
-            text="Daftar Sekarang"
-            href="#registrations"
-          />
-        </div>
-
-        {/* VIDEO HERO */}
-        <div>
+    <section id="home" className="relative w-full overflow-hidden bg-background">
+      <div className="relative mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col justify-center min-h-screen py-20">
+        
+        {/* Typographic Hero Stack */}
+        <div className="flex flex-col w-full relative">
+          
+          {/* Massive Typography */}
+          <div className="uppercase text-center font-black leading-[0.85] w-full relative flex flex-col">
+            {/* <div className="tracking-[-0.06em] text-[4.5rem] sm:text-[6rem] md:text-[rem] text-white/90 relative z-10">
+              <ScrambledFuture />
+            </div> */}
+            <h1 className="text-white text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[8rem] tracking-[-0.05em] relative z-10">
+              POWER ON THE<ScrambledFuture />
+            </h1>
+            <div className="flex justify-center mt-8">
+              <ButtonV3 text="Register Now" href="#registrations" />
+            </div>
+          </div>
 
         </div>
       </div>

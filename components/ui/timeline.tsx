@@ -24,21 +24,15 @@ const timelineCopy = {
 } as const;
 
 const timelineLayout = {
-  section: "w-full font-sans bg-background md:px-10",
-  header: "mx-auto max-w-[82rem] px-4 md:px-0",
-  items: "relative mx-auto max-w-[82rem] pb-24 md:pb-20 md:mt-12",
-  row: "relative grid grid-cols-[4rem_minmax(0,1fr)] pt-14 md:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] md:gap-x-8 md:pt-32",
-  markerCell: "relative z-20 flex justify-center",
-  marker: "flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-black",
-  markerDot:
-    "h-6 w-6 rounded-full border border-neutral-300 bg-neutral-200 p-2 dark:border-neutral-700 dark:bg-neutral-800",
-  card: "max-w-xl",
-  leftCard: "md:justify-self-end md:text-right",
-  rightCard: "md:pl-4 md:justify-self-start md:text-left",
-  mobileCard: "min-w-0 pr-4",
-  line: "absolute left-8 top-0 w-[2px] -translate-x-1/2 overflow-hidden bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_5%,black_95%,transparent_100%)] dark:via-neutral-700 md:left-1/2 md:[mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]",
-  activeLine:
-    "absolute inset-x-0 top-0 w-[2px] rounded-full bg-gradient-to-t from-blue-600 via-blue-500 to-transparent from-[0%] via-[10%]",
+  section: "w-full font-sans bg-background relative overflow-hidden",
+  header: "mx-auto max-w-[100rem] px-5 sm:px-8 relative z-20",
+  items: "relative mx-auto max-w-[100rem] px-5 sm:px-8 pb-24 md:pb-32 mt-12 md:mt-20",
+  row: "relative pl-12 md:pl-20 py-10 md:py-16 border-t border-white/10 group",
+  markerCell: "absolute left-0 top-10 md:top-16 z-20 flex justify-center mt-1 md:mt-1.5",
+  marker: "flex h-5 w-5 md:h-6 md:w-6 items-center justify-center bg-black border border-white/20 transition-colors duration-500",
+  markerDot: "h-2 w-2 md:h-3 md:w-3 bg-white",
+  line: "absolute left-7 sm:left-10 md:left-11 top-0 w-[1px] -translate-x-1/2 overflow-hidden h-full bg-white/10",
+  activeLine: "absolute inset-x-0 top-0 w-[1px] bg-white",
 } as const;
 
 const timelineDotAnimation = {
@@ -47,12 +41,12 @@ const timelineDotAnimation = {
   dimOuter: "rgb(23 23 23)",
   dimDot: "rgb(38 38 38)",
   dimBorder: "rgb(64 64 64)",
-  glowOuter: "rgba(85, 126, 247, 0.18)",
-  glowDot: "rgb(79, 147, 255)",
-  glowBorder: "rgb(138, 197, 255)",
+  glowOuter: "rgba(255, 255, 255, 0.1)",
+  glowDot: "rgb(255, 255, 255)",
+  glowBorder: "rgb(200, 200, 200)",
   glowShadow:
-    "0 0 30px rgba(104, 172, 255, 0.72), 0 0 70px rgba(59, 130, 246, 0.4)",
-  dimShadow: "0 0 0 rgba(168, 85, 247, 0)",
+    "0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.2)",
+  dimShadow: "0 0 0 rgba(255, 255, 255, 0)",
   dimScale: 0.84,
   glowScale: 1,
 } as const;
@@ -149,37 +143,32 @@ export const Timeline = ({
   const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
   const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
 
+  const parallaxY1 = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const parallaxY2 = useTransform(scrollYProgress, [0, 1], [-50, 100]);
+
   return (
     <div className={timelineLayout.section} ref={containerRef}>
+      {/* Structural Lines (Exactly matching Hero and About Section) */}
+      <div className="absolute inset-0 pointer-events-none flex justify-center z-0">
+          <div className="w-full max-w-[100rem] h-full relative">
+              <div className="absolute left-5 sm:left-8 top-0 h-full w-[1px] bg-white/10" />
+              <div className="absolute right-5 sm:right-8 top-0 h-full w-[1px] bg-white/10" />
+          </div>
+      </div>
+
       <div className={timelineLayout.header}>
-        <h2 className="mb-4 text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight md:text-center">
+        <h2 className="mb-4 text-4xl sm:text-6xl lg:text-7xl font-black uppercase tracking-tight text-white">
           {title}
         </h2>
-        <p className="max-w-md text-sm text-neutral-700 dark:text-neutral-300 md:text-base md:text-center md:mx-auto">
+        <p className="max-w-md text-sm text-neutral-400 uppercase tracking-widest font-bold md:text-base">
           {description}
         </p>
       </div>
 
       <div ref={ref} className={timelineLayout.items}>
         {data.map((item, index) => {
-          const isLeft = index % 2 === 0;
-          const card = (
-            <div
-              className={`${timelineLayout.card} ${timelineLayout.mobileCard} ${isLeft ? timelineLayout.leftCard : timelineLayout.rightCard
-                }`}
-            >
-              <h3 className="text-lg font-bold leading-tight text-black dark:text-white md:text-2xl lg:text-3xl">
-                {item.title}
-              </h3>
-              <h4 className="mb-4 mt-1 text-sm leading-5 text-neutral-500 dark:text-neutral-400 md:text-lg lg:text-xl">
-                {item.date}
-              </h4>
-            </div>
-          );
-
           return (
             <div key={`${item.title}-${item.date}`} className={timelineLayout.row}>
-              <div className="hidden md:block">{isLeft ? card : null}</div>
               <div className={timelineLayout.markerCell}>
                 <TimelineMarker
                   index={index}
@@ -187,8 +176,21 @@ export const Timeline = ({
                   scrollYProgress={scrollYProgress}
                 />
               </div>
-              <div className="md:hidden">{card}</div>
-              <div className="hidden md:block">{isLeft ? null : card}</div>
+              <motion.div style={{ y: parallaxY1 }} className="w-full flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
+                <div className="md:w-[25%] flex-shrink-0">
+                  <h4 className="text-xs md:text-sm uppercase tracking-[0.2em] font-bold text-neutral-500 md:mt-1.5">
+                    {item.date}
+                  </h4>
+                </div>
+                <div className="md:w-[45%] flex-shrink-0">
+                  <h3 className="text-2xl font-black uppercase tracking-tight leading-[1.1] text-white md:text-4xl">
+                    {item.title}
+                  </h3>
+                </div>
+                <div className="md:w-[30%] flex-shrink-0">
+                  {item.content}
+                </div>
+              </motion.div>
             </div>
           );
         })}

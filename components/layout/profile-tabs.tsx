@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client"
 
 import Link from "next/link"
@@ -9,13 +8,13 @@ export function ProfileTabs() {
     const pathname = usePathname()
 
     const navItems = [
-        { name: "My Registrations", href: "/profile" },
-        { name: "Account Settings", href: "/profile/account" }
+        { name: "Pendaftaran Saya", href: "/profile" },
+        { name: "Pengaturan Akun", href: "/profile/account" }
     ]
 
     return (
-        <div className="mb-8 border-b border-border">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <div className="mb-8">
+            <nav className="flex space-x-2 bg-white/[0.03] backdrop-blur-md border border-white/10 p-1.5 rounded-2xl w-fit" aria-label="Tabs">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href
                     return (
@@ -25,9 +24,9 @@ export function ProfileTabs() {
                             prefetch={false}
                             className={cn(
                                 isActive
-                                    ? "border-primary text-primary"
-                                    : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
-                                "whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors"
+                                    ? "bg-white/10 text-white shadow-sm"
+                                    : "text-white/50 hover:text-white hover:bg-white/[0.05]",
+                                "rounded-xl py-2 px-4 text-sm font-medium tracking-tight transition-all duration-300"
                             )}
                         >
                             {item.name}

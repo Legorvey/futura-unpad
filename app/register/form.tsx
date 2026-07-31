@@ -86,6 +86,21 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         return () => channel.close();
     }, [verifyEmail, router]);
 
+    // Explicitly lock body scroll when dialog is open
+    useEffect(() => {
+        if (legalDialog !== null || !!verifyEmail) {
+            document.documentElement.style.setProperty("overflow", "hidden", "important");
+            document.body.style.setProperty("overflow", "hidden", "important");
+        } else {
+            document.documentElement.style.removeProperty("overflow");
+            document.body.style.removeProperty("overflow");
+        }
+        return () => {
+            document.documentElement.style.removeProperty("overflow");
+            document.body.style.removeProperty("overflow");
+        };
+    }, [legalDialog, verifyEmail]);
+
     const passwordStrength = getPasswordStrength(passwordValue);
 
     const onSubmit = async (values: RegisterFormValues) => {
@@ -275,15 +290,10 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                         {registerAccount.isPending ? "Membuat akun..." : "Buat Akun"}
                     </Button>
 
-                    <div className="relative my-0.5">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-border" />
-                        </div>
-                        <div className="relative flex justify-center text-sm lowercase">
-                            <span className="bg-background px-2 text-muted-foreground">
-                                Atau
-                            </span>
-                        </div>
+                    <div className="flex items-center gap-4 my-2">
+                        <div className="h-px flex-1 bg-white/20"></div>
+                        <span className="text-sm text-white/70 font-medium lowercase">atau</span>
+                        <div className="h-px flex-1 bg-white/20"></div>
                     </div>
 
                     <GoogleLoginButton onBeforeLogin={requireLegalAgreement} />
@@ -321,29 +331,36 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-semibold tracking-tight">Periksa email Anda</DialogTitle>
-                        <DialogDescription className="text-base text-muted-foreground pt-2">
-                            Kami telah mengirimkan kode konfirmasi ke <span className="font-medium text-foreground">{verifyEmail}</span>.
-                            Silakan masukkan di bawah ini untuk mengaktifkan akun Anda. Kode kedaluwarsa dalam 1 jam.
-                        </DialogDescription>
+                <DialogContent className="sm:max-w-md dark bg-[#00205B] border-white/20 text-white custom-scrollbar">
+                    <DialogHeader className="space-y-4">
+                        <div className="space-y-2">
+                            <DialogTitle className="text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                                Periksa Email Anda
+                            </DialogTitle>
+                            <DialogDescription className="text-center text-[15px] sm:text-base leading-relaxed text-white/80">
+                                Kami telah mengirimkan kode 8 digit ke <br/>
+                                <span className="font-semibold text-white tracking-wide">{verifyEmail}</span>.<br/>
+                                Masukkan kode di bawah ini untuk mengaktifkan akun Anda.
+                            </DialogDescription>
+                        </div>
                     </DialogHeader>
-                    <div className="flex flex-col space-y-6 py-4">
-                        <input
-                            type="text"
-                            maxLength={8}
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                            placeholder="00000000"
-                            className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-input bg-background px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        />
-                    </div>
-                    <DialogFooter>
+                            <div className="flex flex-col space-y-6 py-4">
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={8}
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="00000000"
+                                    className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-white/20 bg-white/10 px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors text-white placeholder:text-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
+                                />
+                            </div>
+                    <DialogFooter className="sm:justify-center">
                         <Button
                             type="button"
-                            className="w-full h-11 text-base rounded-[8px]"
-                            disabled={otp.length < 6 || isVerifying}
+                            className="w-full cursor-pointer mx-auto h-12 text-base font-bold tracking-wide rounded-lg bg-white hover:bg-white/90 text-[#00205B] transition-all duration-300"
+                            disabled={otp.length < 8 || isVerifying}
                             onClick={async () => {
                                 setIsVerifying(true);
                                 try {
@@ -386,17 +403,17 @@ function LegalDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl dark bg-[#00205B] border-white/20 text-white custom-scrollbar">
                 <DialogHeader>
-                    <DialogTitle>{isTerms ? "Syarat" : "Kebijakan Privasi"}</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-white">{isTerms ? "Syarat" : "Kebijakan Privasi"}</DialogTitle>
+                    <DialogDescription className="text-white/70">
                         {isTerms
                             ? "Syarat dan Ketentuan ini mengatur akses dan penggunaan Anda terhadap layanan registrasi Futura Universitas Padjadjaran."
                             : "Kebijakan Privasi ini menjelaskan bagaimana Futura Universitas Padjadjaran mengumpulkan, menggunakan, dan melindungi Informasi Pribadi Anda."}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4 text-sm font-medium leading-relaxed text-neutral-500">
+                <div className="space-y-4 text-sm font-medium leading-relaxed text-white/80">
                     {isTerms ? <TermsContent /> : <PrivacyContent />}
                 </div>
 
@@ -419,7 +436,7 @@ function TermsContent() {
             </div>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Pendaftaran dan Akun Pengguna</h3>
+                <h3 className="font-medium text-white">Pendaftaran dan Akun Pengguna</h3>
                 <ul className="list-disc pl-6 space-y-1">
                     <li>Untuk mendaftar acara atau kompetisi, Anda diwajibkan untuk membuat akun dan memberikan informasi yang akurat, lengkap, dan terbaru.</li>
                     <li>Anda bertanggung jawab penuh untuk menjaga kerahasiaan kata sandi dan akun Anda.</li>
@@ -428,7 +445,7 @@ function TermsContent() {
             </section>
             
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Ketentuan Pendaftaran Acara dan Kompetisi</h3>
+                <h3 className="font-medium text-white">Ketentuan Pendaftaran Acara dan Kompetisi</h3>
                 <ul className="list-disc pl-6 space-y-1">
                     <li>Seluruh peserta wajib mematuhi Guidebook (Buku Panduan) resmi dari masing-masing acara yang didaftarkan.</li>
                     <li>Bagi peserta di bawah umur (di bawah 18 tahun), pendaftaran wajib menyertakan data dan dokumen identitas (KTP) dari Orang Tua, Wali yang sah, atau Guru Pembina sebagai penanggung jawab.</li>
@@ -437,7 +454,7 @@ function TermsContent() {
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Pembayaran dan Kebijakan Pengembalian Dana</h3>
+                <h3 className="font-medium text-white">Pembayaran dan Kebijakan Pengembalian Dana</h3>
                 <ul className="list-disc pl-6 space-y-1">
                     <li>Pembayaran pendaftaran diproses melalui sistem payment gateway pihak ketiga yang terintegrasi di website kami.</li>
                     <li>Anda wajib membayar sesuai dengan nominal tagihan yang tertera pada sistem sebelum batas waktu yang ditentukan.</li>
@@ -446,7 +463,7 @@ function TermsContent() {
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Kewajiban Pengguna</h3>
+                <h3 className="font-medium text-white">Kewajiban Pengguna</h3>
                 <ul className="list-disc pl-6 space-y-1">
                     <li>Menggunakan website ini untuk tujuan legal dan tidak melanggar hukum.</li>
                     <li>Tidak mengunggah dokumen yang mengandung virus, malware, atau kode berbahaya lainnya.</li>
@@ -456,7 +473,7 @@ function TermsContent() {
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Tiket dan Akses Acara</h3>
+                <h3 className="font-medium text-white">Tiket dan Akses Acara</h3>
                 <ul className="list-disc pl-6 space-y-1">
                     <li>Peserta yang telah tervalidasi akan menerima tiket elektronik (QR Code) melalui sistem kami atau email terdaftar.</li>
                     <li>Tiket elektronik wajib ditunjukkan pada saat proses daftar ulang (check-in) di lokasi acara dan tidak dapat dipindahtangankan tanpa persetujuan resmi.</li>
@@ -479,35 +496,35 @@ function PrivacyContent() {
             </div>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Pengumpulan dan Penggunaan Informasi</h3>
+                <h3 className="font-medium text-white">Pengumpulan dan Penggunaan Informasi</h3>
                 <p>
                     Untuk pengalaman yang lebih baik saat menggunakan layanan kami, kami mungkin meminta Anda untuk memberikan kami informasi pengenal pribadi tertentu, termasuk namun tidak terbatas pada nama, nomor telepon, dan alamat email Anda. Informasi yang kami kumpulkan akan digunakan untuk menghubungi atau mengidentifikasi Anda.
                 </p>
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Data Log & Cookies</h3>
+                <h3 className="font-medium text-white">Data Log & Cookies</h3>
                 <p>
                     Kami mengumpulkan Data Log yang dikirimkan browser Anda (seperti alamat IP, versi browser, halaman yang dikunjungi, dan waktu kunjungan). Kami juga menggunakan "cookies" untuk mengumpulkan informasi guna meningkatkan layanan kami.
                 </p>
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Penyedia Layanan Pihak Ketiga</h3>
+                <h3 className="font-medium text-white">Penyedia Layanan Pihak Ketiga</h3>
                 <p>
                     Kami mempekerjakan pihak ketiga untuk memfasilitasi layanan kami (termasuk autentikasi dan payment gateway). Pihak ketiga ini memiliki akses ke Informasi Pribadi Anda hanya untuk melakukan tugas atas nama kami dan berkewajiban untuk tidak mengungkapkannya.
                 </p>
             </section>
 
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Privasi Peserta di Bawah Umur</h3>
+                <h3 className="font-medium text-white">Privasi Peserta di Bawah Umur</h3>
                 <p>
                     Pengumpulan informasi pribadi dari peserta di bawah umur (di bawah 18 tahun) hanya dapat dilakukan dengan sepengetahuan dan persetujuan dari orang tua, wali yang sah, atau guru pembina. Apabila kami menemukan data anak di bawah umur yang dikirimkan tanpa persetujuan, panitia berhak membatalkan pendaftaran.
                 </p>
             </section>
             
             <section className="space-y-2 pt-2">
-                <h3 className="font-medium text-foreground">Keamanan Data</h3>
+                <h3 className="font-medium text-white">Keamanan Data</h3>
                 <p>
                     Kami menggunakan cara yang dapat diterima secara komersial untuk melindungi Informasi Pribadi Anda, namun tidak ada metode transmisi melalui internet atau penyimpanan elektronik yang 100% aman.
                 </p>

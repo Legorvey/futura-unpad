@@ -94,7 +94,7 @@ export default function OurMemories() {
         <div className="w-full flex flex-col items-center justify-center space-y-4 px-4 overflow-hidden py-12">
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-center">Our Memories</h1>
             <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 text-center max-w-2xl">
-                Berikut adalah beberapa dokumentasi dari kegiatan seminar nasional yang telah diselenggarakan.
+                Berikut adalah sorotan dokumentasi dari rangkaian kompetisi robotika Mechatura 2025.
             </p>
             <div className="mx-auto w-full max-w-5xl p-4 md:p-8 flex justify-center">
                 {mounted ? (

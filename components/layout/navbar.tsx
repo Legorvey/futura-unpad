@@ -17,6 +17,7 @@ import { LogOut, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ButtonV2 } from "../ui/button-v2";
 
 type NavbarItem = {
   name: string;
@@ -30,10 +31,6 @@ export function NavbarDemo() {
     {
       name: "Beranda",
       link: "/",
-    },
-    {
-      name: "Tentang",
-      link: "/#about",
     },
     {
       name: "Jadwal",
@@ -109,7 +106,10 @@ export function NavbarDemo() {
             ) : (
               <>
                 <NavbarButton href="/login" variant="secondary">Masuk</NavbarButton>
-                <NavbarButton href="/register" variant="primary">Daftar</NavbarButton>
+                <ButtonV2 
+                  text="Daftar"
+                  href="/register"
+                />
               </>
             )}
           </div>

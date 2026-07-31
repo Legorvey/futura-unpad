@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const textHoverSettings = {
   idleStroke: "#272727",
-  hoverStroke: "#979797",
+  hoverStroke: "#fcd34d",
   hoverOpacity: 0.7,
   hoverRevealOpacity: 1,
   hitStrokeWidth: 10,
@@ -23,9 +23,9 @@ const textHoverSettings = {
 
 const dividerGlowSettings = {
   baseLine: "rgba(255,255,255,0.16)",
-  glowCore: "#ffffff",
-  glowEdge: "rgba(255,255,255,0.18)",
-  glowShadow: "drop-shadow(0 0 12px rgba(255,255,255,0.75))",
+  glowCore: "#fcd34d",
+  glowEdge: "rgba(252,211,77,0.18)",
+  glowShadow: "drop-shadow(0 0 12px rgba(252,211,77,0.75))",
   glowWidth: "18%",
   hoverArea: "py-1",
   lineHeight: "1px",
@@ -80,6 +80,7 @@ export function TextHoverEffect({
           cy="50%"
           r="25%"
         >
+          <stop offset="0%" stopColor={textHoverSettings.hoverStroke} />
           <stop offset="100%" stopColor={textHoverSettings.hoverStroke} />
         </linearGradient>
 

@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', '@supabase/ssr']
+    optimizePackageImports: ['@supabase/supabase-js', '@supabase/ssr', '@tabler/icons-react', 'lucide-react']
   },
   async headers() {
     return [

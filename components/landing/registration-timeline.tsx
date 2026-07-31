@@ -88,7 +88,7 @@ const timelineTabs = [
     ],
   },
   {
-    id: "essay",
+    id: "esai",
     label: "Lomba Esai",
     items: [
       {

@@ -8,31 +8,26 @@ type ContactPerson = {
 
 const contacts: ContactPerson[] = [
   {
-    name: "Adam",
-    phone: "6289529846686",
-    initial: "A"
-  },
-  {
-    name: "Raisa",
-    phone: "6285711735270",
-    initial: "R"
+    name: "Luvian",
+    phone: "6285899983097",
+    initial: "L"
   }
 ];
 
 export function ContactSection() {
   return (
-    <section className="relative px-5 sm:px-8 mb-48 flex flex-col items-center overflow-x-clip">
+    <section className="relative px-5 sm:px-8 mb-48 flex flex-col items-center">
       <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[40%] h-[60%] bg-yellow-500/10 blur-[120px] pointer-events-none rounded-[100%]" />
 
       <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center">
         <h3 className="text-yellow-500 font-bold tracking-widest text-sm uppercase mb-4 text-center">
           Narahubung
         </h3>
-        
+
         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-white">
           Butuh Info Lebih Lanjut?
         </h2>
-        
+
         <p className="text-neutral-400 text-center mb-12 max-w-lg mx-auto text-lg">
           Ada pertanyaan lebih lanjut? Jangan ragu untuk menghubungi narahubung di bawah ini.
         </p>

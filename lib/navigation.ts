@@ -3,7 +3,9 @@ export function isInternalAppHref(href: string | undefined): href is string {
     return false;
   }
 
-  return href.startsWith("#") || (href.startsWith("/") && !href.startsWith("//"));
+  // Don't treat hash-only links as internal (next/link) so they render as standard <a> tags
+  // This allows Lenis to handle the smooth scrolling naturally without conflicts.
+  return (href.startsWith("/") && !href.startsWith("//"));
 }
 
 export function toInternalAppHref(href: string, origin: string) {

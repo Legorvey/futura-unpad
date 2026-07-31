@@ -20,7 +20,7 @@ const getInitials = (displayName: string | null | undefined, email: string | nul
     .join("")
 }
 
-const dateFormatter = new Intl.DateTimeFormat("en", {
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   dateStyle: "medium",
   timeStyle: "short",
 })
@@ -51,91 +51,87 @@ export default async function AccountPage() {
   const initials = getInitials(user.user_metadata?.display_name || user.user_metadata?.username, user.email)
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div className="mx-auto w-full max-w-5xl">
 
-      <div className="rounded-xl border border-border bg-card overflow-hidden max-w-4xl shadow-sm">
-        {/* Banner Area */}
-        <div className="h-32 w-full bg-gradient-to-r from-neutral-200 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 relative">
-          <div className="absolute right-4 top-4">
+      <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12 border-b border-white/10 pb-8">
+          <div className="flex items-center gap-6">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-md border border-white/10 text-3xl font-medium text-white shadow-xl">
+              {initials}
+            </div>
+            <div>
+              <h2 className="text-3xl font-medium tracking-tight text-white mb-1">
+                {user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "User"}
+              </h2>
+              <p className="text-base tracking-tight text-white/50">{user.email}</p>
+            </div>
+          </div>
+          <div>
             <EditProfileDialog
               initialDisplayName={user.user_metadata?.display_name || ""}
               initialUsername={user.user_metadata?.username || ""}
               initialEmail={user.email || ""}
-              className="bg-background/80 backdrop-blur-sm hover:bg-background border-border shadow-sm"
+              className="bg-white/[0.05] border-white/10 text-white hover:bg-white/[0.1] rounded-xl px-6 h-11"
             />
           </div>
         </div>
 
-        {/* Profile Info Area */}
-        <div className="px-6 sm:px-10 pb-10">
-          <div className="relative flex justify-between items-end -mt-12 mb-6">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-background border-4 border-card text-3xl font-semibold text-foreground shadow-sm">
-              {initials}
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground">
-              {user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "User"}
-            </h2>
-            <p className="text-muted-foreground">{user.email}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+        <div className="px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+              <div className="flex items-center gap-2 text-sm font-medium tracking-tight text-white/40 mb-2">
                 <Mail className="h-4 w-4" />
-                Email Address
+                Alamat Email
               </div>
-              <div className="flex items-center gap-2">
-                <p className="text-base text-foreground font-medium">{user.email ?? "-"}</p>
+              <div className="flex items-center gap-3">
+                <p className="text-lg tracking-tight font-medium text-white">{user.email ?? "-"}</p>
                 {user.email_confirmed_at && (
-                  <span className="inline-flex items-center rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
-                    Verified
+                  <span className="inline-flex items-center rounded-xl bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 text-xs font-medium tracking-tight text-green-400">
+                    Terverifikasi
                   </span>
                 )}
               </div>
               {user.new_email && (
-                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1.5 flex items-center gap-1.5 font-medium">
+                <p className="text-xs text-yellow-400 mt-2 flex items-center gap-1.5 font-medium tracking-tight">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
                   </span>
-                  Pending verification for: {user.new_email}
+                  Menunggu verifikasi untuk: {user.new_email}
                 </p>
               )}
             </div>
             
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+              <div className="flex items-center gap-2 text-sm font-medium tracking-tight text-white/40 mb-2">
                 <UserRound className="h-4 w-4" />
-                Display Name
+                Nama Tampilan
               </div>
-              <p className="text-base text-foreground font-medium">
+              <p className="text-lg tracking-tight font-medium text-white">
                 {user.user_metadata?.display_name || "-"}
               </p>
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+              <div className="flex items-center gap-2 text-sm font-medium tracking-tight text-white/40 mb-2">
                 <AtSign className="h-4 w-4" />
                 Username
               </div>
-              <p className="text-base text-foreground font-medium">
+              <p className="text-lg tracking-tight font-medium text-white">
                 {user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}
               </p>
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+              <div className="flex items-center gap-2 text-sm font-medium tracking-tight text-white/40 mb-2">
                 <CalendarDays className="h-4 w-4" />
-                Member Since
+                Terdaftar Sejak
               </div>
-              <p className="text-base text-foreground font-medium">{formatDate(user.created_at)}</p>
+              <p className="text-lg tracking-tight font-medium text-white">{formatDate(user.created_at)}</p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

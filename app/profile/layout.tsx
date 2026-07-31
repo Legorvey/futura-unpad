@@ -4,20 +4,31 @@ import { Suspense } from "react"
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="pt-32 pb-16 px-6 lg:px-8 mx-auto w-full max-w-4xl min-h-screen">
-            <div className="space-y-2 mb-6">
-                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
-                    Your Profile
-                </h1>
-                <p className="max-w-xl text-sm font-medium leading-relaxed text-neutral-500">
-                    Manage your Futura account and event registrations.
-                </p>
+        <div className="relative min-h-screen bg-[#00205B] overflow-x-clip text-white selection:bg-white/30 selection:text-white">
+            {/* Realistic Aurora Ribbons Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[10%] left-[-10vw] w-[80vw] h-[20vh] bg-[#307FE2] blur-[80px] rounded-[100%] opacity-40 animate-aurora-ribbon-1" />
+                <div className="absolute top-[60%] right-[-10vw] w-[70vw] h-[25vh] bg-[#307FE2] blur-[100px] rounded-[100%] opacity-30 animate-aurora-ribbon-2" />
+                <div className="absolute bottom-[-10%] left-[20vw] w-[60vw] h-[30vh] bg-[#307FE2] blur-[120px] rounded-[100%] opacity-40 animate-aurora-ribbon-3" />
             </div>
-            <ProfileTabs />
-            {children}
-            <Suspense fallback={null}>
-                <VerificationToast />
-            </Suspense>
+
+            <div className="relative z-10 pt-32 pb-24 px-[18px] sm:px-8 mx-auto w-full max-w-5xl">
+                <div className="space-y-3 mb-10">
+                    <h1 className="text-4xl sm:text-5xl font-medium tracking-[-0.05em] text-white">
+                        Profil Saya
+                    </h1>
+                    <p className="max-w-xl text-base font-light tracking-tight text-white/50">
+                        Kelola akun Futura Anda dan pantau status pendaftaran acara.
+                    </p>
+                </div>
+                <ProfileTabs />
+                <div className="mt-12">
+                    {children}
+                </div>
+                <Suspense fallback={null}>
+                    <VerificationToast />
+                </Suspense>
+            </div>
         </div>
     )
 }

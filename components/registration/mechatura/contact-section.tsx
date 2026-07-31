@@ -21,7 +21,7 @@ const contacts: ContactPerson[] = [
 
 export function ContactSection() {
   return (
-    <section className="relative px-5 sm:px-8 mb-48 flex flex-col items-center">
+    <section className="relative px-5 sm:px-8 mb-48 flex flex-col items-center overflow-x-clip">
       <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[40%] h-[60%] bg-yellow-500/10 blur-[120px] pointer-events-none rounded-[100%]" />
 
       <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center">

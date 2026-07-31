@@ -55,7 +55,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 1: Intro --- */}
                 <motion.div 
                     style={{ x: slide1X, opacity: slide1Opacity }} 
-                    className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
                 >
                     <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-12">
                         <Image src="/futura-logo-2025.png" width={80} height={80} alt="Futura Logo" className="object-contain w-12 sm:w-16 md:w-20" />
@@ -71,7 +71,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 2: The Explanation (Abstract Typography Layout) --- */}
                 <motion.div 
                     style={{ x: slide2X, opacity: slide2Opacity }} 
-                    className="absolute inset-0 w-screen h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Massive Abstract Background Typography */}
                     <motion.div style={{ x: parallaxBg }} className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none whitespace-nowrap">
@@ -107,7 +107,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 3: Documentation Gallery --- */}
                 <motion.div 
                     style={{ x: slide3X, opacity: slide3Opacity }} 
-                    className="absolute inset-0 w-screen h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Surrounding Gallery Images */}
                     <div className="absolute inset-0 z-10 pointer-events-none">
@@ -169,7 +169,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 4: The Final Parallax Ending --- */}
                 <motion.div 
                     style={{ x: slide4X }} 
-                    className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
+                    className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
                 >
                     {/* Parallax Background Text */}
                     <motion.div style={{ x: slide4BgTextX }} className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">

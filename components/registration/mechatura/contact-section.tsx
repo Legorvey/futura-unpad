@@ -8,14 +8,14 @@ type ContactPerson = {
 
 const contacts: ContactPerson[] = [
   {
-    name: "Farras",
-    phone: "6285654781073",
-    initial: "F"
+    name: "Adam",
+    phone: "6289529846686",
+    initial: "A"
   },
   {
-    name: "Lana",
-    phone: "6282127271389",
-    initial: "L"
+    name: "Raisa",
+    phone: "6285711735270",
+    initial: "R"
   }
 ];
 

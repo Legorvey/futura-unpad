@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { HeroSection } from "@/components/essay/hero-section"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
-
+import { ContactSection } from "@/components/essay/contact-section"
 export const metadata: Metadata = {
   title: "Lomba Essay"
 }
@@ -56,6 +56,8 @@ export default function LombaEssay() {
                     <div className="flex flex-col">
                         <HeroSection />
                     </div>
+                    
+                    <ContactSection />
                 </main>
             </div>
         </>

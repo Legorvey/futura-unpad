@@ -167,7 +167,7 @@ export default function AboutSection() {
                                 <Image src="/seminar/IMG_5526.JPG" alt="Featured Documentation" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
                             </div>
                             <div className="text-sm md:text-base lg:text-lg font-black tracking-[-0.05em] uppercase text-white/50 group-hover:text-white transition-colors duration-300 whitespace-nowrap">
-                                Pemenang Doorprize Futura 2026
+                                Pemenang Doorprize Futura 2025
                             </div>
                         </motion.div>
                     </div>

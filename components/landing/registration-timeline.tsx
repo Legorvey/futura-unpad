@@ -209,12 +209,12 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
 
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
   const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [20, 0, -20]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.2, 1, 1, 0.2]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.4, 1, 1, 0.4]);
 
   return (
     <motion.div
       ref={ref}
-      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : {}}
+      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : { opacity: 1, transform: "none" }}
       className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
     >
       {/* 3D Background Number replacing the line and dot */}
@@ -227,7 +227,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
 
       {/* Left Column of Timeline Item: Date */}
       <div className="w-full md:w-[45%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
-        <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
+        <motion.div style={!isLiteMotion ? { y: yDate } : { transform: "none" }} className="w-full">
           <RevealText
             text={item.date}
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
@@ -243,14 +243,14 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
       <div className="w-full md:w-[80%] flex flex-col relative z-30">
-        <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
+        <motion.div style={!isLiteMotion ? { y: yEvent } : { transform: "none" }} className="relative">
           <RevealText
             text={item.event}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-balance text-white"
           />
         </motion.div>
 
-        <motion.div style={!isLiteMotion ? { y: yDesc } : {}} className="mt-3 w-full max-w-md relative z-10">
+        <motion.div style={!isLiteMotion ? { y: yDesc } : { transform: "none" }} className="mt-3 w-full max-w-md relative z-10">
           <RevealWords
             text={item.description}
             className="text-base md:text-lg lg:text-xl leading-relaxed text-white/80 tracking-[-0.04em] font-light"

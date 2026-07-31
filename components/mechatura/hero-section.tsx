@@ -89,7 +89,7 @@ export function HeroSection() {
                 <span className="font-bold uppercase tracking-wide text-sm md:text-base">
                   Countdown
                 </span>
-                <FlipCountdown targetDate={new Date("2026-12-20T00:00:00+07:00").getTime()} />
+                <FlipCountdown targetDate={new Date("2026-08-03T00:00:00+07:00").getTime()} />
               </div>
               
               {/* <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">

@@ -75,8 +75,8 @@ export default function AboutSection() {
                 >
                     {/* Massive Abstract Background Typography */}
                     <motion.div style={{ x: parallaxBg }} className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none whitespace-nowrap">
-                        <h2 className="text-[5rem] sm:text-[10rem] md:text-[14rem] lg:text-[20rem] font-black uppercase tracking-[-0.07em] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.08)] lg:[-webkit-text-stroke:2px_rgba(255,255,255,0.1)]">
-                            MECHATURA
+                        <h2 className="text-[5rem] sm:text-[10rem] md:text-[14rem] lg:text-[16rem] font-black uppercase tracking-[-0.07em] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.08)] lg:[-webkit-text-stroke:2px_rgba(255,255,255,0.1)]">
+                            MECHATURA?
                         </h2>
                     </motion.div>
 

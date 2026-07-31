@@ -9,12 +9,16 @@ import Countdown from "@/components/countdown";
 import { TARGET_DATE } from "@/lib/landing/helper";
 import StepProgress from "@/components/registration/step-progress";
 import { seminarRegistrationSteps } from "@/lib/registration-steps";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Form Pendaftaran Seminar Nasional"
 }
 
 export default async function SeminarRegistrationPage() {
+    // SECURITY (Defense-in-depth): Fallback redirect in case middleware is bypassed.
+    redirect("/seminar-nasional");
+    
     const { user } = await getCachedAuth();
     let latestRegistration: any = null;
     let allRegistrations: any[] = [];
@@ -25,7 +29,7 @@ export default async function SeminarRegistrationPage() {
         const { data } = await adminSupabase
             .from("seminar_registrations")
             .select("id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_id,group_name")
-            .eq("user_id", user.id)
+            .eq("user_id", user!.id)
             .eq("is_main_contact", true)
             .order("created_at", { ascending: false })
             .limit(1)

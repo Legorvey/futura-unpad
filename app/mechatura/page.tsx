@@ -5,6 +5,7 @@ import { KategoriKompetisi } from "@/components/mechatura/kategori-kompetisi";
 import { MechaturaTimeline } from "@/components/mechatura/mechatura-timeline";
 import LocationSection from "@/components/mechatura/location-section";
 import { MechaturaFAQ } from "@/components/mechatura/mechatura-faq";
+import { ContactSection } from "@/components/registration/mechatura/contact-section";
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
@@ -79,6 +80,10 @@ export default function Mechatura() {
                     
                     <ScrollReveal>
                         <MechaturaFAQ />
+                    </ScrollReveal>
+                    
+                    <ScrollReveal>
+                        <ContactSection />
                     </ScrollReveal>
                 </main>
             </div>

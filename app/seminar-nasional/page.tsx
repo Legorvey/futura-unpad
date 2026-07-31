@@ -6,6 +6,7 @@ import { SeminarFAQ } from "@/components/seminar/seminar-faq"
 import PembicaraSeminarPleno from "@/components/seminar/pembicara-seminar-pleno"
 import PembicaraTalkshow from "@/components/seminar/pembicara-talk-show"
 import LocationSection from "@/components/seminar/location-section"
+import { ContactSection } from "@/components/seminar/contact-section"
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
@@ -84,6 +85,10 @@ export default function SeminarNasional() {
                     
                     <ScrollReveal>
                         <SeminarFAQ />
+                    </ScrollReveal>
+
+                    <ScrollReveal>
+                        <ContactSection />
                     </ScrollReveal>
                 </main>
             </div>

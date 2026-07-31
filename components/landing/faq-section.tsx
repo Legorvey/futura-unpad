@@ -225,7 +225,7 @@ export function FAQSection({
   return (
     <section
       id={id}
-      className="mb-48 relative px-5 sm:px-8"
+      className="mb-48 relative px-5 sm:px-8 overflow-x-clip"
     >
       <div className="absolute left-[-10%] top-1/2 -translate-y-1/2 w-[40%] h-[60%] bg-primary/5 blur-[120px] pointer-events-none rounded-[100%]" />
 

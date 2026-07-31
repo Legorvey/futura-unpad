@@ -4,6 +4,112 @@ import { motion, useScroll, useTransform, useSpring } from "motion/react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { useMotionValue } from "motion/react"
+
+const VideoHoverWrapper = ({ videoSrc, className }: { videoSrc: string, className?: string }) => {
+    const wrapperRef = useRef<HTMLDivElement>(null)
+    const videoRef = useRef<HTMLVideoElement>(null)
+    
+    // Use motion values for performant tracking without re-renders
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
+    const smoothX = useSpring(mouseX, { stiffness: 300, damping: 20 })
+    const smoothY = useSpring(mouseY, { stiffness: 300, damping: 20 })
+
+    const [isHovered, setIsHovered] = useState(false)
+    const [isOverControls, setIsOverControls] = useState(false)
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [hasPlayed, setHasPlayed] = useState(false)
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+        if (!videoElement) return;
+
+        const handlePlay = () => {
+            setIsPlaying(true);
+            setHasPlayed(true);
+        };
+        
+        const handlePause = () => {
+            setIsPlaying(false);
+        };
+
+        videoElement.addEventListener('play', handlePlay);
+        videoElement.addEventListener('pause', handlePause);
+        
+        setIsPlaying(!videoElement.paused);
+        if (!videoElement.paused) setHasPlayed(true);
+
+        return () => {
+            videoElement.removeEventListener('play', handlePlay);
+            videoElement.removeEventListener('pause', handlePause);
+        }
+    }, []);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!wrapperRef.current) return;
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        mouseX.set(x - 60);
+        mouseY.set(y - 20);
+
+        // Native controls are typically at the bottom ~70px of the video.
+        setIsOverControls(y > rect.height - 70);
+    };
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!wrapperRef.current) return;
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        mouseX.set(x - 60);
+        mouseY.set(y - 20);
+        
+        setIsHovered(true);
+        setIsOverControls(y > rect.height - 70);
+    };
+
+    const showPill = isHovered && !isOverControls && !isPlaying;
+    const pillText = hasPlayed ? "Continue" : "Watch Trailer";
+
+    return (
+        <div 
+            ref={wrapperRef}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`relative rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform transition-transform hover:scale-[1.02] duration-500 overflow-hidden ${showPill ? "cursor-none" : ""} ${className || ""}`}
+        >
+            <video 
+                ref={videoRef}
+                src={videoSrc} 
+                loop 
+                controls
+                playsInline
+                className="w-full h-auto object-cover"
+            />
+            <motion.div
+                initial={false}
+                style={{ x: smoothX, y: smoothY }}
+                animate={{
+                    scale: showPill ? 1 : 0,
+                    opacity: showPill ? 1 : 0,
+                }}
+                transition={{
+                    scale: { duration: 0.3, ease: "easeInOut" },
+                    opacity: { duration: 0.2 }
+                }}
+                className="pointer-events-none absolute left-0 top-0 z-50 flex h-10 w-[120px] items-center justify-center rounded-full bg-white text-black text-xs font-bold tracking-tight shadow-xl uppercase"
+            >
+                {pillText}
+            </motion.div>
+        </div>
+    )
+}
+
 export default function AboutSection() {
     const targetRef = useRef<HTMLDivElement>(null)
     const [isMobile, setIsMobile] = useState(false)
@@ -60,7 +166,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 1: Intro --- */}
                 <motion.div
                     style={{ x: slide1X, opacity: slide1Opacity }}
-                    className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
                 >
                     <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-6 sm:mb-8 md:mb-10 lg:mb-14">
                         FUTURA UNPAD
@@ -77,7 +183,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 2: The Explanation (Abstract Typography Layout) --- */}
                 <motion.div
                     style={{ x: slide2X, opacity: slide2Opacity }}
-                    className="absolute inset-0 w-screen h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Massive Abstract Background Typography */}
                     <motion.div style={{ x: parallaxBg }} className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none whitespace-nowrap">
@@ -114,7 +220,7 @@ export default function AboutSection() {
                 {/* --- SLIDE 3: Documentation Gallery --- */}
                 <motion.div
                     style={{ x: slide3X, opacity: slide3Opacity }}
-                    className="absolute inset-0 w-screen h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
+                    className="absolute inset-0 w-full h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
                 >
                     {/* Surrounding Gallery Images */}
                     <div className="absolute inset-0 z-10 pointer-events-none">
@@ -173,23 +279,27 @@ export default function AboutSection() {
                     </div>
                 </motion.div>
 
-                {/* --- SLIDE 4: The Final Parallax Ending --- */}
+                {/* --- SLIDE 4: Instagram Reel --- */}
                 <motion.div
                     style={{ x: slide4X }}
-                    className="absolute inset-0 w-screen h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
+                    className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
                 >
                     {/* Parallax Background Text */}
                     <motion.div style={{ x: slide4BgTextX }} className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
                         <h2 className="text-[10rem] sm:text-[15rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
-                            READY TO WIN?
+                            FUTURA
                         </h2>
                     </motion.div>
 
-                    {/* Main Foreground Text with independent parallax */}
-                    <motion.div style={{ x: slide4TextX }} className="relative z-10 flex flex-col items-center">
-                        <h2 className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black uppercase tracking-tighter text-white text-center leading-none">
-                            READY TO WIN?
+                    {/* Main Foreground Embed with independent parallax */}
+                    <motion.div style={{ x: slide4TextX }} className="relative z-10 flex flex-col items-center gap-6 sm:gap-8">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-[-0.05em] text-white text-center">
+                            Futura 2026 Video Trailer
                         </h2>
+                        <VideoHoverWrapper 
+                            videoSrc="https://res.cloudinary.com/wf03cnan/video/upload/v1785484250/instagram-reel_dcem2h.mp4"
+                            className="w-full max-w-[400px] sm:max-w-[500px] md:max-w-[600px]"
+                        />
                     </motion.div>
                 </motion.div>
 

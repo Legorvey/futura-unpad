@@ -33,10 +33,6 @@ export function NavbarDemo() {
       link: "/",
     },
     {
-      name: "Tentang",
-      link: "/#about",
-    },
-    {
       name: "Jadwal",
       link: "/#timeline",
     },

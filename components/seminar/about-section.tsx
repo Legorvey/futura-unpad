@@ -57,11 +57,6 @@ export default function AboutSection() {
                     style={{ x: slide1X, opacity: slide1Opacity }}
                     className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
                 >
-                    <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-12">
-                        <Image src="/image-eeunpad.png" width={80} height={80} alt="Futura Logo" className="object-contain w-12 sm:w-16 md:w-20" />
-                        <Image src="/hmte-unpad.png" width={80} height={80} alt="HMTE UNPAD Logo" className="object-contain w-12 sm:w-16 md:w-20" />
-                    </div>
-
                     <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white">
                         SEMINAR
                         <br />

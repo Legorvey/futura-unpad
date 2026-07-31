@@ -3,13 +3,41 @@ import {
   Mail,
   Phone,
   MapPin,
-  Camera,
-  EarthIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useState, useRef } from "react";
+
+const InstagramIcon = ({ size = 20 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const TikTokIcon = ({ size = 20 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.24-2.61.92-5.26 2.97-6.9 1.53-1.22 3.51-1.84 5.48-1.69l.04 4.31c-1.68-.07-3.3.7-4.14 2.14-.64 1.1-.64 2.5.01 3.58.74 1.25 2.21 1.95 3.65 1.8 1.51-.15 2.77-1.32 3.04-2.8.1-1.1.06-2.22.06-3.33V.02z" />
+  </svg>
+);
 
 function AnimatedSocialLink({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) {
   const buttonRef = useRef<HTMLAnchorElement>(null);
@@ -152,13 +180,13 @@ export default function Footer() {
             <div className="flex gap-4">
               <AnimatedSocialLink
                 href="https://instagram.com/futuraunpad.hmte"
-                icon={<Camera size={20} />}
+                icon={<InstagramIcon size={20} />}
                 label="Instagram"
               />
               <AnimatedSocialLink
-                href="/"
-                icon={<EarthIcon size={20} />}
-                label="Website"
+                href="https://www.tiktok.com/@futuraunpad"
+                icon={<TikTokIcon size={20} />}
+                label="TikTok"
               />
             </div>
           </div>

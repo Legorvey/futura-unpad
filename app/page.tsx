@@ -13,6 +13,7 @@ import OurLocation from "@/components/landing/our-location"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
+import { SectionDivider } from "@/components/ui/section-divider"
 
 export const metadata: Metadata = {
   title: "Beranda",

@@ -12,9 +12,10 @@ interface ButtonV2Props {
   text: string;
   href: string;
   requireAuth?: boolean;
+  className?: string;
 }
 
-export function ButtonV2({ text, href, requireAuth }: ButtonV2Props) {
+export function ButtonV2({ text, href, requireAuth, className }: ButtonV2Props) {
   const isAnchor = href.startsWith("#");
   const { user, isLoading } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);

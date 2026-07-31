@@ -1,4 +1,5 @@
 import Location from "../ui/location";
+import { SectionDivider } from "../ui/section-divider";
 
 export default function OurLocation() {
     return (

@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useLiteMotion } from "@/hooks/use-lite-motion";
 
-type TimelineTabId = "seminar" | "mechatura" | "essay";
+type TimelineTabId = "seminar" | "mechatura" | "esai";
 
 type GrandTimelineItem = {
   category: string;
@@ -23,7 +23,7 @@ const timelineTabs = [
       {
         category: "Seminar Nasional",
         event: "Mulai Registrasi",
-        date: "21 September 2026",
+        date: "Online/Daring, 21 September 2026",
         description: "Periode registrasi peserta Seminar Nasional Futura.",
         location: "Online/Daring",
       },
@@ -57,7 +57,7 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Registrasi Batch 1",
-        date: "20 Juli - 31 Agustus 2026",
+        date: "Online/Daring, 20 Juli - 31 Agustus 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
         location: "Online/Daring",
@@ -65,7 +65,7 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Registrasi Batch 2",
-        date: "1 September - 1 Oktober 2026",
+        date: "Online/Daring, 1 September - 1 Oktober 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
         location: "Online/Daring",
@@ -81,7 +81,7 @@ const timelineTabs = [
       {
         category: "Mechatura",
         event: "Pelaksanaan",
-        date: "7 November 2026",
+        date: "Gd. PPBS Unpad Jatinangor, 7 November 2026",
         description: "Hari pelaksanaan utama kompetisi robot Mechatura.",
         location: "Gd. PPBS Unpad Jatinangor",
       },

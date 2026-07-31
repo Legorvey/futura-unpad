@@ -295,6 +295,16 @@
   animation: prize-shine 3s linear infinite;
 }
 
+@keyframes glow-pan {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@utility animate-glow-pan {
+  animation: glow-pan 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

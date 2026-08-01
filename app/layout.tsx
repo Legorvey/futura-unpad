@@ -34,11 +34,36 @@ const geistMono = Geist_Mono({
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.futuraunpad.com'),
   title: {
     template: "%s | Futura 2026",
     default: "Futura 2026",
   },
-  description: "oleh HMTE Universitas Padjadjaran",
+  description: "FUTURA 2026 adalah acara teknologi tahunan yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro (HMTE) Universitas Padjadjaran. Menghadirkan seminar nasional, kompetisi robotika (Mechatura), dan pameran inovasi teknologi.",
+  keywords: [
+    "Futura 2026", 
+    "Futura UNPAD", 
+    "HMTE UNPAD", 
+    "Universitas Padjadjaran", 
+    "Seminar Nasional Teknologi", 
+    "Kompetisi Robotika", 
+    "Mechatura", 
+    "Teknik Elektro UNPAD"
+  ],
+  authors: [{ name: "HMTE UNPAD" }],
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: "https://www.futuraunpad.com",
+    title: "Futura 2026 | HMTE Universitas Padjadjaran",
+    description: "FUTURA 2026 adalah acara teknologi tahunan oleh HMTE Universitas Padjadjaran. Ikuti rangkaian seminar nasional dan kompetisi inovasi teknologi.",
+    siteName: "Futura 2026",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Futura 2026 | HMTE Universitas Padjadjaran",
+    description: "Acara teknologi tahunan oleh HMTE Universitas Padjadjaran. Ikuti seminar nasional dan kompetisi inovasi.",
+  },
   icons: {
     icon: "/favicon-fix.png"
   }

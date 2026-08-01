@@ -19,6 +19,13 @@ import {
 
 type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
 
+type MechaturaMemberRow = {
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  is_leader: boolean;
+};
+
 type MechaturaRegistrationPaymentRow = {
   id: string;
   team_name: string;
@@ -31,11 +38,7 @@ type MechaturaRegistrationPaymentRow = {
   user_id: string | null;
   created_at: string | null;
   paid_at?: string | null;
-  mechatura_members?: {
-    full_name: string;
-    email: string | null;
-    phone: string | null;
-  }[];
+  mechatura_members?: MechaturaMemberRow[];
 };
 
 export type MechaturaPaymentOrder = {
@@ -55,10 +58,12 @@ export type MechaturaPaymentOrder = {
     email: string;
     phone: string;
   };
-  members: { name: string }[];
+  members: {
+    name: string;
+  }[];
 };
 
-export const mechaturaPaymentOrderSelect =
+const mechaturaPaymentOrderSelect =
   "id,team_name,institution,competition_type,robot_name,payment_status,payment_amount,midtrans_order_id,user_id,created_at,paid_at";
 
 export async function findMechaturaPaymentOrder(
@@ -69,7 +74,7 @@ export async function findMechaturaPaymentOrder(
     .from("mechatura_registrations")
     .select(`${mechaturaPaymentOrderSelect},mechatura_members(full_name,email,phone,is_leader)`)
     .eq("midtrans_order_id", orderId)
-    .maybeSingle<any>();
+    .maybeSingle<MechaturaRegistrationPaymentRow>();
 
   if (error) {
     throw error;
@@ -86,7 +91,7 @@ export async function findMechaturaPaymentOrder(
     ? registration.mechatura_members 
     : [];
     
-  const leader = members.find((m: any) => m.is_leader);
+  const leader = members.find((m) => m.is_leader);
 
   if (!leader?.email || !leader.phone) {
     return null;
@@ -109,7 +114,7 @@ export async function findMechaturaPaymentOrder(
       email: leader.email,
       phone: leader.phone,
     },
-    members: members.filter((m: any) => !m.is_leader).map((m: any) => ({ name: m.full_name })),
+    members: members.filter((m) => !m.is_leader).map((m) => ({ name: m.full_name })),
   };
 }
 
@@ -121,20 +126,15 @@ export function isCompletedMechaturaPaymentStatus(status: string | null) {
   return isCompletedPaymentStatus(status);
 }
 
-export async function ensureMidtransCompatibleMechaturaOrder(
+export async function rotateMechaturaPaymentOrderId(
   supabase: SupabaseAdminClient,
   order: MechaturaPaymentOrder
 ): Promise<MechaturaPaymentOrder> {
-  if (isMidtransCompatibleOrderId(order.paymentOrderId)) {
-    return order;
-  }
-
   const nextOrderId = createRegistrationToken();
   const { data, error } = await supabase
     .from("mechatura_registrations")
     .update({ midtrans_order_id: nextOrderId })
     .eq("id", order.id)
-    .eq("midtrans_order_id", order.paymentOrderId)
     .select("midtrans_order_id")
     .maybeSingle<{ midtrans_order_id: string }>();
 
@@ -150,6 +150,17 @@ export async function ensureMidtransCompatibleMechaturaOrder(
     ...order,
     paymentOrderId: data.midtrans_order_id,
   };
+}
+
+export async function ensureMidtransCompatibleMechaturaOrder(
+  supabase: SupabaseAdminClient,
+  order: MechaturaPaymentOrder
+): Promise<MechaturaPaymentOrder> {
+  if (isMidtransCompatibleOrderId(order.paymentOrderId)) {
+    return order;
+  }
+
+  return rotateMechaturaPaymentOrderId(supabase, order);
 }
 
 export async function updateMechaturaPaymentStatus(

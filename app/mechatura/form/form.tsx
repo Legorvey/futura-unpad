@@ -184,10 +184,8 @@ export default function MechaturaRegistrationForm() {
           "payment_url" in body &&
           typeof body.payment_url === "string"
         ) {
-          return { payment_url: body.payment_url };
+          return { payment_url: body.payment_url, isExisting: error.status === 409 };
         }
-
-
 
         if (error.status === 401) {
           router.push("/login?next=/mechatura/form");
@@ -207,9 +205,15 @@ export default function MechaturaRegistrationForm() {
     });
 
     if (data?.payment_url) {
-      toast.success("Pendaftaran berhasil", {
-        description: "Mengarahkan ke pembayaran..."
-      });
+      if ("isExisting" in data && data.isExisting) {
+        toast.info("Pendaftaran aktif ditemukan", {
+          description: "Mengarahkan Anda ke halaman pembayaran...",
+        });
+      } else {
+        toast.success("Pendaftaran berhasil", {
+          description: "Mengarahkan ke pembayaran...",
+        });
+      }
       clearFormDraft(MECHATURA_DRAFT_STORAGE_KEY);
 
       const appHref = toInternalAppHref(data.payment_url, window.location.origin);

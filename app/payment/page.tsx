@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PaymentErrorState from "@/components/registration/payment-error-state";
 import {
   formatCurrency,
   isPaymentStatus,
@@ -17,6 +18,7 @@ import {
   isCompletedMechaturaPaymentStatus,
 } from "@/lib/mechatura/payment";
 import {
+  getLatestMechaturaRegistration,
   isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
 import { getCachedAuth } from "@/lib/auth";
@@ -45,22 +47,6 @@ type PaymentOrder = {
   details: Array<[string, string]>;
 };
 
-import { ErrorState } from "@/components/ui/error-state"
-import { AlertCircle } from "lucide-react"
-
-function PaymentErrorState({ title, description, href, cta }: { title: string, description: string, href: string, cta: string }) {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-4 pb-16 pt-32 sm:px-8">
-      <ErrorState 
-        icon={AlertCircle}
-        title={title}
-        description={description}
-        actionHref={href}
-        actionLabel={cta}
-      />
-    </main>
-  );
-}
 
 const findMechaturaOrder = async (
   supabase: ReturnType<typeof createAdminClient>,
@@ -115,23 +101,61 @@ export default async function PaymentPage({
     : params.order_id;
 
   if (!isRegistrationToken(orderId)) {
-    return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
+    return (
+      <PaymentErrorState
+        iconType="alert"
+        badgeTone="destructive"
+        title="Tautan Pembayaran Tidak Valid"
+        description="Format tautan pembayaran tidak dikenali atau parameter hilang. Silakan kembali untuk mengisi formulir pendaftaran lagi."
+        primaryAction={{ label: "Kembali ke Beranda", href: "/" }}
+        secondaryAction={{ label: "Daftar Mechatura", href: "/mechatura/form" }}
+      />
+    );
   }
 
   const supabase = createAdminClient();
-  const order = await findOrder(supabase, orderId).catch((error) => {
+  let order = await findOrder(supabase, orderId).catch((error) => {
     console.error("Payment order lookup failed", error.message);
     return null;
   });
 
-  if (!order) {
-    return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
-  }
-
   const { user } = await getCachedAuth();
 
+  // Fallback: If order not found by order_id, check if authenticated user owns an active mechatura registration
+  if (!order && user) {
+    const latest = await getLatestMechaturaRegistration(supabase, user.id).catch(() => null);
+    if (latest && latest.paymentOrderId !== orderId) {
+      order = await findOrder(supabase, latest.paymentOrderId).catch(() => null);
+    }
+  }
+
+  if (!order) {
+    return (
+      <PaymentErrorState
+        iconType="alert"
+        badgeTone="destructive"
+        title="Pesanan Pembayaran Tidak Ditemukan"
+        description="Data tagihan pendaftaran tidak dapat ditemukan di sistem kami. Pastikan Anda membuka tautan yang benar dari akun Anda."
+        primaryAction={{ label: "Lihat Profil Saya", href: "/profile" }}
+        secondaryAction={{ label: "Kembali ke Beranda", href: "/" }}
+      />
+    );
+  }
+
   if (!user || order.userId !== user.id) {
-    return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
+    return (
+      <PaymentErrorState
+        iconType="shield"
+        badgeTone="warning"
+        title="Akses Pembayaran Ditolak"
+        description="Pesanan pembayaran ini terhubung dengan akun lain. Silakan masuk dengan akun yang sesuai untuk mengakses dan menyelesaikan tagihan ini."
+        primaryAction={{
+          label: "Masuk ke Akun",
+          href: `/login?next=${encodeURIComponent(`/payment?order_id=${orderId}`)}`,
+        }}
+        secondaryAction={{ label: "Kembali ke Beranda", href: "/" }}
+      />
+    );
   }
 
   const paymentStatus = isPaymentStatus(order.paymentStatus)
@@ -143,18 +167,56 @@ export default async function PaymentPage({
     paymentStatus,
   });
 
+  if (paymentStatus === "cancelled" && !isPaid) {
+    return (
+      <PaymentErrorState
+        iconType="cancel"
+        badgeTone="warning"
+        title="Pembayaran Dibatalkan"
+        description="Transaksi pembayaran untuk pendaftaran ini telah dibatalkan. Silakan kembali ke formulir pendaftaran untuk mendaftar ulang atau periksa profil Anda."
+        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
+      />
+    );
+  }
+
+  if (paymentStatus === "failed" && !isPaid) {
+    return (
+      <PaymentErrorState
+        iconType="failed"
+        badgeTone="destructive"
+        title="Pembayaran Gagal"
+        description="Transaksi pembayaran Anda tidak berhasil atau dibatalkan. Silakan coba lakukan pembayaran ulang atau hubungi panitia jika membutuhkan bantuan."
+        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
+      />
+    );
+  }
+
   if (isExpired && !isPaid) {
     return (
-      <PaymentErrorState 
-        title="Batas waktu pembayaran kedaluwarsa." 
-        description="Batas waktu pembayaran Mechatura telah berakhir. Silakan kembali ke halaman pendaftaran Mechatura untuk memulai pendaftaran baru." 
-        href="/mechatura/form" 
-        cta="Daftar lagi" 
+      <PaymentErrorState
+        iconType="clock"
+        badgeTone="warning"
+        title="Batas Waktu Pembayaran Kedaluwarsa"
+        description="Batas waktu pembayaran Mechatura telah berakhir. Silakan kembali ke halaman pendaftaran Mechatura untuk memulai pendaftaran baru."
+        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
       />
     );
   }
 
   const isMechatura = order.program === "mechatura";
+
+  const statusBadge = {
+    paid: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30",
+    settled: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30",
+    pending: "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30",
+    unpaid: "bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-500/30",
+    failed: "bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30",
+    expired: "bg-neutral-500/15 text-neutral-800 dark:text-neutral-300 border border-neutral-500/30",
+    cancelled: "bg-neutral-500/15 text-neutral-800 dark:text-neutral-300 border border-neutral-500/30",
+  }[paymentStatus] || "bg-muted text-muted-foreground";
 
   const content = (
     <div className="space-y-12 w-full max-w-3xl mx-auto">
@@ -203,7 +265,9 @@ export default async function PaymentPage({
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Status pembayaran</span>
-              <span>{paymentStatusLabels[paymentStatus]}</span>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge}`}>
+                {paymentStatusLabels[paymentStatus]}
+              </span>
             </div>
           </div>
 
@@ -239,7 +303,7 @@ export default async function PaymentPage({
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center space-y-12 px-4 pb-16 pt-32 sm:px-8">
       <section className="space-y-2">
-        <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+        <h1 className="max-w-xl text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-balance">
           Selesaikan Pembayaran.
         </h1>
         <p className="max-w-lg text-sm font-medium leading-relaxed text-neutral-500">

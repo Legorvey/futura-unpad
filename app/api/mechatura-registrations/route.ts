@@ -41,14 +41,35 @@ const isValidPdf = (value: FormDataEntryValue | null): value is File =>
   value.size <= DEFAULT_MECHATURA_DOCUMENT_MAX_SIZE &&
   value.type === "application/pdf";
 
+const isPdfBinary = async (file: File): Promise<boolean> => {
+  if (file.size < 5) return false;
+  const slice = file.slice(0, 5);
+  const buffer = new Uint8Array(await slice.arrayBuffer());
+  // %PDF- => 0x25, 0x50, 0x44, 0x46, 0x2D
+  return (
+    buffer[0] === 0x25 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x44 &&
+    buffer[3] === 0x46 &&
+    buffer[4] === 0x2d
+  );
+};
+
+let isDocumentBucketReady = false;
+
 const ensureDocumentBucket = async (
   supabase: ReturnType<typeof createAdminClient>
 ) => {
+  if (isDocumentBucketReady) {
+    return true;
+  }
+
   const { error: lookupError } = await supabase.storage.getBucket(
     MECHATURA_DOCUMENT_BUCKET
   );
 
   if (!lookupError) {
+    isDocumentBucketReady = true;
     return true;
   }
 
@@ -57,7 +78,12 @@ const ensureDocumentBucket = async (
     { public: false }
   );
 
-  return !createError;
+  if (!createError) {
+    isDocumentBucketReady = true;
+    return true;
+  }
+
+  return false;
 };
 
 export async function POST(request: Request) {
@@ -102,13 +128,14 @@ export async function POST(request: Request) {
   if (existingRegistration && isMechaturaPaymentExpired(existingRegistration)) {
     const deleted = await deleteMechaturaRegistration(
       adminSupabase,
-      existingRegistration.id
+      existingRegistration.id,
+      user.id
     ).catch((error) => {
       console.error("Expired Mechatura registration cleanup failed", error.message);
       return null;
     });
 
-    if (deleted === null) {
+    if (deleted === null || !deleted.success) {
       return serverError();
     }
   } else if (existingRegistration) {
@@ -154,6 +181,15 @@ export async function POST(request: Request) {
   const robotDocument = formData.get("robot_document");
 
   if (!parsed.success || !isValidPdf(memberDocument) || !isValidPdf(robotDocument)) {
+    return invalidRequest();
+  }
+
+  const [isMemberPdfValid, isRobotPdfValid] = await Promise.all([
+    isPdfBinary(memberDocument),
+    isPdfBinary(robotDocument),
+  ]);
+
+  if (!isMemberPdfValid || !isRobotPdfValid) {
     return invalidRequest();
   }
 
@@ -279,10 +315,15 @@ export async function POST(request: Request) {
 
   if (membersError) {
     console.error("Mechatura members insert failed", membersError.message);
-    await adminSupabase
-      .from("mechatura_registrations")
-      .delete()
-      .eq("id", registration.id);
+    await Promise.allSettled([
+      adminSupabase
+        .from("mechatura_registrations")
+        .delete()
+        .eq("id", registration.id),
+      adminSupabase.storage
+        .from(MECHATURA_DOCUMENT_BUCKET)
+        .remove([memberDocumentPath, robotDocumentPath]),
+    ]);
     return serverError();
   }
 

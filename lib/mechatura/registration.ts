@@ -26,6 +26,9 @@ type LatestMechaturaRegistrationRow = {
 };
 
 type MechaturaDeleteTarget = {
+  id: string;
+  user_id: string;
+  payment_status: string | null;
   member_document_path: string | null;
   robot_document_path: string | null;
 };
@@ -65,6 +68,8 @@ export async function findLatestMechaturaRegistrationForUser(
     createdAt: data.created_at,
   };
 }
+
+export const getLatestMechaturaRegistration = findLatestMechaturaRegistrationForUser;
 
 export function getMechaturaPaymentExpiresAt(createdAt: string | null) {
   if (!createdAt) {
@@ -129,22 +134,39 @@ export function getMechaturaRegistrationStepHref(
   return `/payment?order_id=${orderId}`;
 }
 
+export type DeleteMechaturaResult =
+  | { success: true }
+  | { success: false; reason: "not_found" | "is_paid" };
+
 export async function deleteMechaturaRegistration(
   supabase: SupabaseAdminClient,
-  registrationId: string
-) {
-  const { data: registration, error: lookupError } = await supabase
+  registrationId: string,
+  userId?: string,
+  options: { allowPaid?: boolean } = {}
+): Promise<DeleteMechaturaResult> {
+  let query = supabase
     .from("mechatura_registrations")
-    .select("member_document_path,robot_document_path")
-    .eq("id", registrationId)
-    .maybeSingle<MechaturaDeleteTarget>();
+    .select("id,user_id,payment_status,member_document_path,robot_document_path")
+    .eq("id", registrationId);
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data: registration, error: lookupError } =
+    await query.maybeSingle<MechaturaDeleteTarget>();
 
   if (lookupError) {
     throw lookupError;
   }
 
   if (!registration) {
-    return false;
+    return { success: false, reason: "not_found" };
+  }
+
+  // Security guard: Never delete completed paid registrations unless explicitly authorized (e.g. by admin)
+  if (!options.allowPaid && isCompletedPaymentStatus(registration.payment_status)) {
+    return { success: false, reason: "is_paid" };
   }
 
   const { error: membersError } = await supabase
@@ -180,5 +202,5 @@ export async function deleteMechaturaRegistration(
     }
   }
 
-  return true;
+  return { success: true };
 }

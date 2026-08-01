@@ -51,23 +51,45 @@ const RevealText = ({
   text: string;
   className?: string;
 }) => {
+  const words = text.split(" ");
   return (
     <span className={`inline-flex flex-wrap ${className || ""}`}>
-      {text.split("").map((char, index) => (
-        <span key={index} className="inline-flex overflow-hidden align-bottom">
-          <motion.span
-            variants={{
-              hidden: { y: "110%" },
-              visible: {
-                y: "0%",
-                transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-              },
-              exit: { opacity: 0, transition: { duration: 0.1 } },
-            }}
-            className="inline-block whitespace-pre"
-          >
-            {char}
-          </motion.span>
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-flex whitespace-nowrap">
+          {word.split("").map((char, charIndex) => (
+            <span key={charIndex} className="inline-flex overflow-hidden align-bottom">
+              <motion.span
+                variants={{
+                  hidden: { y: "110%" },
+                  visible: {
+                    y: "0%",
+                    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                  },
+                  exit: { opacity: 0, transition: { duration: 0.1 } },
+                }}
+                className="inline-block whitespace-pre"
+              >
+                {char}
+              </motion.span>
+            </span>
+          ))}
+          {wordIndex < words.length - 1 && (
+            <span className="inline-flex overflow-hidden align-bottom">
+              <motion.span
+                variants={{
+                  hidden: { y: "110%" },
+                  visible: {
+                    y: "0%",
+                    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                  },
+                  exit: { opacity: 0, transition: { duration: 0.1 } },
+                }}
+                className="inline-block whitespace-pre"
+              >
+                {" "}
+              </motion.span>
+            </span>
+          )}
         </span>
       ))}
     </span>
@@ -126,7 +148,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </motion.div>
 
       {/* Left Column of Timeline Item: Date */}
-      <div className="w-full md:w-[45%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
+      <div className="w-full md:w-[45%] xl:w-[35%] xl:pr-8 flex flex-col items-start mb-4 xl:mb-0 relative z-20">
         <motion.div style={!isLiteMotion ? { y: yDate } : { transform: "none" }} className="w-full">
           <RevealText 
             text={item.date} 
@@ -142,7 +164,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
-      <div className="w-full md:w-[80%] flex flex-col relative z-30">
+      <div className="w-full md:w-[80%] xl:w-[65%] flex flex-col relative z-30">
         <motion.div style={!isLiteMotion ? { y: yEvent } : { transform: "none" }} className="relative">
           <RevealText 
             text={item.event}

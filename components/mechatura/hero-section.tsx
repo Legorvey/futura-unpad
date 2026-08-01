@@ -72,10 +72,10 @@ export function HeroSection() {
   return (
     <section id="home" className="relative w-full overflow-hidden bg-background">
       <div className="relative mx-auto max-w-[100rem] pt-32 w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col justify-center min-h-screen py-20">
-        
+
         {/* Typographic Hero Stack */}
         <div className="flex flex-col w-full relative">
-          
+
           {/* Massive Typography */}
           <div className="uppercase text-center font-black w-full relative flex flex-col items-center">
             <h1 className="leading-[0.85] text-white text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[6rem] tracking-[-0.05em] relative z-10">
@@ -84,7 +84,7 @@ export function HeroSection() {
             <p className="mt-6 text-md md:text-xl font-light text-zinc-300 max-w-3xl text-balance">
               Mechatura adalah kompetisi teknologi dan robotika yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro (HMTE) Universitas Padjadjaran.
             </p>
-            
+
             <div className="flex flex-col items-center mt-12 gap-8">
               {/* <div className="flex flex-col items-center gap-4">
                 <span className="font-bold uppercase tracking-wide text-sm md:text-base">

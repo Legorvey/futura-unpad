@@ -109,16 +109,17 @@ function AnimatedSocialLink({ href, icon, label }: { href: string, icon: React.R
   );
 }
 
-export default function Footer() {
+export default function Footer({ forceShow = false }: { forceShow?: boolean } = {}) {
   const pathname = usePathname();
 
   if (
-    pathname === "/admin" ||
-    pathname.startsWith("/admin/") ||
-    pathname === "/profile" ||
-    pathname.startsWith("/profile/") ||
-    pathname === "/login" ||
-    pathname === "/register"
+    !forceShow &&
+    (pathname === "/admin" ||
+      pathname.startsWith("/admin/") ||
+      pathname === "/profile" ||
+      pathname.startsWith("/profile/") ||
+      pathname === "/login" ||
+      pathname === "/register")
   ) {
     return null;
   }

@@ -17,18 +17,23 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-4 pb-16 pt-32 sm:px-8">
-      <div className="mb-4 text-7xl font-bold tracking-tighter text-muted/30 select-none pointer-events-none">
-        500
-      </div>
-      <ErrorState 
+    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <ErrorState
+        statusCode="500"
         icon={ServerCrash}
-        title="Terjadi kesalahan"
-        description="Mohon maaf, terjadi kesalahan yang tidak terduga saat memproses permintaan Anda. Silakan coba lagi."
+        title="Terjadi Kesalahan Sistem"
+        description="Mohon maaf, terjadi kendala saat memproses permintaan Anda. Tim teknis kami telah mencatat kendala ini."
         onAction={reset}
-        actionLabel="Coba lagi"
-        className="-mt-12"
+        actionLabel="Coba Lagi"
+        secondaryActionHref="/"
+        secondaryActionLabel="Kembali ke Beranda"
+        tone="destructive"
       />
+      {error.digest && (
+        <p className="mt-4 text-xs text-white/30 font-mono select-all text-center">
+          Digest: {error.digest}
+        </p>
+      )}
     </main>
   );
 }

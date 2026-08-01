@@ -97,9 +97,9 @@ export default async function RegisterPage({
 
             <ParallaxBackgrounds isStatic className="absolute inset-0 z-[2] mix-blend-screen opacity-40" />
 
-            <div className="relative z-10 w-full max-w-lg space-y-10 backdrop-blur-xl border bg-neutral-950/10 rounded-2xl p-6 md:p-8">
+            <div className="relative z-10 w-full max-w-lg space-y-8 border border-white/15 p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/15 shadow-2xl">
                 <section className="space-y-1">
-                    <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.07em] text-balance font-sans text-white">
+                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans text-white">
                         Buat akun Futura
                     </h1>
                     <p className="text-sm font-medium leading-relaxed text-white/70 tracking-tight font-sans">

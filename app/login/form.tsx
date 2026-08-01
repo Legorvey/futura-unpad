@@ -116,7 +116,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                     <Field className="gap-2">
                         <Button
                             type="submit"
-                            className="h-11 rounded-[8px]"
+                            className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold text-sm sm:text-base transition-all shadow-sm"
                             disabled={login.isPending}
                         >
                             {login.isPending ? "Sedang masuk..." : "Masuk"}
@@ -130,7 +130,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
 
                         <GoogleLoginButton keepSignedIn={keepSignedIn} />
                     </Field>
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-sm text-white/70">
                         Belum punya akun?{" "}
                         <Link
                             href={
@@ -139,7 +139,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                                     : "/register"
                             }
                             prefetch={false}
-                            className="text-blue-600"
+                            className="text-blue-300 hover:text-white font-medium transition-colors"
                         >
                             Daftar
                         </Link>

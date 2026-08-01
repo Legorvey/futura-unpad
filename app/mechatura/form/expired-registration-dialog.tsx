@@ -59,7 +59,7 @@ export default function ExpiredRegistrationDialog({
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isPending}
-            className="h-11 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-semibold shadow-md shadow-amber-500/10 transition-all"
+            className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold shadow-sm transition-all"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Mulai Pendaftaran Baru

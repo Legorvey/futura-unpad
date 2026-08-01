@@ -10,19 +10,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, LayoutGrid, MonitorSmartphone, HeartPulse, Landmark, Users2, BookOpen, Search } from "lucide-react"
 
-interface LombaEssayFilterProps {
+interface LombaEsaiFilterProps {
     searchParam: string | undefined
     categoryParam: string | undefined
 }
 
-export function LombaEssayFilter({ searchParam, categoryParam }: LombaEssayFilterProps) {
+export function LombaEsaiFilter({ searchParam, categoryParam }: LombaEsaiFilterProps) {
     const router = useRouter()
 
     const updateFilter = (category: string) => {
         const params = new URLSearchParams()
         if (searchParam) params.set("search", searchParam)
         if (category && category !== "all") params.set("category", category)
-        router.push(`/admin/lomba-essay?${params.toString()}`)
+        router.push(`/admin/lomba-esai?${params.toString()}`)
     }
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,7 +32,7 @@ export function LombaEssayFilter({ searchParam, categoryParam }: LombaEssayFilte
         const params = new URLSearchParams()
         if (search) params.set("search", search)
         if (categoryParam && categoryParam !== "all") params.set("category", categoryParam)
-        router.push(`/admin/lomba-essay?${params.toString()}`)
+        router.push(`/admin/lomba-esai?${params.toString()}`)
     }
 
     return (

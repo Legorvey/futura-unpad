@@ -428,7 +428,7 @@ function TermsContent() {
         <>
             <div className="space-y-3">
                 <p>
-                    Selamat datang di website resmi Futura Universitas Padjadjaran (futuraunpad.com). Syarat dan Ketentuan ini mengatur akses dan penggunaan Anda terhadap website dan layanan registrasi kami untuk acara lomba Robot Sumo, lomba Robot Transporter, Seminar Nasional, dan Lomba Essay.
+                    Selamat datang di website resmi Futura Universitas Padjadjaran (futuraunpad.com). Syarat dan Ketentuan ini mengatur akses dan penggunaan Anda terhadap website dan layanan registrasi kami untuk acara lomba Robot Sumo, lomba Robot Transporter, Seminar Nasional, dan Lomba Esai.
                 </p>
                 <p>
                     Dengan mengakses atau menggunakan website ini, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. Jika Anda tidak setuju dengan bagian mana pun dari syarat ini, Anda tidak diperkenankan untuk menggunakan layanan kami.

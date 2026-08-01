@@ -319,7 +319,7 @@ export default async function ProfilePage() {
               <p className="text-xl font-medium tracking-tight text-white mb-3">Pendaftaran Belum Dibuka</p>
               <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Pendaftaran Lomba Esai saat ini belum dibuka. Lihat detail selengkapnya dengan mengklik tombol di bawah.</p>
               <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
-                <Link href="/lomba-essay" prefetch={true}>Lihat Detail Acara</Link>
+                <Link href="/lomba-esai" prefetch={true}>Lihat Detail Acara</Link>
               </Button>
             </div>
           </div>

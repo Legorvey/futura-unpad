@@ -58,12 +58,12 @@
 //     accentClassName: "bg-purple-300",
 //   },
 //   {
-//     title: "Lomba Essay",
+//     title: "Lomba Esai",
 //     description:
 //       "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum",
-//     href: "/lomba-essay",
+//     href: "/lomba-esai",
 //     image: "",
-//     imageAlt: "Lomba Essay registration visual",
+//     imageAlt: "Lomba Esai registration visual",
 //     accentClassName: "bg-fuchsia-300",
 //   },
 // ];

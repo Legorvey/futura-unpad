@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
                         <p>
                             Futura Universitas Padjadjaran mengoperasikan website{" "}
                             <a href="https://www.futuraunpad.com" className="font-medium text-foreground underline underline-offset-4">www.futuraunpad.com</a>, 
-                            yang menyediakan layanan registrasi dan informasi terkait lomba Robot Sumo, lomba Robot Transporter, Seminar Nasional, serta Lomba Essay.
+                            yang menyediakan layanan registrasi dan informasi terkait lomba Robot Sumo, lomba Robot Transporter, Seminar Nasional, serta Lomba Esai.
                         </p>
                         <p>
                             Halaman ini digunakan untuk menginformasikan pengunjung website mengenai kebijakan kami terkait pengumpulan, penggunaan, dan pengungkapan Informasi Pribadi jika ada yang memutuskan untuk menggunakan layanan kami di website www.futuraunpad.com.

@@ -34,7 +34,7 @@ const events = [
         description: "Wadahi gagasan kreatif dan solutifmu melalui tulisan. Tema tahun ini berfokus pada inovasi mahasiswa dalam mendukung transisi energi berkelanjutan di Indonesia.",
         highlights_title: "Tema",
         highlights: "Inovasi Smart Grid & Pengembangan EBT",
-        href: "/lomba-essay",
+        href: "/lomba-esai",
         gradient: ["#93c5fd", "#3b82f6", "#1e3a8a"],
         accentRGB: "59, 130, 246",
     }

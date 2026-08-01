@@ -9,7 +9,7 @@ export type SeminarRegistrationStep =
   | "verification"
   | "ticket";
 
-export type EssayRegistrationStep = "details" | "verification" | "payment";
+export type EsaiRegistrationStep = "details" | "verification" | "payment";
 
 export type MechaturaRegistrationStep =
   | "tipe-robot"
@@ -27,11 +27,11 @@ export const seminarRegistrationSteps = [
   { id: "ticket", label: "Ticket" },
 ] as const satisfies readonly StepDefinition<SeminarRegistrationStep>[];
 
-export const essayRegistrationSteps = [
+export const esaiRegistrationSteps = [
   { id: "details", label: "Details" },
   { id: "verification", label: "Verify" },
   { id: "payment", label: "Payment" },
-] as const satisfies readonly StepDefinition<EssayRegistrationStep>[];
+] as const satisfies readonly StepDefinition<EsaiRegistrationStep>[];
 
 export const mechaturaRegistrationSteps = [
   { id: "tipe-robot", label: "Tipe Robot" },
@@ -48,7 +48,7 @@ export const seminarPaymentSteps = [
 
 export const registrationStepDefinitions = {
   seminar: seminarRegistrationSteps,
-  essay: essayRegistrationSteps,
+  esai: esaiRegistrationSteps,
   mechatura: mechaturaRegistrationSteps,
 } as const;
 
@@ -56,7 +56,7 @@ export type RegistrationFlow = keyof typeof registrationStepDefinitions;
 
 export type RegistrationFlowSteps = {
   seminar: SeminarRegistrationStep;
-  essay: EssayRegistrationStep;
+  esai: EsaiRegistrationStep;
   mechatura: MechaturaRegistrationStep;
 };
 
@@ -65,6 +65,6 @@ export type RegistrationStepFor<TFlow extends RegistrationFlow> =
 
 export const registrationInitialSteps = {
   seminar: "registration-option",
-  essay: "details",
+  esai: "details",
   mechatura: "tipe-robot",
 } as const satisfies RegistrationFlowSteps;

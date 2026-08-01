@@ -11,8 +11,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/seminar-nasional", request.url));
   }
   
-  if (path.startsWith("/lomba-essay/form")) {
-    return NextResponse.redirect(new URL("/lomba-essay", request.url));
+  if (path.startsWith("/lomba-esai/form")) {
+    return NextResponse.redirect(new URL("/lomba-esai", request.url));
   }
 
   return updateSession(request);

@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 
 import { redirect } from "next/navigation"
 import LoginForm from "./form"
@@ -6,29 +5,12 @@ import { getCachedAuth } from "@/lib/auth"
 import { Metadata } from "next"
 import { CheckCircle2, ShieldAlert } from "lucide-react"
 import { cookies } from "next/headers"
+import { getSafeRedirectPath } from "@/lib/navigation"
 import { ErrorState } from "@/components/ui/error-state"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
 type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
 
-const getSafeRedirectPath = (value: string | string[] | undefined) => {
-    const next = Array.isArray(value) ? value[0] : value
-
-    if (
-        !next ||
-        !next.startsWith("/") ||
-        next.startsWith("//") ||
-        next.startsWith("/\\") ||
-        next.startsWith("/login") ||
-        next === "/register" ||
-        next.startsWith("/register?") ||
-        next.startsWith("/auth/callback")
-    ) {
-        return "/profile"
-    }
-
-    return next
-}
 
 export const metadata: Metadata = {
   title: "Log in"

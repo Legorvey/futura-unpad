@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-export const runtime = 'edge';
 import SeminarRegistrationForm from "./form";
 import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";

@@ -16,19 +16,7 @@ import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
-
-const safeRedirect = (value: string | null) => {
-    return value &&
-        value.startsWith("/") &&
-        !value.startsWith("//") &&
-        !value.startsWith("/\\") &&
-        !value.startsWith("/login") &&
-        value !== "/register" &&
-        !value.startsWith("/register?") &&
-        !value.startsWith("/auth/callback")
-        ? value
-        : null;
-};
+import { getSafeRedirectPath } from "@/lib/navigation";
 
 export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const router = useRouter();
@@ -57,7 +45,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const setKeepSignedIn = (value: boolean) => form.setValue("keepSignedIn", value);
     const { handleSubmit } = form;
 
-    const safeNext = safeRedirect(searchParams.get("next"));
+    const safeNext = getSafeRedirectPath(searchParams.get("next"), "");
 
     const onSubmit = async (values: LoginFormValues) => {
         setSubmitError("");

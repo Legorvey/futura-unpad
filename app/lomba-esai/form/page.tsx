@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-export const runtime = 'edge';
 import Countdown from "@/components/countdown";
 import { TARGET_DATE } from "@/lib/landing/helper";
 import { redirect } from "next/navigation";

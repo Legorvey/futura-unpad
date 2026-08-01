@@ -1,38 +1,22 @@
 import type { Metadata } from "next"
-export const runtime = 'edge';
 
 import { redirect } from "next/navigation"
 import RegisterForm from "./form"
 import { getCachedAuth } from "@/lib/auth"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
-type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
-
-const getSafeRedirectPath = (value: string | string[] | undefined) => {
-    const next = Array.isArray(value) ? value[0] : value
-
-    if (
-        !next ||
-        !next.startsWith("/") ||
-        next.startsWith("//") ||
-        next.startsWith("/login") ||
-        next.startsWith("/register") ||
-        next.startsWith("/auth/callback")
-    ) {
-        return "/profile"
-    }
-
-    return next
-}
+import { getSafeRedirectPath } from "@/lib/navigation"
 
 export const metadata: Metadata = {
   title: "Buat Akun"
 }
 
-export default async function LoginPage({
+type RegisterSearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function RegisterPage({
     searchParams,
 }: {
-    searchParams: LoginSearchParams
+    searchParams: RegisterSearchParams
 }){
     const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
 

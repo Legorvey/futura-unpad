@@ -23,6 +23,7 @@ import { useRegisterMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { getSafeRedirectPath } from "@/lib/navigation";
 import { FormTextField } from "@/components/form/form-text-field";
 
 type LegalDialogType = "terms" | "privacy";
@@ -128,17 +129,6 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         if (data?.authenticated) {
             toast.success("Berhasil mendaftar dan masuk");
             const currentUrl = new URL(window.location.href);
-            const getSafeRedirectPath = (value: string | null) => {
-                return value &&
-                    value.startsWith("/") &&
-                    !value.startsWith("//") &&
-                    !value.startsWith("/login") &&
-                    !value.startsWith("/register") &&
-                    !value.startsWith("/auth/callback")
-                    ? value
-                    : "/profile";
-            };
-
             const safeNext = getSafeRedirectPath(currentUrl.searchParams.get("next"));
 
             router.replace(safeNext);

@@ -72,7 +72,7 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
         <Button asChild variant="outline" className="h-11 rounded-xl">
           <Link href="/registration" prefetch={false}>
             <ArrowLeft className="h-4 w-4" />
-            Back to registration
+            Kembali ke pendaftaran
           </Link>
         </Button>
         <Button
@@ -80,7 +80,7 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
           className="h-11 rounded-xl"
           disabled={createPayment.isPending}
         >
-          {createPayment.isPending ? "Preparing payment..." : "Continue Payment"}
+          {createPayment.isPending ? "Menyiapkan pembayaran..." : "Lanjutkan Pembayaran"}
         </Button>
       </div>
     </section>

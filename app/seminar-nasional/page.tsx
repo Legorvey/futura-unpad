@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { HeroSection } from "@/components/seminar/hero-section"
 import AboutSection from "@/components/seminar/about-section"
+import { RuangLingkup } from "@/components/seminar/ruang-lingkup"
 import { SeminarTimeline } from "@/components/seminar/seminar-timeline"
 import { SeminarFAQ } from "@/components/seminar/seminar-faq"
 import PembicaraSeminarPleno from "@/components/seminar/pembicara-seminar-pleno"
@@ -67,6 +68,10 @@ export default function SeminarNasional() {
                         <AboutSection />
                     </div>
                     
+                    <ScrollReveal>
+                        <RuangLingkup />
+                    </ScrollReveal>
+
                     <ScrollReveal>
                         <SeminarTimeline />
                     </ScrollReveal>

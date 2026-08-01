@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import { ButtonV3 } from "../ui/button-v3"
 import FlipCountdown from "@/components/seminar/flip-countdown"
+import { ButtonV2 } from "../ui/button-v2"
 
 const SCRAMBLE_TARGET = "MECHATURA"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
@@ -71,10 +72,10 @@ export function HeroSection() {
   return (
     <section id="home" className="relative w-full overflow-hidden bg-background">
       <div className="relative mx-auto max-w-[100rem] pt-32 w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col justify-center min-h-screen py-20">
-        
+
         {/* Typographic Hero Stack */}
         <div className="flex flex-col w-full relative">
-          
+
           {/* Massive Typography */}
           <div className="uppercase text-center font-black w-full relative flex flex-col items-center">
             <h1 className="leading-[0.85] text-white text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[6rem] tracking-[-0.05em] relative z-10">
@@ -83,26 +84,26 @@ export function HeroSection() {
             <p className="mt-6 text-md md:text-xl font-light text-zinc-300 max-w-3xl text-balance">
               Mechatura adalah kompetisi teknologi dan robotika yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro (HMTE) Universitas Padjadjaran.
             </p>
-            
+
             <div className="flex flex-col items-center mt-12 gap-8">
-              <div className="flex flex-col items-center gap-4">
+              {/* <div className="flex flex-col items-center gap-4">
                 <span className="font-bold uppercase tracking-wide text-sm md:text-base">
                   Countdown
                 </span>
                 <FlipCountdown targetDate={new Date("2026-08-03T00:00:00+07:00").getTime()} />
-              </div>
+              </div> */}
               
-              {/* <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">
+              <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">
                 <ButtonV3
                     text="Daftar Sekarang"
                     href="/mechatura/form"
                     requireAuth={true}
                 />
 
-                <Button variant="link" asChild className="text-white/80 hover:text-white">
-                    <Link href="/docs/mechatura_guidebook.pdf">Lihat Guidebook</Link>
+                <Button className="rounded-full py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
+                    <Link href="https://drive.google.com/file/d/1ZrAl8yhVDBqf2Yo4GCoYwWAz-kv7-Zyo/view?usp=sharing">Lihat Booklet</Link>
                 </Button>
-              </div> */}
+              </div>
             </div>
           </div>
 

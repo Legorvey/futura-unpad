@@ -51,23 +51,45 @@ const RevealText = ({
   text: string;
   className?: string;
 }) => {
+  const words = text.split(" ");
   return (
     <span className={`inline-flex flex-wrap ${className || ""}`}>
-      {text.split("").map((char, index) => (
-        <span key={index} className="inline-flex overflow-hidden align-bottom">
-          <motion.span
-            variants={{
-              hidden: { y: "110%" },
-              visible: {
-                y: "0%",
-                transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-              },
-              exit: { opacity: 0, transition: { duration: 0.1 } },
-            }}
-            className="inline-block whitespace-pre"
-          >
-            {char}
-          </motion.span>
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-flex whitespace-nowrap">
+          {word.split("").map((char, charIndex) => (
+            <span key={charIndex} className="inline-flex overflow-hidden align-bottom">
+              <motion.span
+                variants={{
+                  hidden: { y: "110%" },
+                  visible: {
+                    y: "0%",
+                    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                  },
+                  exit: { opacity: 0, transition: { duration: 0.1 } },
+                }}
+                className="inline-block whitespace-pre"
+              >
+                {char}
+              </motion.span>
+            </span>
+          ))}
+          {wordIndex < words.length - 1 && (
+            <span className="inline-flex overflow-hidden align-bottom">
+              <motion.span
+                variants={{
+                  hidden: { y: "110%" },
+                  visible: {
+                    y: "0%",
+                    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                  },
+                  exit: { opacity: 0, transition: { duration: 0.1 } },
+                }}
+                className="inline-block whitespace-pre"
+              >
+                {" "}
+              </motion.span>
+            </span>
+          )}
         </span>
       ))}
     </span>
@@ -109,12 +131,12 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
 
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
   const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [20, 0, -20]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.2, 1, 1, 0.2]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.4, 1, 1, 0.4]);
 
   return (
     <motion.div
       ref={ref}
-      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : {}}
+      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : { opacity: 1, transform: "none" }}
       className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
     >
       {/* 3D Background Number */}
@@ -126,8 +148,8 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </motion.div>
 
       {/* Left Column of Timeline Item: Date */}
-      <div className="w-full md:w-[45%] flex flex-col items-start mb-4 md:mb-0 relative z-20">
-        <motion.div style={!isLiteMotion ? { y: yDate } : {}} className="w-full">
+      <div className="w-full md:w-[45%] xl:w-[35%] xl:pr-8 flex flex-col items-start mb-4 xl:mb-0 relative z-20">
+        <motion.div style={!isLiteMotion ? { y: yDate } : { transform: "none" }} className="w-full">
           <RevealText 
             text={item.date} 
             className="text-sm md:text-base font-bold text-amber-300 tracking-[-0.02em]"
@@ -142,15 +164,15 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
-      <div className="w-full md:w-[80%] flex flex-col relative z-30">
-        <motion.div style={!isLiteMotion ? { y: yEvent } : {}} className="relative">
+      <div className="w-full md:w-[80%] xl:w-[65%] flex flex-col relative z-30">
+        <motion.div style={!isLiteMotion ? { y: yEvent } : { transform: "none" }} className="relative">
           <RevealText 
             text={item.event}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.05em] leading-[1.05] text-balance text-white"
           />
         </motion.div>
 
-        <motion.div style={!isLiteMotion ? { y: yDesc } : {}} className="mt-3 w-full max-w-md relative z-10">
+        <motion.div style={!isLiteMotion ? { y: yDesc } : { transform: "none" }} className="mt-3 w-full max-w-md relative z-10">
           <RevealWords 
             text={item.description}
             className="text-base md:text-lg lg:text-xl leading-relaxed text-white/80 tracking-[-0.04em] font-light"

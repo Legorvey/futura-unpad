@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const clientEssayFormSchema = z.object({
+export const clientEsaiFormSchema = z.object({
   team_name: z.string().trim().min(1, "Nama tim wajib diisi.").max(120, "Nama tim terlalu panjang."),
   institution: z.string().trim().min(1, "Perguruan tinggi wajib diisi.").max(160, "Nama perguruan tinggi terlalu panjang."),
   faculty: z.string().trim().min(1, "Jurusan/Prodi wajib diisi.").max(120, "Jurusan/Prodi terlalu panjang."),
@@ -61,6 +61,6 @@ export const clientEssayFormSchema = z.object({
   }
 });
 
-export type ClientEssayFormValues = z.infer<typeof clientEssayFormSchema>;
-const clientLombaEssayFormSchema = clientEssayFormSchema;
-export type ClientLombaEssayFormValues = ClientEssayFormValues;
+export type ClientEsaiFormValues = z.infer<typeof clientEsaiFormSchema>;
+const clientLombaEsaiFormSchema = clientEsaiFormSchema;
+export type ClientLombaEsaiFormValues = ClientEsaiFormValues;

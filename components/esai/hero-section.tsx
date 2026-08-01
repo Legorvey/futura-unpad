@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import FlipCountdown from "@/components/seminar/flip-countdown"
 
-const SCRAMBLE_TARGET = "LOMBA ESSAY"
+const SCRAMBLE_TARGET = "LOMBA ESAI"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
 const SCRAMBLE_DELAY_MS = 3000
 const SCRAMBLE_FRAME_MS = 48
@@ -27,7 +27,7 @@ function getScrambledWord(frame: number) {
     .join("")
 }
 
-function ScrambledEssay() {
+function ScrambledEsai() {
   const [word, setWord] = useState(SCRAMBLE_TARGET)
   const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: false, amount: 0.5 })
@@ -78,7 +78,7 @@ export function HeroSection() {
           {/* Massive Typography */}
           <div className="uppercase text-center font-black w-full relative flex flex-col items-center">
             <h1 className="leading-[0.85] text-white text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[6rem] tracking-[-0.05em] relative z-10">
-              <ScrambledEssay />
+              <ScrambledEsai />
             </h1>
             <p className="mt-6 text-md md:text-xl font-light text-zinc-300 max-w-3xl text-balance">
               Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030

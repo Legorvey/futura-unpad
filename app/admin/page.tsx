@@ -146,7 +146,7 @@ async function AdminDashboardData() {
 
             <section className="relative z-10">
                 <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
-                    Lomba Essay
+                    Lomba Esai
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">

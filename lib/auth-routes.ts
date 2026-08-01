@@ -2,7 +2,7 @@ const authRequiredPathPrefixes = [
   "/profile",
   "/payment",
   "/mechatura/form",
-  "/lomba-essay/form",
+  "/lomba-esai/form",
   "/seminar-nasional/form",
 ] as const;
 

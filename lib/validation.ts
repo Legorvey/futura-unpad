@@ -3,7 +3,7 @@ import { z } from "zod";
 import { isRegistrationToken } from "./payment";
 
 export * from "./validation/auth";
-export * from "./validation/essay";
+export * from "./validation/esai";
 export * from "./validation/mechatura";
 export * from "./validation/seminar";
 

@@ -1,14 +1,13 @@
 "use client";
 
 import type { BaseSyntheticEvent } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "nextjs-toploader/app";
 import type { FieldPath } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 
 import MechaturaIdentityStep from "@/components/registration/mechatura/mechatura-identity-step";
-import StepProgress from "@/components/registration/step-progress";
 import { clearFormDraft, useFormDraft } from "@/hooks/use-form-draft";
 import { useCreateMechaturaRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
 import { toast } from "sonner";
@@ -27,6 +26,7 @@ import {
 import KategoriLomba from "./kategori-lomba";
 import MechaturaLampiranStep from "@/components/registration/mechatura/mechatura-lampiran-step";
 import MechaturaVerificationStep from "@/components/registration/mechatura/mechatura-verification-step";
+import MechaturaFormSidebar from "./sidebar";
 
 const MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES = 2 * 1024 * 1024;
 const MECHATURA_DRAFT_STORAGE_KEY = "futura:registration:mechatura:draft";
@@ -53,6 +53,13 @@ export default function MechaturaRegistrationForm() {
   const { step, setStep, steps } = useRegistrationStep("mechatura");
   const createRegistration = useCreateMechaturaRegistrationMutation();
   const [submitError, setSubmitError] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, []);
   const form = useForm<MechaturaFormValues>({
     resolver: zodResolver(mechaturaSchema),
     mode: "onChange",
@@ -183,7 +190,7 @@ export default function MechaturaRegistrationForm() {
 
 
         if (error.status === 401) {
-          router.push("/login?next=/registration/mechatura");
+          router.push("/login?next=/mechatura/form");
           return null;
         }
       }
@@ -218,43 +225,45 @@ export default function MechaturaRegistrationForm() {
 
   return (
     <FormProvider {...form}>
-      <section className="space-y-8">
-        <StepProgress
-          steps={steps}
-          currentStep={step}
-          ariaLabel="Mechatura registration progress"
+      <div className="flex flex-col lg:flex-row items-stretch gap-0 relative lg:-mx-12 lg:-my-12 h-full rounded-[inherit] overflow-clip">
+        <MechaturaFormSidebar 
+          currentStep={step} 
+          steps={steps} 
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         />
+        <section className="flex-1 space-y-6 p-4 sm:p-8 lg:p-12 transition-all duration-300 min-w-0">
+          {step === "tipe-robot" ? (
+            <KategoriLomba onContinue={goToIdentity} />
+          ) : null}
 
-        {step === "tipe-robot" ? (
-          <KategoriLomba onContinue={goToIdentity} />
-        ) : null}
+          {step === "identitas" ? (
+            <MechaturaIdentityStep
+              isSubmitting={form.formState.isSubmitting}
+              onSubmit={goToLampiran}
+              onBack={() => setStep("tipe-robot")}
+            />
+          ) : null}
 
-        {step === "identitas" ? (
-          <MechaturaIdentityStep
-            isSubmitting={form.formState.isSubmitting}
-            onSubmit={goToLampiran}
-            onBack={() => setStep("tipe-robot")}
-          />
-        ) : null}
+          {step === "lampiran" ? (
+            <MechaturaLampiranStep
+              documentMaxSizeInBytes={MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES}
+              onBack={() => setStep("identitas")}
+              onSubmit={goToVerification}
+            />
+          ) : null}
 
-        {step === "lampiran" ? (
-          <MechaturaLampiranStep
-            documentMaxSizeInBytes={MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES}
-            onBack={() => setStep("identitas")}
-            onSubmit={goToVerification}
-          />
-        ) : null}
-
-        {step === "verifikasi" ? (
-          <MechaturaVerificationStep
-            documentMaxSizeInBytes={MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES}
-            isSubmitting={createRegistration.isPending}
-            onBack={() => setStep("lampiran")}
-            onSubmit={submitVerification}
-            submitError={submitError}
-          />
-        ) : null}
-      </section>
+          {step === "verifikasi" ? (
+            <MechaturaVerificationStep
+              documentMaxSizeInBytes={MECHATURA_DOCUMENT_MAX_SIZE_IN_BYTES}
+              isSubmitting={createRegistration.isPending}
+              onBack={() => setStep("lampiran")}
+              onSubmit={submitVerification}
+              submitError={submitError}
+            />
+          ) : null}
+        </section>
+      </div>
     </FormProvider>
   );
 }

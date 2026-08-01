@@ -6,7 +6,7 @@ import { AlertCircle } from "lucide-react"
 import { requireAdminOrRedirect } from "@/lib/auth"
 import { Suspense } from "react"
 import TableLoading from "../table-loading"
-import { LombaEssayFilter } from "./lomba-essay-filter"
+import { LombaEsaiFilter } from "./lomba-esai-filter"
 
 type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -34,7 +34,7 @@ async function LKTIAdminData({
                             Cari dan filter peserta LKTI.
                         </p>
                     </div>
-                    <LombaEssayFilter searchParam={searchParam} categoryParam={categoryParam} />
+                    <LombaEsaiFilter searchParam={searchParam} categoryParam={categoryParam} />
                 </div>
 
                 <div className="grid gap-3 border-y border-border py-6 mt-6 sm:grid-cols-4">
@@ -70,7 +70,7 @@ async function LKTIAdminData({
     )
 }
 export const metadata: Metadata = {
-  title: "Admin Lomba Essay"
+  title: "Admin Lomba Esai"
 }
 
 export default function LKTIAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><LKTIAdminData searchParams={searchParams} /></Suspense> }

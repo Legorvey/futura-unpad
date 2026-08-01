@@ -41,8 +41,8 @@ export type RevenueData = {
   date: string
   mechatura_gross: number
   mechatura_net: number
-  essay_gross: number
-  essay_net: number
+  esai_gross: number
+  esai_net: number
   count: number
 }
 
@@ -51,8 +51,8 @@ const chartConfig = {
     label: "Mechatura (Net)",
     color: "hsl(221.2 83.2% 53.3%)", // Deep Blue
   },
-  essay_net: {
-    label: "Lomba Essay (Net)",
+  esai_net: {
+    label: "Lomba Esai (Net)",
     color: "hsl(271.5 81.3% 55.9%)", // Vibrant Purple
   },
   tax: {
@@ -96,16 +96,16 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
       
       const mechaturaGross = Number(item?.mechatura_gross || 0)
       const mechaturaNet = Number(item?.mechatura_net || 0)
-      const essayGross = Number(item?.essay_gross || 0)
-      const essayNet = Number(item?.essay_net || 0)
+      const esaiGross = Number(item?.esai_gross || 0)
+      const esaiNet = Number(item?.esai_net || 0)
 
       return {
         date: dateStr,
         mechatura_gross: mechaturaGross,
         mechatura_net: mechaturaNet,
-        essay_gross: essayGross,
-        essay_net: essayNet,
-        tax: (mechaturaGross - mechaturaNet) + (essayGross - essayNet),
+        esai_gross: esaiGross,
+        esai_net: esaiNet,
+        tax: (mechaturaGross - mechaturaNet) + (esaiGross - esaiNet),
         formattedDate: format(day, "d MMM"), // explicitly show month abbreviation since range can span multiple months
         count: Number(item?.count || 0)
       }
@@ -113,8 +113,8 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
   }, [data, dateRange])
 
   const totalMechaturaNet = formattedData.reduce((sum, item) => sum + item.mechatura_net, 0)
-  const totalEssayNet = formattedData.reduce((sum, item) => sum + item.essay_net, 0)
-  const totalNetRevenue = totalMechaturaNet + totalEssayNet
+  const totalEsaiNet = formattedData.reduce((sum, item) => sum + item.esai_net, 0)
+  const totalNetRevenue = totalMechaturaNet + totalEsaiNet
   const totalTax = formattedData.reduce((sum, item) => sum + item.tax, 0)
   const totalGrossRevenue = totalNetRevenue + totalTax
   const totalRegistrations = formattedData.reduce((sum, item) => sum + item.count, 0)
@@ -282,19 +282,19 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
                              </div>
                            )}
                            
-                           {data.essay_gross > 0 && (
+                           {data.esai_gross > 0 && (
                              <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: chartConfig.essay_net.color }} />
-                                  <span className="text-xs text-muted-foreground font-medium">{chartConfig.essay_net.label}</span>
+                                  <div className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: chartConfig.esai_net.color }} />
+                                  <span className="text-xs text-muted-foreground font-medium">{chartConfig.esai_net.label}</span>
                                 </div>
                                 <div className="pl-4.5 text-xs flex justify-between items-center">
                                   <span className="text-muted-foreground">Gross Revenue:</span>
-                                  <span className="font-mono">{formatCurrency(data.essay_gross)}</span>
+                                  <span className="font-mono">{formatCurrency(data.esai_gross)}</span>
                                 </div>
                                 <div className="pl-4.5 text-xs flex justify-between items-center">
                                   <span className="text-muted-foreground">Net Income:</span>
-                                  <span className="font-mono font-medium text-foreground">{formatCurrency(data.essay_net)}</span>
+                                  <span className="font-mono font-medium text-foreground">{formatCurrency(data.esai_net)}</span>
                                 </div>
                              </div>
                            )}
@@ -324,16 +324,16 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
                   dataKey="mechatura_net" 
                   stackId="a"
                   fill="var(--color-mechatura_net)"
-                  radius={totalEssayNet === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                  radius={totalEsaiNet === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                   maxBarSize={40}
                 />
               )}
-              {totalEssayNet > 0 && (
+              {totalEsaiNet > 0 && (
                 <Bar 
                   yAxisId="left"
-                  dataKey="essay_net" 
+                  dataKey="esai_net" 
                   stackId="a"
-                  fill="var(--color-essay_net)"
+                  fill="var(--color-esai_net)"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={40}
                 />

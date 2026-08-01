@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
-
-import PaymentProgress from "@/components/registration/payment-progress";
+import { CheckCircle2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
@@ -24,6 +18,7 @@ import {
 } from "@/lib/mechatura/payment";
 import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
+import MechaturaPaymentLayout from "../mechatura-payment-layout";
 
 export const metadata: Metadata = {
   title: "Pembayaran Berhasil"
@@ -88,12 +83,10 @@ async function verifyPayment(orderId: string) {
     return { status: "invalid" as const };
   }
 
-  if (order.userId) {
-    const { user } = await getCachedAuth();
+  const { user } = await getCachedAuth();
 
-    if (order.userId !== user?.id) {
-      return { status: "invalid" as const };
-    }
+  if (!user || order.userId !== user.id) {
+    return { status: "invalid" as const };
   }
 
   if (!isCompletedMechaturaPaymentStatus(order.paymentStatus)) {
@@ -107,10 +100,6 @@ async function verifyPayment(orderId: string) {
       if (isCompletedMechaturaPaymentStatus(newStatus)) {
          order.paidAt = new Date().toISOString(); // Predictively mark as paid for receipt
       }
-    }
-
-    if (!order) {
-      return { status: "invalid" as const };
     }
   }
 
@@ -155,22 +144,8 @@ export default async function PaymentSuccessPage({
       ? "Kami tidak dapat menemukan pesanan pembayaran yang valid untuk tautan ini. Silakan kembali ke alur pendaftaran Anda."
       : "Kami menerima pengalihan pembayaran, namun konfirmasi dari gateway belum final. Silakan tunggu sebentar, lalu muat ulang halaman.";
 
-  return (
-    <main className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-3xl flex-col justify-center space-y-8 px-4 pb-32 pt-28 sm:px-8">
-      <section>
-        <div className="space-y-2">
-          <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            {title}
-          </h1>
-          <p className="max-w-lg text-sm font-medium leading-relaxed text-neutral-500">
-            {description}
-          </p>
-        </div>
-      </section>
-
-      <section className="space-y-8">
-        <PaymentProgress program={"program" in result ? result.program : undefined} />
-      </section>
+  const content = (
+    <div className="space-y-8 w-full max-w-3xl mx-auto">
 
       {isPaid && result.program === "mechatura" && result.order?.rawOrder ? (
         <section className="space-y-8">
@@ -183,7 +158,7 @@ export default async function PaymentSuccessPage({
                 <h2 className="text-lg font-semibold">
                   Pembayaran dan Pendaftaran Selesai
                 </h2>
-                <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500">
+                <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground">
                   Pendaftaran kompetisi Mechatura Anda telah diverifikasi. Di bawah ini adalah detail tim Anda.
                 </p>
               </div>
@@ -273,6 +248,33 @@ export default async function PaymentSuccessPage({
            </div>
         </section>
       )}
+    </div>
+  );
+
+  const isMechatura = "program" in result && result.program === "mechatura";
+
+  if (isMechatura) {
+    return (
+      <MechaturaPaymentLayout title={title} description={description}>
+        {content}
+      </MechaturaPaymentLayout>
+    );
+  }
+
+  return (
+    <main className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-3xl flex-col justify-center space-y-8 px-4 pb-32 pt-28 sm:px-8">
+      <section>
+        <div className="space-y-2">
+          <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            {title}
+          </h1>
+          <p className="max-w-lg text-sm font-medium leading-relaxed text-neutral-500">
+            {description}
+          </p>
+        </div>
+      </section>
+
+      {content}
     </main>
   );
 }

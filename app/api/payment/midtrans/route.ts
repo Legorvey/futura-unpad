@@ -63,23 +63,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  if (existingOrder.userId) {
-    const authSupabase = await createClient();
-    const {
-      data: { user },
-    } = await authSupabase.auth.getUser();
+  const authSupabase = await createClient();
+  const {
+    data: { user },
+  } = await authSupabase.auth.getUser();
 
-    if (existingOrder.userId !== user?.id) {
-      console.error("[Midtrans Payment] Forbidden Mismatch:", {
-        orderUserId: existingOrder.userId,
-        sessionUserId: user?.id,
-        sessionExists: !!user,
-      });
-      return NextResponse.json({ 
-        error: "Forbidden", 
-        details: "You do not have permission to pay for this order." 
-      }, { status: 403 });
-    }
+  if (!user || existingOrder.userId !== user.id) {
+    console.error("[Midtrans Payment] Forbidden Mismatch:", {
+      orderUserId: existingOrder.userId,
+      sessionUserId: user?.id,
+      sessionExists: !!user,
+    });
+    return NextResponse.json({ 
+      error: "Forbidden", 
+      details: "You do not have permission to pay for this order." 
+    }, { status: 403 });
   }
 
   if (isCompletedMechaturaPaymentStatus(existingOrder.paymentStatus)) {

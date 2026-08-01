@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 
 import Link from "next/link";
-import { CreditCard, LucideGlobeLock } from "lucide-react";
-import PaymentProgress from "@/components/registration/payment-progress";
+import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
@@ -18,13 +17,12 @@ import {
   isCompletedMechaturaPaymentStatus,
 } from "@/lib/mechatura/payment";
 import {
-  getMechaturaPaymentExpiresAt,
   isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
 import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 import PaymentActions from "./payment-actions";
-import PaymentDeadline from "./payment-deadline";
+import MechaturaPaymentLayout from "./mechatura-payment-layout";
 
 type PaymentSearchParams = Promise<
   Record<string, string | string[] | undefined>
@@ -130,12 +128,10 @@ export default async function PaymentPage({
     return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
   }
 
-  if (order.userId) {
-    const { user } = await getCachedAuth();
+  const { user } = await getCachedAuth();
 
-    if (order.userId !== user?.id) {
-       return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
-    }
+  if (!user || order.userId !== user.id) {
+    return <PaymentErrorState title="Tautan pembayaran tidak valid." description="Silakan kembali untuk mengisi dan mengirimkan formulir lagi." href="/" cta="Kembali ke Beranda" />;
   }
 
   const paymentStatus = isPaymentStatus(order.paymentStatus)
@@ -158,27 +154,11 @@ export default async function PaymentPage({
     );
   }
 
-  const expiresAt = getMechaturaPaymentExpiresAt(order.createdAt);
+  const isMechatura = order.program === "mechatura";
 
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center space-y-12 px-4 pb-16 pt-32 sm:px-8">
-      <section className="space-y-2">
-        <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          Selesaikan Pembayaran.
-        </h1>
-        <p className="max-w-lg text-sm font-medium leading-relaxed text-neutral-500">
-          Tinjau pesanan {registrationProgramLabels[order.program]} Anda sebelum
-          melanjutkan ke pembayaran.
-        </p>
-      </section>
-
-      <PaymentProgress program={order.program} />
-
-      {!isPaid && expiresAt ? (
-        <PaymentDeadline expiresAt={expiresAt.toISOString()} />
-      ) : null}
-
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+  const content = (
+    <div className="space-y-12 w-full max-w-3xl mx-auto">
+      <section className={`overflow-hidden rounded-xl border ${isMechatura ? 'bg-card text-card-foreground border-border' : 'border-border bg-card'}`}>
         <div className="border-b border-border p-5">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -237,7 +217,7 @@ export default async function PaymentPage({
       </section>
 
       {isPaid ? (
-        <Button asChild className="h-11 rounded-xl">
+        <Button asChild className="h-11 rounded-xl w-full">
           <Link href={`/payment/success?order_id=${order.externalId}`} prefetch={false}>
             Lihat bukti pembayaran
           </Link>
@@ -245,6 +225,30 @@ export default async function PaymentPage({
       ) : (
         <PaymentActions orderId={order.externalId} />
       )}
+    </div>
+  );
+
+  if (isMechatura) {
+    return (
+      <MechaturaPaymentLayout>
+        {content}
+      </MechaturaPaymentLayout>
+    );
+  }
+
+  return (
+    <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center space-y-12 px-4 pb-16 pt-32 sm:px-8">
+      <section className="space-y-2">
+        <h1 className="max-w-xl text-3xl sm:text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+          Selesaikan Pembayaran.
+        </h1>
+        <p className="max-w-lg text-sm font-medium leading-relaxed text-neutral-500">
+          Tinjau pesanan {registrationProgramLabels[order.program]} Anda sebelum
+          melanjutkan ke pembayaran.
+        </p>
+      </section>
+
+      {content}
     </main>
   );
 }

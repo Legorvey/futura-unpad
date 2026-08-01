@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import { ButtonV3 } from "../ui/button-v3"
 import FlipCountdown from "@/components/seminar/flip-countdown"
+import { ButtonV2 } from "../ui/button-v2"
 
 const SCRAMBLE_TARGET = "MECHATURA"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
@@ -85,24 +86,24 @@ export function HeroSection() {
             </p>
             
             <div className="flex flex-col items-center mt-12 gap-8">
-              <div className="flex flex-col items-center gap-4">
+              {/* <div className="flex flex-col items-center gap-4">
                 <span className="font-bold uppercase tracking-wide text-sm md:text-base">
                   Countdown
                 </span>
                 <FlipCountdown targetDate={new Date("2026-08-03T00:00:00+07:00").getTime()} />
-              </div>
+              </div> */}
               
-              {/* <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">
+              <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">
                 <ButtonV3
                     text="Daftar Sekarang"
                     href="/mechatura/form"
                     requireAuth={true}
                 />
 
-                <Button variant="link" asChild className="text-white/80 hover:text-white">
-                    <Link href="/docs/mechatura_guidebook.pdf">Lihat Guidebook</Link>
+                <Button className="rounded-full py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
+                    <Link href="https://drive.google.com/file/d/1ZrAl8yhVDBqf2Yo4GCoYwWAz-kv7-Zyo/view?usp=sharing">Lihat Booklet</Link>
                 </Button>
-              </div> */}
+              </div>
             </div>
           </div>
 

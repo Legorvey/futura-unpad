@@ -154,8 +154,8 @@ function EventCard({ event, index }: { event: any, index: number }) {
                 <div className="mt-auto flex flex-col gap-8">
                     <div className="p-5 rounded-2xl bg-black/20 border border-white/5 backdrop-blur-sm">
                         <span
-                            className="block text-xs font-bold tracking-widest uppercase mb-2 bg-clip-text text-white group-hover:text-transparent transition-colors duration-300 w-fit"
-                            style={{ backgroundImage: `linear-gradient(to right, ${event.gradient[0]}, ${event.gradient[1]}, ${event.gradient[2]})` }}
+                            className="block text-xs font-bold tracking-widest uppercase mb-2 text-white group-hover:text-[var(--hover-color)] transition-colors duration-300 w-fit"
+                            style={{ '--hover-color': `rgb(${event.accentRGB})` } as React.CSSProperties}
                         >
                             {event.highlights_title}
                         </span>

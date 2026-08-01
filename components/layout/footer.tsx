@@ -129,7 +129,7 @@ export default function Footer() {
       links: [
         { label: "Seminar Nasional", href: "/seminar-nasional" },
         { label: "Mechatura", href: "/mechatura" },
-        { label: "Lomba Esai", href: "/lomba-essay" },
+        { label: "Lomba Esai", href: "/lomba-esai" },
       ],
     },
     {

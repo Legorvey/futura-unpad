@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
-import { HeroSection } from "@/components/essay/hero-section"
+import { HeroSection } from "@/components/esai/hero-section"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
-import { ContactSection } from "@/components/essay/contact-section"
+import { ContactSection } from "@/components/esai/contact-section"
 export const metadata: Metadata = {
-  title: "Lomba Essay"
+  title: "Lomba Esai"
 }
 
-export default function LombaEssay() {
+export default function LombaEsai() {
     return (
         <>
             <style dangerouslySetInnerHTML={{ __html: `

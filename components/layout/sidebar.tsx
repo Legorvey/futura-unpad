@@ -49,7 +49,7 @@ export function Sidebar() {
         ...(adminAccess ? [
             { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
             { href: "/admin/seminar", label: "Seminar", icon: Users },
-            { href: "/admin/lomba-essay", label: "Lomba Essay", icon: Trophy },
+            { href: "/admin/lomba-esai", label: "Lomba Esai", icon: Trophy },
             { href: "/admin/mechatura", label: "Mechatura", icon: Cpu },
         ] : []),
         ...(!adminAccess ? [

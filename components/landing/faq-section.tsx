@@ -109,7 +109,7 @@ export const mechaturaFaqs: FAQ[] = [
 ]
 
 
-const essayFaqs = [
+const esaiFaqs = [
   {
     question: "Apakah saya bisa berpartisipasi secara online (daring)?",
     answer:
@@ -141,7 +141,7 @@ const faqGroups = [
   {
     title: "Lomba Esai",
     headingPadding: "pb-6",
-    faqs: essayFaqs,
+    faqs: esaiFaqs,
   },
 ]
 

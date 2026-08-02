@@ -30,7 +30,7 @@ const timelineTabs = [
       {
         category: "Seminar Nasional",
         event: "Akhir Registrasi",
-        date: "21 Oktober 2026",
+        date: "21 November 2026",
         description: "Akhir registrasi peserta Seminar Nasional Futura.",
         location: "Online/Daring",
       },

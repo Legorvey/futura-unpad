@@ -73,20 +73,20 @@ export default function MechaturaVerificationSummary() {
       </section>
 
       <section className="border-t pt-5">
-        <h3 className="text-sm font-semibold">Pembina</h3>
+        <h3 className="text-sm font-semibold">Pembimbing (Opsional)</h3>
         {values.has_coach ? (
           <dl className="mt-3 grid gap-4 sm:grid-cols-2">
-            <SummaryItem label="Nama Pembina" value={values.coach_name} />
+            <SummaryItem label="Nama Pembimbing" value={values.coach_name} />
             <SummaryItem
-              label="Email Pembina"
+              label="Email Pembimbing"
               value={values.coach_email}
               valueClassName="break-all"
             />
-            <SummaryItem label="WhatsApp Pembina" value={values.coach_phone} />
+            <SummaryItem label="WhatsApp Pembimbing" value={values.coach_phone} />
           </dl>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">
-            Tim tidak menambahkan pembina.
+            Tim tidak menambahkan pembimbing.
           </p>
         )}
       </section>

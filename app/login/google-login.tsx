@@ -3,23 +3,9 @@
 import { createClient } from "@/utils/supabase/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { getSafeRedirectPath } from "@/lib/navigation"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
-
-const getSafeRedirectPath = (value: string | null) => {
-    if (
-        !value ||
-        !value.startsWith("/") ||
-        value.startsWith("//") ||
-        value.startsWith("/login") ||
-        value === "/register" ||
-        value.startsWith("/register?") ||
-        value.startsWith("/auth/callback")
-    ) {
-        return "/profile"
-    }
-
-    return value
-}
+import { AUTH_PERSISTENCE_COOKIE, SESSION_AUTH_PERSISTENCE } from "@/utils/supabase/auth-cookies"
 
 // Ensure this environment variable is set
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
@@ -48,6 +34,12 @@ export default function GoogleLoginButton({
 
         setIsLoading(true)
 
+        if (!keepSignedIn) {
+            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=${SESSION_AUTH_PERSISTENCE}; path=/; max-age=2592000; SameSite=Lax`;
+        } else {
+            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        }
+
         try {
             const { error } = await supabase.auth.signInWithIdToken({
                 provider: "google",
@@ -65,9 +57,8 @@ export default function GoogleLoginButton({
             const currentUrl = new URL(window.location.href)
             const nextPath = getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile")
             
-            // Use router.push to navigate without full page reload, or router.replace
-            router.push(nextPath)
-            router.refresh()
+            // Use router.replace to safely navigate without triggering duplicate route refresh race conditions
+            router.replace(nextPath);
 
         } catch (error) {
             console.error("Unexpected error during Google login:", error)

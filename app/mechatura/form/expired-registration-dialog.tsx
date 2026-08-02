@@ -24,17 +24,25 @@ export default function ExpiredRegistrationDialog({
   registrationId,
 }: ExpiredRegistrationDialogProps) {
   const [open, setOpen] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleConfirm = () => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setError(null);
     startTransition(async () => {
-      await deleteExpiredRegistration(registrationId);
-      setOpen(false);
+      try {
+        await deleteExpiredRegistration(registrationId);
+        setOpen(false);
+      } catch (err) {
+        console.error("Failed to delete expired registration:", err);
+        setError("Gagal mereset pendaftaran. Silakan muat ulang halaman atau coba lagi.");
+      }
     });
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={isPending ? undefined : setOpen}>
+    <AlertDialog open={open} onOpenChange={isPending ? undefined : () => {}}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Batas waktu pembayaran telah berakhir</AlertDialogTitle>
@@ -42,10 +50,19 @@ export default function ExpiredRegistrationDialog({
             Batas waktu pembayaran untuk {teamName} telah berakhir. Pendaftaran tim Mechatura Anda sebelumnya telah diatur ulang, sehingga Anda dapat mengirimkan pendaftaran baru dari awal.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        {error && (
+          <p className="text-sm font-medium text-destructive mt-2">{error}</p>
+        )}
+
         <AlertDialogFooter>
-          <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={isPending}
+            className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold shadow-sm transition-all"
+          >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Mulai pendaftaran baru
+            Mulai Pendaftaran Baru
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -66,7 +66,7 @@ export default function MechaturaMemberInfo(){
                     Identitas Anggota Tim
                 </h2>
                 <p className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-                    Mohon isi data member tim
+                    Tim terdiri dari 1 hingga 3 orang (1 Ketua dan maksimal 2 Anggota). Terbuka untuk pelajar, mahasiswa, dan umum.
                 </p>
             </div>
             
@@ -92,7 +92,7 @@ export default function MechaturaMemberInfo(){
                     <FormTextField<MechaturaFormValues>
                         name="leader_phone"
                         label="No. WhatsApp Ketua Tim"
-                        placeholder="Masukkan nama WhatsApp ketua tim anda"
+                        placeholder="Masukkan nomor WhatsApp ketua tim anda"
                         required
                     />
                 </div>

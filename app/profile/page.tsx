@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 /* eslint-disable */
-export const runtime = 'edge';
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight } from "lucide-react"

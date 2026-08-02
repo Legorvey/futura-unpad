@@ -12,28 +12,27 @@ export default function MechaturaDocsInfo({
         <section className="overflow-hidden rounded-xl border border-border bg-card" aria-labelledby="team-section-label">
             <div className="border-b border-border p-4 sm:p-6">
                 <h2 id="team-section-label" className="text-lg font-semibold">
-                    Lampiran Anggota Tim
+                    Lampiran Identitas Anggota Tim
                 </h2>
                 <p className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-                    Mohon isi input di bawah berikut dengan satu file PDF yang berisi atas 3 hal, yaitu:
+                    Gabungkan kartu identitas seluruh anggota tim yang didaftarkan ke dalam <strong>1 file PDF</strong>:
                 </p>
-                <ul className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-                    <li>- Student ID (KTM/Kartu Pelajar) Leader</li>
-                    <li>- Student ID Member 2</li>
-                    <li>- Student ID Member 3</li>
+                <ul className="mt-2 space-y-1 text-sm font-medium leading-relaxed text-neutral-500">
+                    <li>• <strong>Pelajar/Mahasiswa</strong>: Kartu Pelajar atau Kartu Tanda Mahasiswa (KTM) aktif.</li>
+                    <li>• <strong>Kategori Umum</strong>: KTP atau Kartu Identitas Resmi yang masih berlaku.</li>
+                    <li>• File harus mencakup identitas <strong>Ketua Tim</strong> dan seluruh <strong>Anggota</strong> yang didaftarkan.</li>
                 </ul>
             </div>
     
             <div className="space-y-6 p-4 sm:p-6">
-    
-            <FormFileField<MechaturaFormValues>
-                name="member_document"
-                title="Unggah Dokumen Anggota"
-                description="Mohon unggah file sesuai dengan ketentuan yang tertera."
-                accept="application/pdf"
-                maxSizeInBytes={documentMaxSizeInBytes}
-                required
-            />
+                <FormFileField<MechaturaFormValues>
+                    name="member_document"
+                    title="Unggah Dokumen Identitas Anggota (PDF)"
+                    description="Format PDF, ukuran maksimal 5 MB. Pastikan foto dan data identitas terbaca dengan jelas."
+                    accept="application/pdf"
+                    maxSizeInBytes={documentMaxSizeInBytes}
+                    required
+                />
             </div>
         </section>
     )

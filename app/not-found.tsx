@@ -3,17 +3,17 @@ import { FileQuestion } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-4 pb-16 pt-32 sm:px-8">
-      <div className="mb-4 text-7xl font-bold tracking-tighter text-muted/30 select-none pointer-events-none">
-        404
-      </div>
-      <ErrorState 
+    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <ErrorState
+        statusCode="404"
         icon={FileQuestion}
         title="Halaman Tidak Ditemukan"
-        description="Kami tidak dapat menemukan halaman yang Anda cari. Halaman mungkin telah dipindahkan, dihapus, atau tidak pernah ada."
+        description="Halaman yang Anda tuju tidak dapat ditemukan. Mungkin tautan telah kedaluwarsa, dipindahkan, atau alamat yang dimasukkan salah."
         actionHref="/"
         actionLabel="Kembali ke Beranda"
-        className="-mt-12"
+        secondaryActionHref="/faq"
+        secondaryActionLabel="Pusat Bantuan & FAQ"
+        tone="neutral"
       />
     </main>
   );

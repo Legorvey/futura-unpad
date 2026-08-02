@@ -7,11 +7,18 @@ import {
   findMechaturaPaymentOrder,
   getMechaturaPaymentItemName,
   isCompletedMechaturaPaymentStatus,
+  rotateMechaturaPaymentOrderId,
+  updateMechaturaPaymentStatus,
 } from "@/lib/mechatura/payment";
-import { isMechaturaPaymentExpired } from "@/lib/mechatura/registration";
+import {
+  getLatestMechaturaRegistration,
+  isMechaturaPaymentExpired,
+} from "@/lib/mechatura/registration";
 import {
   createMidtransSnapTransaction,
   getMidtransEnvironment,
+  MidtransOrderDuplicateError,
+  MidtransSnapResponse,
 } from "@/lib/midtrans";
 import { isRegistrationToken } from "@/lib/payment";
 import { rateLimit } from "@/lib/rate-limit";
@@ -50,8 +57,23 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
+  const authSupabase = await createClient();
+  const {
+    data: { user },
+  } = await authSupabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        details: "You must be signed in to perform this action.",
+      },
+      { status: 401 }
+    );
+  }
+
   const adminSupabase = createAdminClient();
-  const existingOrder = await findMechaturaPaymentOrder(
+  let existingOrder = await findMechaturaPaymentOrder(
     adminSupabase,
     parsed.data.order_id
   ).catch((error) => {
@@ -59,25 +81,36 @@ export async function POST(request: Request) {
     return null;
   });
 
+  // Fallback: If order not found by order_id, check if authenticated user owns an active mechatura registration
   if (!existingOrder) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    const latest = await getLatestMechaturaRegistration(
+      adminSupabase,
+      user.id
+    ).catch(() => null);
+    if (latest) {
+      existingOrder = await findMechaturaPaymentOrder(
+        adminSupabase,
+        latest.paymentOrderId
+      ).catch(() => null);
+    }
   }
 
-  const authSupabase = await createClient();
-  const {
-    data: { user },
-  } = await authSupabase.auth.getUser();
+  if (!existingOrder) {
+    return NextResponse.json({ error: "Pesanan tidak ditemukan" }, { status: 404 });
+  }
 
-  if (!user || existingOrder.userId !== user.id) {
+  if (existingOrder.userId !== user.id) {
     console.error("[Midtrans Payment] Forbidden Mismatch:", {
       orderUserId: existingOrder.userId,
-      sessionUserId: user?.id,
-      sessionExists: !!user,
+      sessionUserId: user.id,
     });
-    return NextResponse.json({ 
-      error: "Forbidden", 
-      details: "You do not have permission to pay for this order." 
-    }, { status: 403 });
+    return NextResponse.json(
+      {
+        error: "Forbidden",
+        details: "Anda tidak memiliki izin untuk membayar pesanan ini.",
+      },
+      { status: 403 }
+    );
   }
 
   if (isCompletedMechaturaPaymentStatus(existingOrder.paymentStatus)) {
@@ -85,20 +118,21 @@ export async function POST(request: Request) {
       redirect_url: `/payment/success?order_id=${encodeURIComponent(
         existingOrder.paymentOrderId
       )}`,
+      order_id: existingOrder.paymentOrderId,
     });
   }
 
   if (isMechaturaPaymentExpired(existingOrder)) {
     return NextResponse.json(
       {
-        error: "This Mechatura payment window has expired.",
-        redirect_url: "/registration/mechatura",
+        error: "Waktu pembayaran Mechatura telah kedaluwarsa.",
+        redirect_url: "/mechatura/form",
       },
       { status: 410 }
     );
   }
 
-  const order = await ensureMidtransCompatibleMechaturaOrder(
+  let order = await ensureMidtransCompatibleMechaturaOrder(
     adminSupabase,
     existingOrder
   ).catch((error) => {
@@ -111,52 +145,96 @@ export async function POST(request: Request) {
   }
 
   const origin = getOrigin(request);
-  const successUrl = `${origin}/payment/success?order_id=${encodeURIComponent(
-    order.paymentOrderId
-  )}`;
-  const paymentUrl = `${origin}/payment?order_id=${encodeURIComponent(
-    order.paymentOrderId
-  )}`;
+  const getSuccessUrl = (orderId: string) =>
+    `${origin}/payment/success?order_id=${encodeURIComponent(orderId)}`;
+  const getPaymentUrl = (orderId: string) =>
+    `${origin}/payment?order_id=${encodeURIComponent(orderId)}`;
 
   console.info("Creating Midtrans Snap transaction", {
     environment: getMidtransEnvironment(),
     orderId: order.paymentOrderId,
   });
 
-  const transaction = await createMidtransSnapTransaction({
-    orderId: order.paymentOrderId,
-    amount: order.paymentAmount,
-    itemName: getMechaturaPaymentItemName(order),
-    customer: order.leader,
-    finishUrl: successUrl,
-    errorUrl: paymentUrl,
-    pendingUrl: paymentUrl,
-  }).catch((error) => {
-    console.error("Midtrans transaction creation failed", error.message);
-    return null;
-  });
+  let transaction: MidtransSnapResponse | null = null;
+  try {
+    transaction = await createMidtransSnapTransaction({
+      orderId: order.paymentOrderId,
+      amount: order.paymentAmount,
+      itemName: getMechaturaPaymentItemName(order),
+      customer: order.leader,
+      finishUrl: getSuccessUrl(order.paymentOrderId),
+      errorUrl: getPaymentUrl(order.paymentOrderId),
+      pendingUrl: getPaymentUrl(order.paymentOrderId),
+    });
+  } catch (err) {
+    const isDuplicate =
+      err instanceof MidtransOrderDuplicateError ||
+      (err instanceof Error && /already/i.test(err.message));
+
+    if (isDuplicate) {
+      console.warn(
+        "Midtrans order_id already taken in Snap, rotating order_id and retrying...",
+        {
+          oldOrderId: order.paymentOrderId,
+        }
+      );
+
+      const rotatedOrder = await rotateMechaturaPaymentOrderId(
+        adminSupabase,
+        order
+      ).catch((rotateErr) => {
+        console.error("Failed to rotate order ID on Midtrans duplicate:", rotateErr);
+        return null;
+      });
+
+      if (rotatedOrder) {
+        order = rotatedOrder;
+        try {
+          transaction = await createMidtransSnapTransaction({
+            orderId: order.paymentOrderId,
+            amount: order.paymentAmount,
+            itemName: getMechaturaPaymentItemName(order),
+            customer: order.leader,
+            finishUrl: getSuccessUrl(order.paymentOrderId),
+            errorUrl: getPaymentUrl(order.paymentOrderId),
+            pendingUrl: getPaymentUrl(order.paymentOrderId),
+          });
+        } catch (retryErr) {
+          console.error(
+            "Midtrans retry transaction creation failed",
+            retryErr instanceof Error ? retryErr.message : retryErr
+          );
+        }
+      }
+    } else {
+      console.error(
+        "Midtrans transaction creation failed",
+        err instanceof Error ? err.message : err
+      );
+    }
+  }
 
   if (!transaction?.redirect_url) {
     return NextResponse.json(
-      { 
-        error: "Payment gateway error. Please refresh and try again.", 
-        order_id: order.paymentOrderId 
+      {
+        error: "Terjadi kendala saat menghubungkan ke sistem pembayaran. Silakan muat ulang halaman atau coba klik tombol pembayaran kembali.",
+        order_id: order.paymentOrderId,
       },
       { status: 500 }
     );
   }
 
-  const { error: updateError } = await adminSupabase
-    .from("mechatura_registrations")
-    .update({ payment_status: "pending" })
-    .eq("midtrans_order_id", order.paymentOrderId);
-
-  if (updateError) {
+  await updateMechaturaPaymentStatus(
+    adminSupabase,
+    order.paymentOrderId,
+    "pending"
+  ).catch((updateError) => {
     console.error("Payment status update failed", updateError.message);
-  }
+  });
 
   return NextResponse.json({
     token: transaction.token,
     redirect_url: transaction.redirect_url,
+    order_id: order.paymentOrderId,
   });
 }

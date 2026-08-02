@@ -23,6 +23,7 @@ import { useRegisterMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { getSafeRedirectPath } from "@/lib/navigation";
 import { FormTextField } from "@/components/form/form-text-field";
 
 type LegalDialogType = "terms" | "privacy";
@@ -128,17 +129,6 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         if (data?.authenticated) {
             toast.success("Berhasil mendaftar dan masuk");
             const currentUrl = new URL(window.location.href);
-            const getSafeRedirectPath = (value: string | null) => {
-                return value &&
-                    value.startsWith("/") &&
-                    !value.startsWith("//") &&
-                    !value.startsWith("/login") &&
-                    !value.startsWith("/register") &&
-                    !value.startsWith("/auth/callback")
-                    ? value
-                    : "/profile";
-            };
-
             const safeNext = getSafeRedirectPath(currentUrl.searchParams.get("next"));
 
             router.replace(safeNext);
@@ -253,11 +243,11 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                         }}
                     />
                     <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-sm leading-5 text-muted-foreground">
+                        <p className="text-sm leading-5 text-white/70">
                             Saya setuju dengan{" "}
                             <button
                                 type="button"
-                                className="cursor-pointer font-medium text-blue-600 underline-offset-4 hover:underline"
+                                className="cursor-pointer font-medium text-blue-300 hover:text-white underline-offset-4 hover:underline transition-colors"
                                 onClick={() => setLegalDialog("terms")}
                             >
                                 Syarat
@@ -265,7 +255,7 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                             dan{" "}
                             <button
                                 type="button"
-                                className="cursor-pointer font-medium text-blue-600 underline-offset-4 hover:underline"
+                                className="cursor-pointer font-medium text-blue-300 hover:text-white underline-offset-4 hover:underline transition-colors"
                                 onClick={() => setLegalDialog("privacy")}
                             >
                                 Kebijakan Privasi
@@ -279,12 +269,12 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                 </Field>
 
                 {submitError && <FieldError>{submitError}</FieldError>}
-                {successMessage && <div className="text-sm font-medium text-emerald-600">{successMessage}</div>}
+                {successMessage && <div className="text-sm font-medium text-emerald-400">{successMessage}</div>}
 
                 <Field className="gap-2">
                     <Button
                         type="submit"
-                        className="h-11 rounded-[8px]"
+                        className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold text-sm sm:text-base transition-all shadow-sm"
                         disabled={registerAccount.isPending}
                     >
                         {registerAccount.isPending ? "Membuat akun..." : "Buat Akun"}
@@ -298,12 +288,12 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
 
                     <GoogleLoginButton onBeforeLogin={requireLegalAgreement} />
                 </Field>
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="text-center text-sm text-white/70">
                     Sudah punya akun?{" "}
                     <Link
                         href={loginHref}
                         prefetch={false}
-                        className="text-blue-600"
+                        className="text-blue-300 hover:text-white font-medium transition-colors"
                     >
                         Masuk
                     </Link>
@@ -331,35 +321,33 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-md dark bg-[#00205B] border-white/20 text-white custom-scrollbar">
-                    <DialogHeader className="space-y-4">
-                        <div className="space-y-2">
-                            <DialogTitle className="text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                                Periksa Email Anda
-                            </DialogTitle>
-                            <DialogDescription className="text-center text-[15px] sm:text-base leading-relaxed text-white/80">
-                                Kami telah mengirimkan kode 8 digit ke <br/>
-                                <span className="font-semibold text-white tracking-wide">{verifyEmail}</span>.<br/>
-                                Masukkan kode di bawah ini untuk mengaktifkan akun Anda.
-                            </DialogDescription>
-                        </div>
+                <DialogContent className="sm:max-w-md dark bg-[#00205B] border border-white/20 text-white custom-scrollbar rounded-2xl shadow-2xl p-6 sm:p-8">
+                    <DialogHeader className="space-y-2 text-center">
+                        <DialogTitle className="text-center text-2xl font-bold tracking-tight text-white">
+                            Periksa Email Anda
+                        </DialogTitle>
+                        <DialogDescription className="text-center text-sm text-blue-100/75 leading-relaxed">
+                            Kami telah mengirimkan kode 8 digit ke{" "}
+                            <span className="font-semibold text-white block mt-0.5">{verifyEmail}</span>
+                            Masukkan kode di bawah ini untuk mengaktifkan akun Anda.
+                        </DialogDescription>
                     </DialogHeader>
-                            <div className="flex flex-col space-y-6 py-4">
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    autoComplete="one-time-code"
-                                    maxLength={8}
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                    placeholder="00000000"
-                                    className="mx-auto flex h-16 w-full max-w-[320px] rounded-lg border-2 border-white/20 bg-white/10 px-3 py-1 text-center text-4xl font-medium tracking-[0.2em] shadow-sm transition-colors text-white placeholder:text-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
-                                />
-                            </div>
-                    <DialogFooter className="sm:justify-center">
+                    <div className="flex flex-col space-y-4 py-3">
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            maxLength={8}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                            placeholder="00000000"
+                            className="mx-auto flex h-14 sm:h-16 w-full max-w-[280px] rounded-xl border-2 border-white/20 bg-white/[0.08] px-3 py-1 text-center text-3xl sm:text-4xl font-mono font-bold tracking-[0.25em] text-white placeholder:text-white/20 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all disabled:opacity-50"
+                        />
+                    </div>
+                    <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
                         <Button
                             type="button"
-                            className="w-full cursor-pointer mx-auto h-12 text-base font-bold tracking-wide rounded-lg bg-white hover:bg-white/90 text-[#00205B] transition-all duration-300"
+                            className="w-full h-11 text-sm sm:text-base font-semibold tracking-wide rounded-xl bg-white hover:bg-white/90 text-neutral-950 transition-all shadow-sm"
                             disabled={otp.length < 8 || isVerifying}
                             onClick={async () => {
                                 setIsVerifying(true);
@@ -403,7 +391,7 @@ function LegalDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl dark bg-[#00205B] border-white/20 text-white custom-scrollbar">
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl dark bg-[#00205B] border border-white/20 text-white custom-scrollbar rounded-2xl shadow-2xl p-6 sm:p-8">
                 <DialogHeader>
                     <DialogTitle className="text-white">{isTerms ? "Syarat" : "Kebijakan Privasi"}</DialogTitle>
                     <DialogDescription className="text-white/70">

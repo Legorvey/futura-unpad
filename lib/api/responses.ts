@@ -20,6 +20,7 @@ export const seminarTicketRegistrationSchema = z.object({
   group_name: z.string().nullable().optional(),
 });
 
+
 export const seminarRegistrationResponseSchema = z.object({
   success: z.literal(true),
   registration_id: z.string(),
@@ -36,6 +37,7 @@ export const mechaturaRegistrationResponseSchema = z.object({
 export const midtransPaymentResponseSchema = z.object({
   token: z.string().optional(),
   redirect_url: z.string(),
+  order_id: z.string().optional(),
 });
 
 export const verifyRegistrationResponseSchema = okResponseSchema.extend({

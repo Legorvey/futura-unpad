@@ -25,3 +25,22 @@ export function toInternalAppHref(href: string, origin: string) {
     return null;
   }
 }
+
+export function getSafeRedirectPath(value: string | string[] | null | undefined, defaultPath = "/profile"): string {
+  const next = Array.isArray(value) ? value[0] : value;
+
+  if (
+    !next ||
+    !next.startsWith("/") ||
+    next.startsWith("//") ||
+    next.startsWith("/\\") ||
+    next.startsWith("/login") ||
+    next === "/register" ||
+    next.startsWith("/register?") ||
+    next.startsWith("/auth/callback")
+  ) {
+    return defaultPath;
+  }
+
+  return next;
+}

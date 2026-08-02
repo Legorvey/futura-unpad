@@ -81,7 +81,7 @@ export function HeroSection() {
             <p className="mt-6 text-md md:text-xl font-light text-zinc-300 max-w-3xl text-balance">
               Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030
             </p>
-            <div className="flex flex-col items-center mt-12 gap-4">
+            <div className="flex flex-col items-center mt-8 gap-4">
               <span className="font-bold uppercase tracking-wide text-sm md:text-base">
                 Countdown
               </span>

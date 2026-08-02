@@ -13,11 +13,11 @@ export default function MechaturaPaymentLayout({
   title?: string;
   description?: string;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false);
+    if (window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
     }
   }, []);
 

@@ -31,10 +31,10 @@ export default function MechaturaCoachInfo() {
     >
       <div className="border-b border-border p-4 sm:p-6">
         <h2 id="coach-section-label" className="text-lg font-semibold">
-          Identitas pembina tim
+          Identitas Pembimbing (Opsional)
         </h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-          Tambahkan pembina jika tim anda memiliki pembina.
+          Satu tim diperbolehkan didampingi oleh maksimal 1 orang pembimbing (guru/dosen/instruktur). Bersifat opsional.
         </p>
       </div>
 
@@ -42,13 +42,14 @@ export default function MechaturaCoachInfo() {
       {hasCoach ? (
         <div className="relative space-y-6">
           <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">Pembina Tim</h3>
+              <h3 className="text-sm font-medium text-foreground">Data Pembimbing</h3>
               <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 shrink-0 rounded-[8px] text-destructive hover:bg-destructive hover:text-white"
                   onClick={removeCoach}
+                  aria-label="Hapus pembimbing"
               >
                   <Trash2 className="h-4 w-4" />
               </Button>
@@ -56,23 +57,23 @@ export default function MechaturaCoachInfo() {
 
           <FormTextField<MechaturaFormValues>
             name="coach_name"
-            label="Nama Pembina Tim"
-            placeholder="Masukkan nama pembina tim anda"
+            label="Nama Pembimbing"
+            placeholder="Masukkan nama pembimbing tim anda"
             required
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <FormTextField<MechaturaFormValues>
               name="coach_email"
-              label="Email Pembina Tim"
-              placeholder="Masukkan email pembina tim anda"
+              label="Email Pembimbing"
+              placeholder="Masukkan email pembimbing tim anda"
               required
             />
 
             <FormTextField<MechaturaFormValues>
               name="coach_phone"
-              label="No. WhatsApp Pembina Tim"
-              placeholder="Masukkan nomor WhatsApp pembina tim anda"
+              label="No. WhatsApp Pembimbing"
+              placeholder="Masukkan nomor WhatsApp pembimbing tim anda"
               required
             />
           </div>
@@ -86,7 +87,7 @@ export default function MechaturaCoachInfo() {
                 onClick={addCoach}
             >
                 <Plus className="mr-2 h-4 w-4" />
-                Tambah Pembina
+                Tambah Pembimbing (Opsional)
             </Button>
         </div>
       )}

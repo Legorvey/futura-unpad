@@ -22,6 +22,11 @@ export function useCreateMidtransPaymentMutation() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.payment.order(values.order_id),
       });
+      if (_data.order_id && _data.order_id !== values.order_id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.payment.order(_data.order_id),
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: queryKeys.registrations.mechatura.latest,
       });

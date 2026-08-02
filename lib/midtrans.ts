@@ -24,10 +24,17 @@ export type MidtransPaymentStatus =
   | "cancelled"
   | "settled";
 
-type MidtransSnapResponse = {
+export type MidtransSnapResponse = {
   token: string;
   redirect_url: string;
 };
+
+export class MidtransOrderDuplicateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MidtransOrderDuplicateError";
+  }
+}
 
 type MidtransStatusResponse = {
   order_id?: string;
@@ -201,6 +208,13 @@ export async function createMidtransSnapTransaction({
 
   if (!response.ok) {
     const message = await readMidtransErrorMessage(response);
+
+    if (
+      response.status === 400 &&
+      /order_id.*already|already.*taken|duplicate/i.test(message)
+    ) {
+      throw new MidtransOrderDuplicateError(message);
+    }
 
     throw new Error(
       `Midtrans Snap request failed: ${response.status} ${message}`

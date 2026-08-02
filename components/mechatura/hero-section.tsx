@@ -85,7 +85,7 @@ export function HeroSection() {
               Mechatura adalah kompetisi teknologi dan robotika yang diselenggarakan oleh Himpunan Mahasiswa Teknik Elektro (HMTE) Universitas Padjadjaran.
             </p>
 
-            <div className="flex flex-col items-center mt-12 gap-8">
+            <div className="flex flex-col items-center mt-8 gap-8">
               {/* <div className="flex flex-col items-center gap-4">
                 <span className="font-bold uppercase tracking-wide text-sm md:text-base">
                   Countdown
@@ -93,14 +93,14 @@ export function HeroSection() {
                 <FlipCountdown targetDate={new Date("2026-08-03T00:00:00+07:00").getTime()} />
               </div> */}
               
-              <div className="mx-auto flex flex-col md:flex-row items-center gap-4 mt-8">
+              <div className="mx-auto flex flex-col md:flex-row items-center gap-4">
                 <ButtonV3
                     text="Daftar Sekarang"
                     href="/mechatura/form"
                     requireAuth={true}
                 />
 
-                <Button className="rounded-full py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
+                <Button className="rounded-full w-full md:w-fit py-6 md:py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
                     <Link href="https://drive.google.com/file/d/1ZrAl8yhVDBqf2Yo4GCoYwWAz-kv7-Zyo/view?usp=sharing">Lihat Booklet</Link>
                 </Button>
               </div>

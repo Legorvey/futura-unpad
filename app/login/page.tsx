@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 
 import { redirect } from "next/navigation"
 import LoginForm from "./form"
@@ -6,29 +5,14 @@ import { getCachedAuth } from "@/lib/auth"
 import { Metadata } from "next"
 import { CheckCircle2, ShieldAlert } from "lucide-react"
 import { cookies } from "next/headers"
+import { getSafeRedirectPath } from "@/lib/navigation"
 import { ErrorState } from "@/components/ui/error-state"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
+import HoverFooter from "@/components/layout/footer"
+
 type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
 
-const getSafeRedirectPath = (value: string | string[] | undefined) => {
-    const next = Array.isArray(value) ? value[0] : value
-
-    if (
-        !next ||
-        !next.startsWith("/") ||
-        next.startsWith("//") ||
-        next.startsWith("/\\") ||
-        next.startsWith("/login") ||
-        next === "/register" ||
-        next.startsWith("/register?") ||
-        next.startsWith("/auth/callback")
-    ) {
-        return "/profile"
-    }
-
-    return next
-}
 
 export const metadata: Metadata = {
   title: "Log in"
@@ -47,13 +31,14 @@ export default async function LoginPage({
 
     if (params.error === "oauth_failed" || params.error === "missing_code") {
         return (
-            <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-4 pb-16 pt-32 sm:px-8">
+            <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
                 <ErrorState 
                     icon={ShieldAlert}
                     title="Tautan verifikasi tidak valid atau sudah digunakan"
                     description="Tautan ini telah kedaluwarsa atau Anda sudah memverifikasi email Anda menggunakan kode OTP. Silakan masuk untuk melanjutkan."
                     actionHref="/login"
                     actionLabel="Ke Halaman Masuk"
+                    tone="warning"
                 />
             </main>
         )
@@ -61,14 +46,14 @@ export default async function LoginPage({
 
     if (params.reset === "success") {
         return (
-            <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-4 pb-16 pt-32 sm:px-8">
+            <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
                 <ErrorState 
                     icon={CheckCircle2}
                     title="Kata Sandi Berhasil Direset"
                     description="Kata sandi Anda telah diperbarui dengan aman. Anda sekarang dapat masuk ke akun Anda."
                     actionHref="/login"
                     actionLabel="Ke Halaman Masuk"
-                    className="[&_svg]:text-emerald-500 [&_div]:bg-emerald-50 dark:[&_div]:bg-emerald-500/10"
+                    tone="success"
                 />
             </main>
         )
@@ -150,7 +135,7 @@ export default async function LoginPage({
 
             <ParallaxBackgrounds isStatic className="absolute inset-0 z-[2] mix-blend-screen opacity-40" />
 
-            <div className="relative z-10 w-full max-w-lg space-y-10 border p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/10">
+            <div className="relative z-10 w-full max-w-lg space-y-8 border border-white/15 p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/15 shadow-2xl">
                 <section className="space-y-1">
                     <h1 className="text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans text-white">
                         Masuk ke akun Futura
@@ -162,11 +147,10 @@ export default async function LoginPage({
 
                 {isVerified && (
                     <div 
-                        className="flex items-center gap-3 rounded-xl border border-emerald-500/50 bg-emerald-500/10 p-4 text-emerald-200 shadow-sm"
+                        className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-200 shadow-sm text-center"
                         role="alert"
                         aria-live="polite"
                     >
-                        <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
                         <p className="text-sm font-medium">Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.</p>
                     </div>
                 )}

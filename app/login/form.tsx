@@ -16,19 +16,7 @@ import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
-
-const safeRedirect = (value: string | null) => {
-    return value &&
-        value.startsWith("/") &&
-        !value.startsWith("//") &&
-        !value.startsWith("/\\") &&
-        !value.startsWith("/login") &&
-        value !== "/register" &&
-        !value.startsWith("/register?") &&
-        !value.startsWith("/auth/callback")
-        ? value
-        : null;
-};
+import { getSafeRedirectPath } from "@/lib/navigation";
 
 export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const router = useRouter();
@@ -57,7 +45,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const setKeepSignedIn = (value: boolean) => form.setValue("keepSignedIn", value);
     const { handleSubmit } = form;
 
-    const safeNext = safeRedirect(searchParams.get("next"));
+    const safeNext = getSafeRedirectPath(searchParams.get("next"), "");
 
     const onSubmit = async (values: LoginFormValues) => {
         setSubmitError("");
@@ -128,7 +116,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                     <Field className="gap-2">
                         <Button
                             type="submit"
-                            className="h-11 rounded-[8px]"
+                            className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold text-sm sm:text-base transition-all shadow-sm"
                             disabled={login.isPending}
                         >
                             {login.isPending ? "Sedang masuk..." : "Masuk"}
@@ -142,7 +130,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
 
                         <GoogleLoginButton keepSignedIn={keepSignedIn} />
                     </Field>
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-sm text-white/70">
                         Belum punya akun?{" "}
                         <Link
                             href={
@@ -151,7 +139,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                                     : "/register"
                             }
                             prefetch={false}
-                            className="text-blue-600"
+                            className="text-blue-300 hover:text-white font-medium transition-colors"
                         >
                             Daftar
                         </Link>

@@ -16,29 +16,27 @@ export default function MechaturaRobotInfo({
                     Lampiran Informasi Robot
                 </h2>
                 <p className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-                    Sebelum isi lampiran di bawah, mohon baca ketentuan Lomba Mechatura terlebih dahulu <br />
-                    Link Guidebook Mechatura dapat diakses melalui link berikut: <a className="text-blue-600 hover:text-blue-500 hover:underline" href="https://www.youtube.com" target="_blank" rel="noreferrer">Guidebook Mechatura</a>
+                    Sebelum mengunggah lampiran di bawah, pastikan robot Anda sesuai dengan regulasi teknis kategori yang dipilih.<br />
+                    Unduh dan baca booklet resmi melalui tautan berikut: <a className="font-semibold text-blue-600 hover:text-blue-500 hover:underline" href="https://drive.google.com/file/d/1ZrAl8yhVDBqf2Yo4GCoYwWAz-kv7-Zyo/view?usp=sharing" target="_blank" rel="noreferrer">Booklet Resmi Mechatura 2026 (PDF)</a>
                 </p>
             </div>
 
             <div className="space-y-6 p-4 sm:p-6">
+                <FormTextField<MechaturaFormValues>
+                    name="robot_name"
+                    label="Nama Robot Tim"
+                    placeholder="Masukkan nama robot tim anda"
+                    required
+                />
 
- 
-            <FormTextField<MechaturaFormValues>
-                name="robot_name"
-                label="Nama Robot Tim"
-                placeholder="Masukkan nama robot tim anda"
-                required
-            />
-
-            <FormFileField<MechaturaFormValues>
-                name="robot_document"
-                title="Unggah Dokumen Robot"
-                description="Mohon unggah file sesuai dengan ketentuan Guidebook Mechatura."
-                accept="application/pdf"
-                maxSizeInBytes={documentMaxSizeInBytes}
-                required
-            />
+                <FormFileField<MechaturaFormValues>
+                    name="robot_document"
+                    title="Unggah Dokumen Robot (PDF)"
+                    description="Unggah 1 file PDF berisi lembar spesifikasi teknis dan foto robot rakitan peserta sesuai ketentuan Booklet Mechatura."
+                    accept="application/pdf"
+                    maxSizeInBytes={documentMaxSizeInBytes}
+                    required
+                />
             </div>
         </section>
     )

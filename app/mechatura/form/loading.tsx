@@ -38,14 +38,14 @@ export default function Loading() {
             <main className="relative flex min-h-screen w-full flex-col items-center overflow-clip pb-32 pt-24 mechatura-wrapper text-white">
                 
                 <div className="relative w-full max-w-6xl px-4 sm:px-8 space-y-10">
-                    <section className="text-center space-y-4">
-                        <h1 className="text-4xl font-extrabold tracking-[-0.07em] sm:text-5xl lg:text-6xl text-white">
-                            Formulir Mechatura
-                        </h1>
-                        <p className="mx-auto max-w-2xl text-base tracking-tighter leading-relaxed text-blue-100/80 sm:text-lg">
-                        Daftarkan tim Anda, unggah dokumen yang diperlukan, verifikasi detail, lalu lanjutkan ke pembayaran.
-                    </p>
-                </section>
+                    {/* Headline Skeleton */}
+                    <section className="flex flex-col items-center text-center space-y-4">
+                        <Skeleton className="h-10 sm:h-12 lg:h-14 w-80 sm:w-[480px] max-w-full rounded-2xl bg-white/10" />
+                        <div className="space-y-2 flex flex-col items-center w-full max-w-2xl">
+                            <Skeleton className="h-4 sm:h-5 w-full max-w-lg rounded-lg bg-white/10" />
+                            <Skeleton className="h-4 sm:h-5 w-3/4 max-w-sm rounded-lg bg-white/10" />
+                        </div>
+                    </section>
 
                     <section className="relative rounded-3xl border border-transparent lg:border-border bg-card text-card-foreground p-0 lg:p-12 lg:shadow-2xl overflow-clip">
                         <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/5 via-transparent to-amber-500/5 pointer-events-none hidden lg:block" />

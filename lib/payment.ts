@@ -56,7 +56,7 @@ export const mechaturaCompetitionLabels: Record<MechaturaCompetitionType, string
   transporter: "Robot Transporter",
 };
 
-export const mechaturaPaymentAmount = 10000;
+export const mechaturaPaymentAmount = 175000;
 export const midtransOrderIdMaxLength = 50;
 
 const currencyFormatter = new Intl.NumberFormat("id-ID", {

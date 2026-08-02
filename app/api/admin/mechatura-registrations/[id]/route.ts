@@ -42,19 +42,27 @@ export async function DELETE(
     }
 
     const adminSupabase = createAdminClient();
-    const deleted = await deleteMechaturaRegistration(
+    const result = await deleteMechaturaRegistration(
         adminSupabase,
-        parsed.data.id
+        parsed.data.id,
+        undefined,
+        { allowPaid: true }
     ).catch((error) => {
         console.error("Mechatura registration delete failed", error.message);
         return null;
     });
 
-    if (deleted === null) {
+    if (result === null) {
         return serverError();
     }
 
-    if (!deleted) {
+    if (!result.success) {
+        if (result.reason === "is_paid") {
+            return NextResponse.json(
+                { error: "Cannot delete a completed/paid registration" },
+                { status: 400 }
+            );
+        }
         return NextResponse.json({ error: "Registration not found" }, { status: 404 });
     }
 

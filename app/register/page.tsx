@@ -1,38 +1,22 @@
 import type { Metadata } from "next"
-export const runtime = 'edge';
 
 import { redirect } from "next/navigation"
 import RegisterForm from "./form"
 import { getCachedAuth } from "@/lib/auth"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
-type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
-
-const getSafeRedirectPath = (value: string | string[] | undefined) => {
-    const next = Array.isArray(value) ? value[0] : value
-
-    if (
-        !next ||
-        !next.startsWith("/") ||
-        next.startsWith("//") ||
-        next.startsWith("/login") ||
-        next.startsWith("/register") ||
-        next.startsWith("/auth/callback")
-    ) {
-        return "/profile"
-    }
-
-    return next
-}
+import { getSafeRedirectPath } from "@/lib/navigation"
 
 export const metadata: Metadata = {
   title: "Buat Akun"
 }
 
-export default async function LoginPage({
+type RegisterSearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function RegisterPage({
     searchParams,
 }: {
-    searchParams: LoginSearchParams
+    searchParams: RegisterSearchParams
 }){
     const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
 
@@ -113,9 +97,9 @@ export default async function LoginPage({
 
             <ParallaxBackgrounds isStatic className="absolute inset-0 z-[2] mix-blend-screen opacity-40" />
 
-            <div className="relative z-10 w-full max-w-lg space-y-10 backdrop-blur-xl border bg-neutral-950/10 rounded-2xl p-6 md:p-8">
+            <div className="relative z-10 w-full max-w-lg space-y-8 border border-white/15 p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/15 shadow-2xl">
                 <section className="space-y-1">
-                    <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.07em] text-balance font-sans text-white">
+                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans text-white">
                         Buat akun Futura
                     </h1>
                     <p className="text-sm font-medium leading-relaxed text-white/70 tracking-tight font-sans">

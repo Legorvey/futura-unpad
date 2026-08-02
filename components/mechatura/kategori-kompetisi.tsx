@@ -14,12 +14,12 @@ const categories = [
 
 export function KategoriKompetisi() {
   return (
-    <section className="max-w-7xl mx-auto w-full px-4 py-16 lg:py-24">
-      <div className="mb-14 text-center">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.07em]">
+    <section className="max-w-[100rem] mx-auto w-full px-6 md:px-12 lg:px-20 py-16 lg:py-24">
+      <div className="mb-14 md:mb-20 text-center flex flex-col items-center">
+        <h2 className="text-[3rem] sm:text-[4rem] md:text-[5rem] font-bold tracking-[-0.08em] text-white text-center text-balance leading-tight">
           Kategori Kompetisi
-        </h1>
-        <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
+        </h2>
+        <p className="mt-2 text-lg md:text-xl text-foreground/60 leading-relaxed max-w-2xl text-center text-balance">
           Pilih kategori yang sesuai dengan keahlian tim kamu dan buktikan kemampuan robotmu di arena Mechatura!
         </p>
       </div>

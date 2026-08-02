@@ -1,7 +1,7 @@
 import Location from "../ui/location"
 export default function LocationSection() {
     return (
-        <section className="flex flex-col space-y-8 mx-auto min-h-[calc(100svh-65px)] flex justify-center items-center px-5 py-20 sm:px-8 lg:py-28 z-10">
+        <section className="flex flex-col space-y-8 mx-auto w-full max-w-[100rem] min-h-[calc(100svh-65px)] flex justify-center items-center px-6 md:px-12 lg:px-20 py-20 lg:py-28 z-10">
             <Location
                 id="lokasi"
                 location="Bale Rumawat, Universitas Padjadjaran"

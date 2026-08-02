@@ -229,26 +229,25 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
   const yDesc = useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]);
   const yNumber = useTransform(scrollYProgress, [0, 1], ["60%", "-60%"]);
 
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
-  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [20, 0, -20]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.95, 1, 0.95]);
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.4, 1, 1, 0.4]);
 
   return (
     <motion.div
       ref={ref}
-      style={!isLiteMotion ? { scale, opacity, rotateX, transformPerspective: 1200 } : { opacity: 1, transform: "none" }}
-      className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10"
+      style={!isLiteMotion ? { scale, opacity } : { opacity: 1, transform: "none" }}
+      className="flex flex-col xl:flex-row w-full py-8 md:py-16 group relative z-10 gap-8 xl:gap-24 items-start"
     >
-      {/* 3D Background Number replacing the line and dot */}
+      {/* 3D Background Number */}
       <motion.div
         style={!isLiteMotion ? { y: yNumber, opacity: opacity } : { opacity: 0.1 }}
-        className="absolute top-0 right-0 md:right-auto md:left-[-5%] text-[8rem] md:text-[12rem] lg:text-[18rem] font-bold text-white/5 pointer-events-none select-none leading-none z-[-1]"
+        className="absolute top-0 right-0 md:right-auto md:left-0 text-[9rem] sm:text-[11.5rem] md:text-[14rem] lg:text-[16.5rem] xl:text-[18.5rem] font-bold text-white/5 pointer-events-none select-none leading-none z-[-1]"
       >
         {String(index + 1).padStart(2, '0')}
       </motion.div>
 
       {/* Left Column of Timeline Item: Date */}
-      <div className="w-full md:w-[45%] xl:w-[35%] xl:pr-8 flex flex-col items-start mb-4 xl:mb-0 relative z-20">
+      <div className="w-full xl:w-[30%] shrink-0 flex flex-col items-start relative z-20 pt-1 md:pt-2">
         <motion.div style={!isLiteMotion ? { y: yDate } : { transform: "none" }} className="w-full">
           <RevealText
             text={item.date}
@@ -264,7 +263,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
       </div>
 
       {/* Right Column of Timeline Item: Title & Offset Description */}
-      <div className="w-full md:w-[80%] xl:w-[65%] flex flex-col relative z-30">
+      <div className="w-full flex-1 flex flex-col relative z-30 min-w-0 xl:pl-8">
         <motion.div style={!isLiteMotion ? { y: yEvent } : { transform: "none" }} className="relative">
           <RevealText
             text={item.event}
@@ -272,7 +271,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
           />
         </motion.div>
 
-        <motion.div style={!isLiteMotion ? { y: yDesc } : { transform: "none" }} className="mt-3 w-full max-w-md relative z-10">
+        <motion.div style={!isLiteMotion ? { y: yDesc } : { transform: "none" }} className="mt-4 md:mt-6 w-full max-w-xl relative z-10">
           <RevealWords
             text={item.description}
             className="text-base md:text-lg lg:text-xl leading-relaxed text-white/80 tracking-[-0.04em] font-light"
@@ -316,8 +315,10 @@ export function RegistrationTimeline() {
     >
       {/* Structural Perimeter Lines Removed */}
 
-      <div className="mx-auto max-w-[100rem] px-5 sm:px-10 relative z-20 flex flex-col items-center">
-        <h1 className="w-full text-left md:text-center text-5xl md:text-6xl lg:text-8xl tracking-[-0.07em] font-bold mb-8 md:mb-12">Grand Timeline</h1> 
+      <div className="mx-auto max-w-[100rem] w-full px-6 md:px-10 relative z-20 flex flex-col items-center">
+        <h2 className="w-full text-center text-[3rem] sm:text-[4rem] md:text-[5rem] tracking-[-0.08em] font-bold text-white text-balance mb-8 md:mb-12">
+          Grand Timeline
+        </h2> 
         {/* Inner Constrained Wrapper mimicking Hero Section layout */}
         <div className="w-full flex flex-col md:flex-row md:gap-8 lg:gap-12 relative">
 

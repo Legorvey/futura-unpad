@@ -1,7 +1,11 @@
 import type { Metadata } from "next"
 import { HeroSection } from "@/components/esai/hero-section"
+import { EsaiTimeline } from "@/components/esai/esai-timeline"
+import { EsaiFAQ } from "@/components/esai/esai-faq"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 import { ContactSection } from "@/components/esai/contact-section"
+import { ScrollReveal } from "@/components/ui/scroll-reveal"
+
 export const metadata: Metadata = {
   title: "Lomba Esai"
 }
@@ -51,13 +55,23 @@ export default function LombaEsai() {
             {/* Global Parallax Graphic Elements */}
             <ParallaxBackgrounds />
 
-            <div className="landing-wrapper">
-                <main className="space-y-36 relative z-10">
+            <div className="landing-wrapper overflow-x-clip">
+                <main className="space-y-36 relative z-10 overflow-x-clip">
                     <div className="flex flex-col">
                         <HeroSection />
                     </div>
                     
-                    <ContactSection />
+                    <ScrollReveal>
+                        <EsaiTimeline />
+                    </ScrollReveal>
+
+                    <ScrollReveal>
+                        <EsaiFAQ />
+                    </ScrollReveal>
+
+                    <ScrollReveal>
+                        <ContactSection />
+                    </ScrollReveal>
                 </main>
             </div>
         </>

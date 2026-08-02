@@ -7,7 +7,6 @@ import {
 const seminarFaqGroups: FAQGroup[] = [
   {
     title: "Seminar Nasional",
-    headingPadding: "pb-6",
     faqs: nationalSeminarFaqs,
   },
 ];
@@ -16,7 +15,9 @@ export function SeminarFAQ() {
   return (
     <FAQSection
       id="seminar-faq"
-      title="FAQ Seminar Nasional"
+      badge="FAQ"
+      title="Pertanyaan Seputar Seminar"
+      subtitle="Pertanyaan umum seputar pendaftaran, pembicara, materi, dan sertifikat Seminar Nasional Futura 2026."
       groups={seminarFaqGroups}
       showAllButton={false}
     />

@@ -60,11 +60,11 @@ export default function RegistrationsSection() {
             </div>
 
             <div className="relative mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 z-10">
-                <div className="mb-20 md:mb-28 text-center flex flex-col items-center">
-                    <h1 className="text-[3rem] sm:text-[4rem] md:text-[5rem] tracking-[-0.08em] font-medium text-foreground leading-none text-balance mb-6">
+                <div className="mb-14 md:mb-20 text-center flex flex-col items-center">
+                    <h2 className="text-[3rem] sm:text-[4rem] md:text-[5rem] font-bold tracking-[-0.08em] text-white text-center text-balance leading-tight">
                         Rangkaian Acara
-                    </h1>
-                    <p className="text-lg md:text-xl text-foreground/60 max-w-2xl text-balance">
+                    </h2>
+                    <p className="mt-2 text-lg md:text-xl text-foreground/60 leading-relaxed max-w-2xl text-center text-balance">
                         Pilih program yang sesuai dengan minatmu dan jadilah bagian dari revolusi teknologi berkelanjutan di Indonesia.
                     </p>
                 </div>

@@ -4,7 +4,8 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 
 export const metadata: Metadata = {
-  title: "FAQ"
+  title: "FAQ",
+  description: "Pertanyaan yang sering diajukan mengenai Futura 2026 dan seluruh rangkaian acaranya.",
 }
 
 export default function FAQPage() {
@@ -52,11 +53,18 @@ export default function FAQPage() {
       {/* Global Parallax Graphic Elements */}
       <ParallaxBackgrounds />
 
-      <main className="pt-32 pb-20 min-h-screen relative z-10">
-        <ScrollReveal>
-          <FAQSection showAllButton={false} />
-        </ScrollReveal>
-      </main>
+      <div className="landing-wrapper overflow-x-clip">
+        <main className="pt-36 pb-20 min-h-screen relative z-10">
+          <ScrollReveal>
+            <FAQSection
+              badge="Pusat Informasi"
+              title="Frequently Asked Questions"
+              subtitle="Temukan jawaban komprehensif untuk pertanyaan seputar Futura 2026, Seminar Nasional, Mechatura, dan Lomba Esai."
+              showAllButton={false}
+            />
+          </ScrollReveal>
+        </main>
+      </div>
     </>
   )
 }

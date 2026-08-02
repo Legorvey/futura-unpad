@@ -5,12 +5,12 @@ export default function OurLocation() {
     return (
         <section className="relative flex w-full flex-col items-center justify-center py-24 overflow-hidden bg-background">
             <div className="relative mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 z-10 flex flex-col items-center gap-4">
-                <div className="flex flex-col items-center text-center space-y-4 mb-8">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.06em] text-white leading-tight">
-                        Our Locations
+                <div className="mb-12 md:mb-16 text-center flex flex-col items-center">
+                    <h2 className="text-[3rem] sm:text-[4rem] md:text-[5rem] font-bold tracking-[-0.08em] text-white text-center text-balance leading-tight">
+                        Lokasi Acara
                     </h2>
-                    <p className="max-w-2xl text-lg font-light tracking-[-0.04em]">
-                        Join us at the heart of Universitas Padjadjaran. We have prepared two main venues to host our upcoming events.
+                    <p className="mt-2 text-lg md:text-xl text-foreground/60 leading-relaxed max-w-2xl text-center text-balance">
+                        Rangkaian kegiatan Futura 2026 diselenggarakan di dua lokasi utama Universitas Padjadjaran.
                     </p>
                 </div>
 

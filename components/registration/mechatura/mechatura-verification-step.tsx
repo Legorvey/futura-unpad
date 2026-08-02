@@ -43,7 +43,7 @@ export default function MechaturaVerificationStep({
     <FieldGroup className="gap-6">
       <VerificationStepCard
         title="Verifikasi registrasi Mechatura"
-        description="Periksa kembali tipe robot, identitas tim, anggota, pembina, dan lampiran sebelum melanjutkan."
+        description="Periksa kembali kategori lomba, identitas tim, anggota, pembimbing, dan lampiran sebelum melanjutkan ke pembayaran."
         isEditing={isEditing}
         onEdit={() => setIsEditing(true)}
       >
@@ -61,8 +61,8 @@ export default function MechaturaVerificationStep({
 
       <FormCheckboxField<MechaturaFormValues>
         name="identity_confirmed"
-        label="Saya menyatakan data pendaftaran Mechatura sudah benar."
-        description="Data ini akan digunakan untuk proses administrasi, pembayaran, dan verifikasi lomba."
+        label="Saya menyetujui seluruh syarat, ketentuan, dan regulasi kompetisi Mechatura 2026."
+        description="Saya menyatakan data tim sudah benar, memahami bahwa biaya registrasi bersifat non-refundable, dan siap mematuhi tata tertib perlombaan."
       />
 
       {submitError ? (

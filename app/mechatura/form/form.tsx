@@ -53,11 +53,11 @@ export default function MechaturaRegistrationForm() {
   const { step, setStep, steps } = useRegistrationStep("mechatura");
   const createRegistration = useCreateMechaturaRegistrationMutation();
   const [submitError, setSubmitError] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false);
+    if (window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
     }
   }, []);
   const form = useForm<MechaturaFormValues>({

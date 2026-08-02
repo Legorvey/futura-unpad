@@ -236,11 +236,11 @@ export function CoachEditSection({
 }) {
   return (
     <EditSection
-      title="Pembina"
+      title="Pembimbing (Opsional)"
       action={
         <SectionActionButton
           isShown={hasCoach}
-          removeLabel="Hapus pembina"
+          removeLabel="Hapus pembimbing"
           onAdd={onAdd}
           onRemove={onRemove}
         />
@@ -255,19 +255,19 @@ export function CoachEditSection({
             phone: "coach_phone",
           }}
           labels={{
-            name: "Nama Pembina Tim",
-            email: "Email Pembina Tim",
-            phone: "No. WhatsApp Pembina Tim",
+            name: "Nama Pembimbing",
+            email: "Email Pembimbing",
+            phone: "No. WhatsApp Pembimbing",
           }}
           placeholders={{
-            name: "Masukkan nama pembina tim anda",
-            email: "Masukkan email pembina tim anda",
-            phone: "Masukkan nomor WhatsApp pembina tim anda",
+            name: "Masukkan nama pembimbing tim anda",
+            email: "Masukkan email pembimbing tim anda",
+            phone: "Masukkan nomor WhatsApp pembimbing tim anda",
           }}
         />
       ) : (
         <p className="text-sm text-muted-foreground">
-          Tim tidak menambahkan pembina.
+          Tim tidak menambahkan pembimbing.
         </p>
       )}
     </EditSection>

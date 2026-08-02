@@ -9,8 +9,8 @@ import {
 } from "@/lib/mechatura/registration";
 import {
   createRegistrationToken,
-  mechaturaPaymentAmount,
 } from "@/lib/payment";
+import { getMechaturaRegistrationFee } from "@/lib/mechatura/batch";
 import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase-admin";
 import {
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
       robot_name: values.robot_name,
       registration_status: "waiting_payment",
       payment_status: "unpaid",
-      payment_amount: mechaturaPaymentAmount,
+      payment_amount: getMechaturaRegistrationFee(),
       midtrans_order_id: paymentOrderId,
       member_document_path: memberDocumentPath,
       robot_document_path: robotDocumentPath,

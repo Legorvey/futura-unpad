@@ -260,10 +260,6 @@ export default async function PaymentPage({
               <span>{formatCurrency(order.amount)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Biaya admin</span>
-              <span>Rp. 0</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Status pembayaran</span>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge}`}>
                 {paymentStatusLabels[paymentStatus]}

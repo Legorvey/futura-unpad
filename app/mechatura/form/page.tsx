@@ -6,13 +6,14 @@ import {
     getMechaturaRegistrationStepHref,
     isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
+import { getMechaturaBatchInfo } from "@/lib/mechatura/batch";
 import { getCachedAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
 import ExpiredRegistrationDialog from "./expired-registration-dialog";
 import MechaturaRegistrationForm from "./form";
 
 export const metadata: Metadata = {
-  title: "Form Pendaftaran Mechatura"
+  title: "Form Pendaftaran Mechatura 2026"
 }
 
 export default async function MechaturaPage() {
@@ -35,6 +36,8 @@ export default async function MechaturaPage() {
     if (latestRegistration && !expiredTeamName) {
         redirect(getMechaturaRegistrationStepHref(latestRegistration));
     }
+
+    const batchInfo = getMechaturaBatchInfo();
 
     return (
         <>
@@ -75,12 +78,12 @@ export default async function MechaturaPage() {
                 <div className="relative w-full max-w-6xl px-4 sm:px-8 space-y-10">
                     <section className="text-center space-y-4">
                         <h1 className="text-4xl font-extrabold tracking-[-0.07em] sm:text-5xl lg:text-6xl text-white">
-                            Formulir Mechatura
+                            Formulir Mechatura {batchInfo.batchName}
                         </h1>
                         <p className="mx-auto max-w-2xl text-base tracking-tighter leading-relaxed text-blue-100/80 sm:text-lg">
-                        Daftarkan tim Anda, unggah dokumen yang diperlukan, verifikasi detail, lalu lanjutkan ke pembayaran.
-                    </p>
-                </section>
+                            Daftarkan tim Anda untuk {batchInfo.batchName}, unggah dokumen yang diperlukan, verifikasi detail, lalu lanjutkan ke pembayaran.
+                        </p>
+                    </section>
 
                     <section className="relative rounded-3xl border border-transparent lg:border-border bg-card text-card-foreground p-0 lg:p-12 lg:shadow-2xl overflow-clip">
                         <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/5 via-transparent to-amber-500/5 pointer-events-none hidden lg:block" />

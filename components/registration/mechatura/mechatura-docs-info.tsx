@@ -28,7 +28,7 @@ export default function MechaturaDocsInfo({
                 <FormFileField<MechaturaFormValues>
                     name="member_document"
                     title="Unggah Dokumen Identitas Anggota (PDF)"
-                    description="Format PDF, ukuran maksimal 5 MB. Pastikan foto dan data identitas terbaca dengan jelas."
+                    description="Format PDF, ukuran maksimal 2 MB. Pastikan foto dan data identitas terbaca dengan jelas."
                     accept="application/pdf"
                     maxSizeInBytes={documentMaxSizeInBytes}
                     required

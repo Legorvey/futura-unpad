@@ -358,8 +358,8 @@ export default function AboutSection() {
 
         {/* Section 2: What is Futura */}
         <div className="space-y-4 max-w-xl mx-auto text-left">
-          <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">
-            What is FUTURA?
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            What is Futura?
           </h2>
           <p className="text-base sm:text-lg font-light text-zinc-300 leading-relaxed tracking-tight">
             Acara tahunan oleh{" "}
@@ -375,7 +375,7 @@ export default function AboutSection() {
         {/* Section 3: Documentation Carousel */}
         <div className="space-y-4 max-w-xl mx-auto">
           <div className="text-left">
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1 uppercase">
+            <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-1">
               Kilas Balik Futura
             </h3>
           </div>

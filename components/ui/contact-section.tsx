@@ -53,7 +53,7 @@ export function ContactSection({
                 href={`https://wa.me/${contact.phone.replace(/[^0-9]/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-5 p-5 rounded-[2rem] bg-white/[0.08] border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] backdrop-blur-2xl hover:bg-white/[0.12] hover:-translate-y-1 transition-all duration-300 group w-full"
+                className="flex items-center gap-5 p-5 rounded-[2rem] bg-white/[0.08] border border-white/20 backdrop-blur-2xl hover:bg-white/[0.12] hover:-translate-y-1 transition-all duration-300 group w-full"
               >
                 <div className="w-14 h-14 shrink-0 rounded-full bg-yellow-500/20 text-yellow-500 font-bold flex items-center justify-center text-xl group-hover:bg-yellow-500/30 transition-colors">
                   {initial}

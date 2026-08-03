@@ -232,7 +232,7 @@ export default function AboutSection() {
         {/* Section 2: Documentation Carousel */}
         <div className="space-y-4 max-w-xl mx-auto">
           <div className="text-left">
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">
+            <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-1">
               Kilas Balik Seminar
             </h3>
           </div>

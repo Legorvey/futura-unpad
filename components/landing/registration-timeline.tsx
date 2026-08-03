@@ -323,30 +323,44 @@ export function RegistrationTimeline() {
         <div className="w-full flex flex-col md:flex-row md:gap-8 lg:gap-12 relative">
 
           {/* Left Column (Sticky Title & Picker) */}
-          <div className="w-full md:w-1/3 flex-shrink-0 flex flex-col md:sticky md:top-32 h-fit pb-8 md:pb-0 relative z-30 pt-6 md:pt-16">
+          <div className="w-full md:w-1/3 flex-shrink-0 flex flex-col md:sticky md:top-32 h-fit md:pb-0 relative z-30 pt-6 md:pt-16">
             {/* Section Title */}
             <div className="mb-6 md:mb-8 w-full">
-              <h2 className="lg:pl-6 xl:pl-10 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] font-semibold text-white">
+              <h2 className="lg:pl-6 xl:pl-10 text-4xl lg:text-5xl xl:text-6xl tracking-[-0.08em] text-center md:text-left font-semibold text-white">
                 Choose Your Timeline
               </h2>
             </div>
 
-            {/* Mobile Picker: Original pill concept */}
-            <div className="w-full lg:pl-6 xl:pl-10 flex md:hidden flex-row flex-wrap gap-3 relative z-30">
-              {timelineTabs.map((tab) => {
-                const isActive = tab.id === activeTab;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-left text-sm font-medium tracking-[-0.04em] transition-colors duration-300 ${isActive ? "bg-white/10 text-amber-300" : "bg-transparent text-white/80 hover:text-white"
+            {/* Mobile Picker: Full pill on its picker container */}
+            <div className="w-full lg:pl-6 xl:pl-10 flex md:hidden justify-center relative z-30">
+              <div className="w-full max-w-md p-1.5 rounded-full bg-white/[0.07] border border-white/10 backdrop-blur-md flex items-center justify-between gap-1">
+                {timelineTabs.map((tab) => {
+                  const isActive = tab.id === activeTab;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`relative flex-1 py-2 px-2 sm:px-4 rounded-full text-center text-xs sm:text-sm font-medium tracking-[-0.04em] transition-colors duration-300 ${
+                        isActive
+                          ? "text-amber-300 font-semibold"
+                          : "text-white/70 hover:text-white"
                       }`}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="mobileActiveTab"
+                          className="absolute inset-0 rounded-full bg-white/15 shadow-sm"
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                      )}
+                      <span className="relative z-10 whitespace-nowrap">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            <hr className="block md:hidden mt-9"/>
 
             {/* Desktop Picker: Smooth reordering and fading */}
             <div className="w-full lg:pl-6 xl:pl-10 hidden md:flex flex-col gap-4 relative z-30">
@@ -374,7 +388,7 @@ export function RegistrationTimeline() {
           </div>
 
           {/* Right Column (Timeline Content) */}
-          <div className="w-full flex-1 relative pt-10 md:pt-16 min-w-0" ref={containerRef}>
+          <div className="w-full flex-1 relative md:pt-16 min-w-0" ref={containerRef}>
             {/* Persistent Structural Axis Removed (Now using floating 3D numbers) */}
 
             {/* Timeline */}

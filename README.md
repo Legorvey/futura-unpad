@@ -6,28 +6,28 @@
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
 </div>
 
-<h1 align="center">🚀 Futura 2026 Platform</h1>
+<h1 align="center">Futura 2026 Platform</h1>
 
 <p align="center">
-  <strong>The official web platform for Futura 2026 — Padjadjaran University's Premier Technology Event.</strong>
+  <strong>The official web platform for Futura 2026, Padjadjaran University's Technology Event.</strong>
 </p>
 
 <p align="center">
-  A state-of-the-art web application built to handle registrations, scheduling, and information dissemination for seminars, robotics competitions, and research showcases. Engineered for performance, aesthetics, and a flawless user experience.
+  A web application built to handle registrations, scheduling, and information for seminars, robotics competitions, and research showcases.
 </p>
 
 <hr />
 
-## ✨ Key Features & Highlights
+## Key Features
 
-- **Stunning UI/UX Architecture:** Featuring a custom-built, performance-optimized "Realistic Aurora Ribbon" background and buttery-smooth parallax scrolling components.
-- **Next-Gen Tech Stack:** Powered by **Next.js 16**, **React 19**, and **Tailwind CSS 4**. We use the absolute bleeding edge of web development.
-- **Type-Safe Everything:** Strict **TypeScript** adoption across the board, validated forms with **Zod**, and robust state management.
-- **Enterprise-Grade Backend:** Seamlessly integrated with **Supabase** for secure authentication and high-performance database queries.
-- **Fluid Animations:** Complex, interactive micro-animations driven by **Framer Motion** and highly optimized CSS keyframes.
-- **Modular Component Design:** Built upon **Radix UI** primitives and customized **shadcn/ui** components for accessible and scalable UI elements.
+- **UI/UX:** Custom Aurora Ribbon background and parallax scrolling components.
+- **Tech Stack:** Built with Next.js 16, React 19, and Tailwind CSS 4.
+- **Type Safety:** TypeScript integration and form validation with Zod.
+- **Backend:** Integrated with Supabase for authentication and database management.
+- **Animations:** Micro-animations built with Framer Motion.
+- **Component Design:** Built using Radix UI primitives and shadcn/ui.
 
-## 🛠️ The Arsenal (Tech Stack)
+## Tech Stack
 
 ### Core
 - **Framework:** Next.js 16 (App Router)
@@ -53,9 +53,9 @@
 - **Date Handling:** `date-fns`
 - **Smooth Scrolling:** Lenis
 
-## 🚀 Getting Started
+## Getting Started
 
-Want to run this beast locally? Follow these steps:
+To run the project locally, follow these steps:
 
 ### 1. Clone the repository
 ```bash
@@ -74,23 +74,23 @@ Duplicate the `.env.example` file and rename it to `.env`:
 ```bash
 cp .env.example .env
 ```
-*Make sure to fill in all the required Supabase and Resend API keys.*
+Ensure you fill in all the required Supabase and Resend API keys.
 
-### 4. Ignite the Development Server
+### 4. Start the Development Server
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. The application will hot-reload as you make changes.
 
-## 🎨 Design Philosophy
+## Design Philosophy
 
-Futura 2026 isn't just an event; it's an experience. The web platform reflects this with:
-- A deep, immersive `#00205B` base theme.
-- Dynamic, CSS-driven Aurora ribbons that provide depth without sacrificing render times.
-- Scroll-revealed sections that guide the user's journey intuitively from Hero to FAQ.
+The web platform features:
+- A `#00205B` base theme.
+- CSS-driven Aurora ribbons for visual depth.
+- Scroll-revealed sections from Hero to FAQ.
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 futura-unpad/

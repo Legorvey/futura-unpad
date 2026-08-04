@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+</div>
+
+<h1 align="center">Futura 2026 Platform</h1>
+
+<p align="center">
+  <strong>The official web platform for Futura 2026, Padjadjaran University's Technology Event.</strong>
+</p>
+
+<p align="center">
+  A web application built to handle registrations, scheduling, and information for seminars, robotics competitions, and research showcases.
+</p>
+
+<hr />
+
+## Key Features
+
+- **UI/UX:** Custom Aurora Ribbon background and parallax scrolling components.
+- **Tech Stack:** Built with Next.js 16, React 19, and Tailwind CSS 4.
+- **Type Safety:** TypeScript integration and form validation with Zod.
+- **Backend:** Integrated with Supabase for authentication and database management.
+- **Animations:** Micro-animations built with Framer Motion.
+- **Component Design:** Built using Radix UI primitives and shadcn/ui.
+
+## Tech Stack
+
+### Core
+- **Framework:** Next.js 16 (App Router)
+- **Library:** React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS 4
+
+### Data & Backend
+- **Database & Auth:** Supabase (SSR integrated)
+- **Data Fetching:** Tanstack React Query
+- **State Management:** Zustand
+- **Forms & Validation:** React Hook Form + Zod
+
+### UI & Aesthetics
+- **Component Library:** shadcn/ui + Radix UI
+- **Animations:** Framer Motion (`motion`), `tw-animate-css`
+- **Tables & Charts:** Tanstack React Table, Recharts
+- **Icons & Typography:** Lucide React, next/font (Geist)
+
+### Tooling & Infrastructure
+- **Email:** Resend
+- **Analytics:** Vercel Analytics
+- **Date Handling:** `date-fns`
+- **Smooth Scrolling:** Lenis
 
 ## Getting Started
 
-First, run the development server:
+To run the project locally, follow these steps:
 
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd futura-unpad
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+# or yarn install / pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Setup Environment Variables
+Duplicate the `.env.example` file and rename it to `.env`:
+```bash
+cp .env.example .env
+```
+Ensure you fill in all the required Supabase and Resend API keys.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Start the Development Server
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. The application will hot-reload as you make changes.
 
-To learn more about Next.js, take a look at the following resources:
+## Design Philosophy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The web platform features:
+- A `#00205B` base theme.
+- CSS-driven Aurora ribbons for visual depth.
+- Scroll-revealed sections from Hero to FAQ.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```text
+futura-unpad/
+├── app/               # Next.js App Router (Pages, Layouts, API routes)
+├── components/        # Reusable UI elements
+│   ├── landing/       # Sections specific to the home page (Hero, Timeline, etc.)
+│   └── ui/            # Base components (Buttons, Inputs, ScrollReveal, etc.)
+├── lib/               # Utility functions and shared logic
+├── hooks/             # Custom React hooks
+├── store/             # Zustand global state configurations
+├── public/            # Static assets (images, fonts, etc.)
+└── ...
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<hr />
+<p align="center">
+  Built with Buckle Parry for <b>Futura 2026</b>.
+</p>

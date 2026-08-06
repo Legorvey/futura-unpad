@@ -1,7 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, useScroll, useTransform, useSpring } from "motion/react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  type MotionValue,
+} from "motion/react";
 import Image from "next/image";
 
 const documentationItems = [
@@ -23,7 +29,11 @@ const documentationItems = [
   },
   {
     src: "/seminar/IMG_5420.JPG",
-    title: "FUTURA SEMINAR NASIONAL",
+    title: "Antusiasme Peserta Seminar",
+  },
+  {
+    src: "/seminar/IMG_5525.JPG",
+    title: "Sesi Tanya Jawab",
   },
 ];
 
@@ -56,7 +66,7 @@ function MobileDocumentationCarousel({
 
   return (
     <div className="w-full space-y-4">
-      {/* Scrollable Track */}
+      {/* Scrollable Carousel Track */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -152,6 +162,45 @@ function MobileDocumentationCarousel({
   );
 }
 
+const GalleryRow = ({
+  items,
+  xTransform,
+  className = "",
+}: {
+  items: { src: string; title: string }[];
+  xTransform: MotionValue<string>;
+  className?: string;
+}) => {
+  return (
+    <motion.div
+      style={{ x: xTransform, willChange: "transform" }}
+      className={`flex gap-4 md:gap-6 w-max px-4 transform-gpu ${className}`}
+    >
+      {[...items, ...items, ...items].map((item, idx) => (
+        <div
+          key={idx}
+          className="group relative w-[60vw] sm:w-[40vw] md:w-[25vw] lg:w-[20vw] aspect-[4/3] rounded-2xl overflow-hidden shrink-0 cursor-pointer shadow-2xl bg-zinc-900 border border-white/10 transform-gpu"
+        >
+          <Image
+            src={item.src}
+            alt={item.title}
+            fill
+            sizes="(max-width: 768px) 60vw, 25vw"
+            quality={60}
+            className="object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 ease-out group-hover:scale-110 will-change-transform"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out" />
+          <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out">
+            <h4 className="text-white font-bold text-sm md:text-base lg:text-lg leading-tight uppercase tracking-tight drop-shadow-md">
+              {item.title}
+            </h4>
+          </div>
+        </div>
+      ))}
+    </motion.div>
+  );
+};
+
 export default function AboutSection() {
   const targetRef = useRef<HTMLDivElement>(null);
 
@@ -162,59 +211,71 @@ export default function AboutSection() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
+    stiffness: 80,
+    damping: 25,
     restDelta: 0.001,
   });
 
-  // Horizontal Sliding Sequence
-  const slide1X = useTransform(smoothProgress, [0, 0.2], ["0%", "-30%"]);
-  const slide2X = useTransform(
-    smoothProgress,
-    [0, 0.2, 0.35, 0.55],
-    ["100%", "0%", "0%", "-30%"]
-  );
-  const slide3X = useTransform(
-    smoothProgress,
-    [0.35, 0.55, 0.75, 0.95],
-    ["100%", "0%", "0%", "-30%"]
-  );
-  const slide4X = useTransform(smoothProgress, [0.75, 0.95], ["100%", "0%"]);
-
+  // --- Slide 1 ---
+  const slide1X = useTransform(smoothProgress, [0, 0.2], ["0vw", "-50vw"]);
   const slide1Opacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
-  const slide2Opacity = useTransform(smoothProgress, [0.35, 0.5], [1, 0]);
-  const slide3Opacity = useTransform(smoothProgress, [0.75, 0.9], [1, 0]);
 
-  // 3D Parallax specifically for Slide 2
-  const parallaxBg = useTransform(smoothProgress, [0, 1], ["-10%", "10%"]);
+  // --- Slide 2 ---
+  const slide2ContentX = useTransform(smoothProgress, [0, 0.2, 0.35, 0.55], ["100vw", "0vw", "-10vw", "-100vw"]);
+  const slide2Opacity = useTransform(smoothProgress, [0.15, 0.25, 0.45, 0.55], [0, 1, 1, 0]);
+  const parallaxBg = useTransform(smoothProgress, [0, 0.2, 0.35, 0.55], ["-100vw", "-10vw", "10vw", "100vw"]);
 
-  // Horizontal Parallax on Slide 4 text
-  const slide4TextX = useTransform(
-    smoothProgress,
-    [0.75, 0.95, 1],
-    ["20vw", "0vw", "0vw"]
-  );
-  const slide4BgTextX = useTransform(
-    smoothProgress,
-    [0.75, 0.95, 1],
-    ["-20vw", "0vw", "0vw"]
-  );
+  // --- Slide 3 ---
+  const title3X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["100vw", "0vw", "-5vw", "-150vw"]);
+  
+  // Gallery Rows Parallax:
+  // Top row comes from the right side to the left (self-start, anchored at left 0)
+  const topRowX = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["120vw", "0vw", "-40vw", "-200vw"]);
+  
+  // Bottom row comes from the left side to the right (self-end, anchored at right 100vw)
+  const bottomRowX = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["-120vw", "0vw", "40vw", "200vw"]);
+  
+  // Slide 3 Opacity only visible during slide 3 phase
+  const slide3Opacity = useTransform(smoothProgress, [0.3, 0.4, 0.75, 0.9], [0, 1, 1, 0]);
 
-  // Slide 3 Image Parallax
-  const img1X = useTransform(smoothProgress, [0.35, 0.95], ["6vw", "-6vw"]);
-  const img2X = useTransform(smoothProgress, [0.35, 0.95], ["-6vw", "6vw"]);
-  const img3X = useTransform(smoothProgress, [0.35, 0.95], ["4vw", "-4vw"]);
-  const img4X = useTransform(smoothProgress, [0.35, 0.95], ["-4vw", "4vw"]);
-  const imgCenterX = useTransform(smoothProgress, [0.35, 0.95], ["2vw", "-2vw"]);
+  // --- Slide 4 (Stay Tuned / Upcoming) ---
+  const slide4Opacity = useTransform(smoothProgress, [0.84, 0.92], [0, 1]);
+  const slide4TextX = useTransform(smoothProgress, [0.85, 0.95, 1], ["30vw", "0vw", "-2vw"]);
+  const slide4BgTextX = useTransform(smoothProgress, [0.85, 0.95, 1], ["-30vw", "0vw", "2vw"]);
 
   return (
     <section id="about" className="relative w-full">
       {/* ========================================================================= */}
-      {/* MOBILE LAYOUT (< 768px: Redesigned Native Vertical Scroll & Carousel)     */}
+      {/* MOBILE LAYOUT (< 768px: Native Vertical Scroll & Carousel)                */}
       {/* ========================================================================= */}
       <div className="md:hidden w-full px-6 py-20 space-y-24 text-white">
+        {/* Section 1: Intro / Organizers */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter leading-[0.9] uppercase">
+            SEMINAR NASIONAL
+            <span className="block mt-2 text-white/80 text-2xl sm:text-3xl font-bold">
+              FUTURA UNPAD
+            </span>
+          </h1>
+          <div className="flex items-center justify-center gap-6 pt-2">
+            <Image
+              src="/image-eeunpad.png"
+              width={100}
+              height={100}
+              alt="Futura Logo"
+              className="object-contain w-16 sm:w-20"
+            />
+            <Image
+              src="/hmte-unpad.png"
+              width={100}
+              height={100}
+              alt="HMTE UNPAD Logo"
+              className="object-contain w-16 sm:w-20"
+            />
+          </div>
+        </div>
 
-        {/* Section 1: What is Seminar */}
+        {/* Section 2: What is Seminar Nasional */}
         <div className="space-y-4 max-w-xl mx-auto text-left">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
             What is Seminar Nasional Futura?
@@ -229,7 +290,7 @@ export default function AboutSection() {
           </p>
         </div>
 
-        {/* Section 2: Documentation Carousel */}
+        {/* Section 3: Documentation Carousel */}
         <div className="space-y-4 max-w-xl mx-auto">
           <div className="text-left">
             <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-1">
@@ -238,10 +299,21 @@ export default function AboutSection() {
           </div>
           <MobileDocumentationCarousel items={documentationItems} />
         </div>
+
+        {/* Section 4: Stay Tuned / Upcoming Announcement */}
+        <div className="flex flex-col items-center text-center space-y-6 max-w-lg mx-auto py-8">
+          <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-tight">
+            Nantikan Seminar Nasional <br className="hidden sm:inline" />
+            <span className="text-white/80">Futura 2026</span>
+          </h3>
+          <p className="text-base sm:text-lg font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
+            Pendaftaran akan segera dibuka. Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka.
+          </p>
+        </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* TABLET & DESKTOP LAYOUT (>= 768px: Intact Horizontal Sliding Flow As-Is)  */}
+      {/* TABLET & DESKTOP LAYOUT (>= 768px: Horizontal Sliding Flow)               */}
       {/* ========================================================================= */}
       <div ref={targetRef} className="hidden md:block relative h-[500vh]">
         <div className="sticky top-0 h-screen w-full overflow-hidden">
@@ -250,28 +322,47 @@ export default function AboutSection() {
             style={{ x: slide1X, opacity: slide1Opacity }}
             className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
           >
-            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white">
-              SEMINAR
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-6 sm:mb-8 md:mb-10 lg:mb-14">
+              SEMINAR NASIONAL
               <br />
-              <span className="block mt-2 text-white/80">NASIONAL</span>
+              <span className="block mt-2 sm:mt-3 md:mt-4 text-white/80">
+                FUTURA UNPAD
+              </span>
             </h1>
+
+            <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
+              <Image
+                src="/image-eeunpad.png"
+                width={160}
+                height={160}
+                alt="Futura Logo"
+                className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
+              />
+              <Image
+                src="/hmte-unpad.png"
+                width={160}
+                height={160}
+                alt="HMTE UNPAD Logo"
+                className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
+              />
+            </div>
           </motion.div>
 
           {/* --- SLIDE 2: The Explanation --- */}
           <motion.div
-            style={{ x: slide2X, opacity: slide2Opacity }}
-            className="absolute inset-0 w-full h-screen flex text-white z-20 overflow-hidden px-6 md:px-12 lg:px-20"
+            style={{ opacity: slide2Opacity }}
+            className="absolute inset-0 w-full h-screen flex text-white z-20 pointer-events-none px-6 md:px-12 lg:px-20"
           >
             <motion.div
               style={{ x: parallaxBg }}
-              className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none whitespace-nowrap"
+              className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 whitespace-nowrap"
             >
-              <h2 className="text-[6rem] sm:text-[12rem] font-black uppercase tracking-[-0.07em] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.08)] lg:[-webkit-text-stroke:2px_rgba(255,255,255,0.1)]">
-                SEMINAR NASIONAL?
+              <h2 className="text-[5rem] sm:text-[10rem] md:text-[14rem] lg:text-[18rem] font-black uppercase tracking-[-0.07em] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.08)] lg:[-webkit-text-stroke:2px_rgba(255,255,255,0.1)]">
+                SEMINAR?
               </h2>
             </motion.div>
 
-            <div className="relative z-10 w-full max-w-[100rem] h-full mx-auto flex flex-col justify-center md:justify-start gap-10 sm:gap-16 md:gap-0">
+            <motion.div style={{ x: slide2ContentX }} className="relative z-10 w-full max-w-[100rem] h-full mx-auto flex flex-col justify-center md:justify-start gap-10 sm:gap-16 md:gap-0 pointer-events-auto">
               <div className="w-full flex flex-col justify-center md:justify-end items-start md:h-1/2 md:pb-12 gap-2">
                 <h3 className="text-sm md:text-lg font-bold tracking-tight uppercase">
                   What is
@@ -290,130 +381,68 @@ export default function AboutSection() {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* --- SLIDE 3: Documentation Gallery --- */}
+          {/* --- SLIDE 3: Documentation Gallery (Non-diagonal, opposite sliding rows) --- */}
           <motion.div
-            style={{ x: slide3X, opacity: slide3Opacity }}
-            className="absolute inset-0 w-full h-screen flex flex-col text-white z-30 overflow-hidden px-6 md:px-12 lg:px-20"
+            style={{ opacity: slide3Opacity }}
+            className="absolute inset-0 w-full h-screen flex flex-col justify-center text-white z-30 pointer-events-none"
           >
-            <div className="absolute inset-0 z-10 pointer-events-none">
-              {/* Top Left */}
-              <motion.div
-                style={{ x: img1X }}
-                className="group absolute top-[8%] md:top-[12%] left-[4%] md:left-[5%] flex flex-col gap-2 pointer-events-auto"
-              >
-                <div className="relative w-[45vw] sm:w-[30vw] md:w-[20vw] aspect-video bg-zinc-900 border border-white/5 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl">
-                  <Image
-                    src="/seminar/IMG_5476.JPG"
-                    alt="Documentation"
-                    fill
-                    className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0"
-                  />
-                </div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-tight uppercase text-white/40 group-hover:text-white transition-colors duration-300">
-                  Penyerahan Sertifikat untuk Moderator
-                </div>
-              </motion.div>
+            <motion.div style={{ x: title3X, willChange: "transform" }} className="absolute bottom-[10%] left-[5%] md:left-[8%] z-40 pointer-events-auto max-w-2xl pr-6 transform-gpu">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.9)] mb-4 whitespace-nowrap drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]">
+                Kilas Balik <span className="text-white [-webkit-text-stroke:0px]">Seminar</span>
+              </h2>
+              <div className="p-5 md:p-8 rounded-3xl bg-zinc-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transform-gpu">
+                <p className="text-zinc-200 text-sm md:text-base lg:text-lg font-light tracking-tight leading-relaxed">
+                  Momen-momen tak terlupakan dari seminar nasional tahun sebelumnya,
+                  menampilkan antusiasme peserta, diskusi interaktif, dan
+                  wawasan berharga dari para pembicara ahli.
+                </p>
+              </div>
+            </motion.div>
 
-              {/* Bottom Left */}
-              <motion.div
-                style={{ x: img4X }}
-                className="group absolute bottom-[10%] md:bottom-[12%] left-[4%] md:left-[8%] flex flex-col-reverse gap-2 pointer-events-auto hidden sm:flex"
-              >
-                <div className="relative w-[40vw] sm:w-[30vw] md:w-[20vw] aspect-[4/3] bg-zinc-900 border border-white/5 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl">
-                  <Image
-                    src="/seminar/DSC_0588.JPG"
-                    alt="Documentation"
-                    fill
-                    className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0"
-                  />
-                </div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-tight uppercase text-white/40 group-hover:text-white transition-colors duration-300">
-                  TALKSHOW DENGAN FIRU DESIGNER
-                </div>
-              </motion.div>
-
-              {/* Top Right */}
-              <motion.div
-                style={{ x: img3X }}
-                className="group absolute top-[12%] md:top-[20%] right-[4%] md:right-[5%] flex flex-col gap-2 items-end pointer-events-auto hidden sm:flex"
-              >
-                <div className="relative w-[40vw] sm:w-[30vw] md:w-[20vw] aspect-video bg-zinc-900 border border-white/5 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl">
-                  <Image
-                    src="/seminar/IMG_5526.JPG"
-                    alt="Documentation"
-                    fill
-                    className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0"
-                  />
-                </div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-tight uppercase text-white/40 group-hover:text-white transition-colors duration-300 text-right">
-                  PEMENANG DOORPRIZE FUTURA 2025
-                </div>
-              </motion.div>
-
-              {/* Bottom Right */}
-              <motion.div
-                style={{ x: img2X }}
-                className="group absolute bottom-[8%] md:bottom-[15%] right-[4%] md:right-[5%] flex flex-col-reverse gap-2 items-end pointer-events-auto"
-              >
-                <div className="relative w-[50vw] sm:w-[30vw] md:w-[20vw] aspect-video bg-zinc-900 border border-white/5 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl">
-                  <Image
-                    src="/seminar/IMG_5551.JPG"
-                    alt="Documentation"
-                    fill
-                    className="object-cover opacity-60 mix-blend-luminosity grayscale transition-all duration-500 group-hover:opacity-100 group-hover:mix-blend-normal group-hover:grayscale-0"
-                  />
-                </div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-bold tracking-tight uppercase text-white/40 group-hover:text-white transition-colors duration-300 text-right">
-                  GRAND OPENING FUTURA 2025
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Center Image */}
-            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <motion.div
-                style={{ x: imgCenterX }}
-                className="group flex flex-col gap-3 items-center pointer-events-auto"
-              >
-                <div className="relative w-[65vw] sm:w-[36vw] md:w-[28vw] aspect-[4/3] bg-zinc-900 shadow-2xl border border-white/10 cursor-pointer transition-transform duration-500 hover:scale-[1.02]">
-                  <Image
-                    src="/seminar/IMG_5420.JPG"
-                    alt="Featured Documentation"
-                    fill
-                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-                  />
-                </div>
-                <div className="text-sm md:text-base lg:text-lg font-black tracking-tight uppercase text-white/50 group-hover:text-white transition-colors duration-300 whitespace-nowrap">
-                  FUTURA SEMINAR NASIONAL
-                </div>
-              </motion.div>
+            {/* Horizontal gallery without diagonal tilt */}
+            <div className="flex flex-col gap-6 md:gap-8 z-10 w-full overflow-visible pointer-events-auto">
+              <GalleryRow
+                items={documentationItems.slice(0, 3)}
+                xTransform={topRowX}
+                className="self-start"
+              />
+              <GalleryRow
+                items={documentationItems.slice(3, 6)}
+                xTransform={bottomRowX}
+                className="self-end"
+              />
             </div>
           </motion.div>
 
-          {/* --- SLIDE 4: Join Us --- */}
+          {/* --- SLIDE 4: Stay Tuned / Upcoming Announcement --- */}
           <motion.div
-            style={{ x: slide4X }}
-            className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden"
+            style={{ opacity: slide4Opacity }}
+            className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden px-6 md:px-12 lg:px-20 pointer-events-none"
           >
             <motion.div
               style={{ x: slide4BgTextX }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+              className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none"
             >
-              <h2 className="text-[10rem] sm:text-[15rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
-                JOIN US
+              <h2 className="text-[8rem] sm:text-[12rem] md:text-[16rem] lg:text-[20rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
+                STAY TUNED
               </h2>
             </motion.div>
 
             <motion.div
               style={{ x: slide4TextX }}
-              className="relative z-10 flex flex-col items-center"
+              className="relative z-10 flex flex-col items-center text-center max-w-4xl gap-6 sm:gap-8 pointer-events-auto"
             >
-              <h2 className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black uppercase tracking-tighter text-white text-center leading-none">
-                JOIN US
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-white text-center leading-[0.9]">
+                Nantikan Seminar Nasional <br />
+                <span className="text-white/80">Futura 2026</span>
               </h2>
+
+              <p className="max-w-2xl text-center text-base sm:text-lg md:text-xl lg:text-2xl font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
+                Pendaftaran akan segera dibuka. Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka.
+              </p>
             </motion.div>
           </motion.div>
         </div>

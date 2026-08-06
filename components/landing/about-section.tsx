@@ -33,7 +33,7 @@ const documentationItems = [
   },
   {
     src: "/seminar/IMG_5420.JPG",
-    title: "Antusiasme Peserta Seminar",
+    title: "Sesi talkshow",
   },
   {
     src: "/seminar/IMG_5525.JPG",
@@ -49,7 +49,7 @@ const documentationItems = [
   },
   {
     src: "/mechatura/_DSC0757.JPG",
-    title: "Fokus Peserta Lomba",
+    title: "Final Lomba Sumo",
   },
   {
     src: "/mechatura/_DSC0762.JPG",
@@ -127,9 +127,8 @@ function MobileDocumentationCarousel({
               key={idx}
               onClick={() => scrollToIndex(idx)}
               aria-label={`Go to slide ${idx + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? "w-6 bg-white" : "w-1.5 bg-white/20"
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? "w-6 bg-white" : "w-1.5 bg-white/20"
+                }`}
             />
           ))}
         </div>
@@ -262,9 +261,8 @@ const VideoHoverWrapper = ({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform transition-transform hover:scale-[1.02] duration-500 overflow-hidden ${
-        showPill ? "cursor-none" : ""
-      } ${className || ""}`}
+      className={`relative rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform transition-transform hover:scale-[1.02] duration-500 overflow-hidden ${showPill ? "cursor-none" : ""
+        } ${className || ""}`}
     >
       <video
         ref={videoRef}
@@ -356,12 +354,12 @@ export default function AboutSection() {
 
   // --- Slide 3 ---
   const title3X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["100vw", "0vw", "-5vw", "-150vw"]);
-  
+
   // Gallery Rows Parallax & Entrance
   const row1X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["150vw", "0vw", "-40vw", "-200vw"]);
   const row2X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.97], ["180vw", "-40vw", "-10vw", "-220vw"]);
   const row3X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 1], ["210vw", "-20vw", "-60vw", "-180vw"]);
-  
+
   const slide3Opacity = useTransform(smoothProgress, [0.75, 0.9], [1, 0]);
 
   // --- Slide 4 ---

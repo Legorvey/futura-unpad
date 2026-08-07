@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const LITE_MOTION_QUERY = "(max-width: 640px), (prefers-reduced-motion: reduce)";
+const LITE_MOTION_QUERY = "(max-width: 768px), (prefers-reduced-motion: reduce)";
 
 export function useLiteMotion() {
   const [isLiteMotion, setIsLiteMotion] = useState(false);
@@ -19,3 +19,4 @@ export function useLiteMotion() {
 
   return isLiteMotion;
 }
+

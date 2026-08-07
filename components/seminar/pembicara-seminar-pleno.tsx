@@ -50,12 +50,12 @@ export default function PembicaraSeminarPleno() {
 
     return (
         <section className="w-full py-16 md:py-24 relative overflow-hidden">
-            <div className="mx-auto max-w-7xl px-4 flex flex-col items-center">
-                <div className="text-center mb-16 md:mb-24 flex flex-col items-center">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.05em] text-white leading-none">
+            <div className="mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 flex flex-col items-center">
+                <div className="mb-14 md:mb-20 text-center flex flex-col items-center">
+                    <h2 className="text-[3rem] sm:text-[4rem] md:text-[5rem] font-bold tracking-[-0.08em] text-white text-center text-balance leading-tight">
                         Seminar Pleno
                     </h2>
-                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-5xl">
+                    <p className="mt-2 text-lg md:text-xl text-foreground/60 leading-relaxed max-w-2xl text-center text-balance">
                         Seminar Nasional Futura adalah forum ilmiah yang mengkaji inovasi teknologi global. Acara ini menghadirkan akademisi, praktisi industri, dan perwakilan pemerintah untuk memaparkan tren teknologi terkini.
                     </p>
                 </div>

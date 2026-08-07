@@ -13,34 +13,48 @@ type GrandTimelineItem = {
   location?: string;
 };
 
-const seminarTimelineItems: GrandTimelineItem[] = [
+const esaiTimelineItems: GrandTimelineItem[] = [
   {
-    category: "Seminar Nasional",
-    event: "Mulai Registrasi",
-    date: "21 September 2026",
-    description: "Periode registrasi peserta Seminar Nasional Futura.",
+    category: "Lomba Esai",
+    event: "Registrasi & Pengumpulan",
+    date: "21 September - 22 Oktober 2026",
+    description: "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
     location: "Online/Daring",
   },
   {
-    category: "Seminar Nasional",
-    event: "Akhir Registrasi",
-    date: "21 November 2026",
-    description: "Akhir registrasi peserta Seminar Nasional Futura.",
+    category: "Lomba Esai",
+    event: "Seleksi Naskah",
+    date: "23 Oktober - 2 November 2026",
+    description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
+    location: "Oleh Panitia",
+  },
+  {
+    category: "Lomba Esai",
+    event: "Pengumuman Finalis",
+    date: "4 November 2026",
+    description: "Finalis Lomba Esai diumumkan secara resmi melalui email dan kanal informasi.",
+    location: "By Email",
+  },
+  {
+    category: "Lomba Esai",
+    event: "Upload Video Presentasi Finalis",
+    date: "5 - 12 November 2026",
+    description: "Finalis mengunggah video presentasi sesuai ketentuan dan regulasi panitia.",
     location: "Online/Daring",
   },
   {
-    category: "Seminar Nasional",
-    event: "Pelaksanaan",
+    category: "Lomba Esai",
+    event: "Seleksi Finalis",
+    date: "13 - 27 November 2026",
+    description: "Penilaian tahap akhir untuk menentukan karya terbaik dan pemenang Lomba Esai.",
+    location: "Oleh Panitia",
+  },
+  {
+    category: "Lomba Esai",
+    event: "Pengumuman Juara",
     date: "28 November 2026",
-    description: "Hari pelaksanaan Seminar Nasional Futura.",
-    location: "Bale Rumawat Unpad Dipatiukur",
-  },
-  {
-    category: "Seminar Nasional",
-    event: "Pembagian Sertifikat",
-    date: "1 Desember 2026",
-    description: "Hari pembagian sertifikat Seminar Nasional Futura.",
-    location: "Online/Daring",
+    description: "Pengumuman dan apresiasi pemenang Lomba Esai pada sesi awarding.",
+    location: "Bale Rumawat Unpad",
   },
 ];
 
@@ -182,7 +196,7 @@ const ParallaxTimelineItem = ({ item, index, isLiteMotion }: { item: GrandTimeli
   );
 };
 
-export function SeminarTimeline() {
+export function EsaiTimeline() {
   const isLiteMotion = useLiteMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -208,13 +222,13 @@ export function SeminarTimeline() {
                 Timeline
               </h2>
               <span className="text-left text-5xl lg:text-6xl font-bold tracking-[-0.04em] text-amber-300">
-                Seminar Nasional
+                Lomba Esai
               </span>
             </div>
 
             <div className="w-full lg:pl-6 xl:pl-10 z-30">
               <p className="text-sm md:text-base text-white/70 mt-1 md:mt-2 max-w-xs leading-relaxed font-light tracking-[-0.02em]">
-                Timeline Seminar Nasional Futura, mulai dari pembukaan registrasi sampai hari pelaksanaan seminar.
+                Jadwal lengkap kompetisi Lomba Esai Nasional Futura, mulai dari pendaftaran hingga pengumuman juara.
               </p>
             </div>
           </div>
@@ -234,7 +248,7 @@ export function SeminarTimeline() {
               }}
               className="w-full flex flex-col"
             >
-              {seminarTimelineItems.map((item, i) => (
+              {esaiTimelineItems.map((item, i) => (
                 <ParallaxTimelineItem key={i} item={item} index={i} isLiteMotion={isLiteMotion} />
               ))}
             </motion.div>

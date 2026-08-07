@@ -7,7 +7,6 @@ import {
 const mechaturaFaqGroups: FAQGroup[] = [
   {
     title: "Mechatura",
-    headingPadding: "pb-6",
     faqs: mechaturaFaqs,
   },
 ];
@@ -16,7 +15,9 @@ export function MechaturaFAQ() {
   return (
     <FAQSection
       id="mechatura-faq"
-      title="FAQ Mechatura"
+      badge="FAQ"
+      title="Pertanyaan Seputar Mechatura"
+      subtitle="Pertanyaan yang sering diajukan mengenai perlombaan, regulasi teknis, dan robotika Mechatura 2026."
       groups={mechaturaFaqGroups}
       showAllButton={false}
     />

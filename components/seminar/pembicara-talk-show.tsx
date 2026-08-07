@@ -50,13 +50,13 @@ export default function PembicaraTalkshow() {
 
     return (
         <section className="w-full py-16 md:py-24 relative overflow-hidden">
-            <div className="mx-auto max-w-7xl px-4 flex flex-col items-center">
-                <div className="text-center mb-16 md:mb-24 flex flex-col items-center">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.05em] text-white leading-none">
+            <div className="mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 flex flex-col items-center">
+                <div className="mb-14 md:mb-20 text-center flex flex-col items-center">
+                    <h2 className="text-[3rem] sm:text-[4rem] md:text-[5rem] font-bold tracking-[-0.08em] text-white text-center text-balance leading-tight">
                         Talkshow
                     </h2>
-                    <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/50 max-w-5xl">
-                        Talkshow Futura merupakan rangkaian acara yang berfokus pada pertukaran wawasan melalui diskusi interaktif antara peserta dan narasumber. Acara ini menghadirkan influencer maupun individu yang telah memiliki pengalaman, prestasi, atau kontribusi di bidangnya untuk berbagi pengetahuan, pengalaman, serta perspektif mengenai isu dan perkembangan terkini.
+                    <p className="mt-2 text-lg md:text-xl text-foreground/60 leading-relaxed max-w-2xl text-center text-balance">
+                        Talkshow Futura merupakan rangkaian acara yang berfokus pada pertukaran wawasan melalui diskusi interaktif antara peserta dan narasumber.
                     </p>
                 </div>
 

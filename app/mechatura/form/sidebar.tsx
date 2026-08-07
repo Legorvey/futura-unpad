@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { InfoIcon, ChevronLeft, ChevronRight, Check, Calendar, Phone } from "lucide-react";
+import { InfoIcon, ChevronLeft, ChevronRight, Check, Phone, FileText, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MECHATURA_DOCUMENTS } from "@/lib/mechatura/options";
 import type { MechaturaRegistrationStep, StepDefinition } from "@/lib/registration-steps";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -210,18 +211,52 @@ export default function MechaturaFormSidebar({
               </p>
             </div>
 
-            {/* Timeline Info Card */}
-            <div className="rounded-xl border p-4 space-y-2.5 text-xs text-muted-foreground">
+            {/* Documents & Juklak Info Card */}
+            <div className="rounded-xl border p-4 space-y-2.5 text-xs text-muted-foreground bg-card/40">
               <div className="flex items-center gap-2 text-foreground font-semibold">
-                <Calendar className="h-4 w-4 text-primary shrink-0" />
-                <span>Timeline Mechatura</span>
+                <FileText className="h-4 w-4 text-primary shrink-0" />
+                <span>Dokumen Mechatura</span>
               </div>
-              <ul className="space-y-1.5 border-t border-border/50 pt-2 text-[11px] leading-relaxed">
-                <li><strong className="text-foreground">Batch 1:</strong> 21 Jul – 31 Ags 2026 (Rp175k)</li>
-                <li><strong className="text-foreground">Batch 2:</strong> 1 Sep – 1 Okt 2026 (Rp200k)</li>
-                <li><strong className="text-foreground">Tech. Meeting:</strong> 22 Okt 2026</li>
-                <li><strong className="text-foreground">Main Event:</strong> 7 Nov 2026 (PPBS Unpad)</li>
-              </ul>
+              <div className="space-y-1.5 border-t border-border/50 pt-2 text-[11px]">
+                <a
+                  href={MECHATURA_DOCUMENTS.booklet.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between p-2 rounded-lg bg-muted/40 hover:bg-muted/80 transition-colors group text-foreground font-medium"
+                >
+                  <div className="flex items-center gap-2 min-w-0 pr-1">
+                    <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">{MECHATURA_DOCUMENTS.booklet.title}</span>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
+                </a>
+
+                <a
+                  href={MECHATURA_DOCUMENTS.juklakSumo.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between p-2 rounded-lg bg-muted/40 hover:bg-muted/80 transition-colors group text-foreground font-medium"
+                >
+                  <div className="flex items-center gap-2 min-w-0 pr-1">
+                    <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">{MECHATURA_DOCUMENTS.juklakSumo.title}</span>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
+                </a>
+
+                <a
+                  href={MECHATURA_DOCUMENTS.juklakTransporter.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between p-2 rounded-lg bg-muted/40 hover:bg-muted/80 transition-colors group text-foreground font-medium"
+                >
+                  <div className="flex items-center gap-2 min-w-0 pr-1">
+                    <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">{MECHATURA_DOCUMENTS.juklakTransporter.title}</span>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
+                </a>
+              </div>
             </div>
 
             {/* Contact Person Card */}

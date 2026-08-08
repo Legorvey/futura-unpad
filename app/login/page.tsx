@@ -1,164 +1,219 @@
+import { redirect } from "next/navigation";
+import LoginForm from "./form";
+import { getCachedAuth } from "@/lib/auth";
+import type { Metadata } from "next";
+import { ArrowLeft } from "lucide-react";
+import { cookies } from "next/headers";
+import { getSafeRedirectPath } from "@/lib/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-import { redirect } from "next/navigation"
-import LoginForm from "./form"
-import { getCachedAuth } from "@/lib/auth"
-import { Metadata } from "next"
-import { CheckCircle2, ShieldAlert } from "lucide-react"
-import { cookies } from "next/headers"
-import { getSafeRedirectPath } from "@/lib/navigation"
-import { ErrorState } from "@/components/ui/error-state"
-import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
-
-import HoverFooter from "@/components/layout/footer"
-
-type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>
-
+type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export const metadata: Metadata = {
-  title: "Log in"
+  title: "Log in",
+};
+
+function AuthStatusLayout({
+  title,
+  description,
+  actionHref,
+  actionLabel,
+}: {
+  title: string;
+  description: string;
+  actionHref: string;
+  actionLabel: string;
+}) {
+  return (
+    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-2 font-sans overflow-x-hidden">
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: `
+            body {
+              background-color: white !important;
+            }
+          `,
+        }}
+      />
+
+      {/* Left side: Content */}
+      <div className="flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
+        <div className="absolute top-8 left-6 lg:left-12 z-50">
+          <Link
+            href="/login"
+            className="flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Halaman Masuk
+          </Link>
+        </div>
+
+        <div className="relative z-10 w-full max-w-[420px] space-y-8">
+          <section className="space-y-2">
+            <h1 className="text-black text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans">
+              {title}
+            </h1>
+            <p className="text-zinc-500 text-sm font-medium leading-relaxed tracking-tight font-sans">
+              {description}
+            </p>
+          </section>
+
+          <div className="space-y-3 pt-2">
+            <Button
+              asChild
+              className="h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm sm:text-base transition-all shadow-sm w-full"
+            >
+              <Link
+                href={actionHref}
+                prefetch={false}
+                className="flex items-center justify-center"
+              >
+                {actionLabel}
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side: Rounded Blue Box */}
+      <div className="hidden lg:block p-4 lg:p-6 relative">
+        <div className="w-full h-full min-h-[500px] bg-[#00205B] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/20 to-transparent pointer-events-none" />
+        </div>
+      </div>
+    </main>
+  );
 }
 
 export default async function LoginPage({
-    searchParams,
+  searchParams,
 }: {
-    searchParams: LoginSearchParams
-}){
-    const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
+  searchParams: LoginSearchParams;
+}) {
+  const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
 
-    if (user) {
-        redirect(getSafeRedirectPath(params.next))
-    }
+  if (user) {
+    redirect(getSafeRedirectPath(params.next));
+  }
 
-    if (params.error === "oauth_failed" || params.error === "missing_code") {
-        return (
-            <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
-                <ErrorState 
-                    icon={ShieldAlert}
-                    title="Tautan verifikasi tidak valid atau sudah digunakan"
-                    description="Tautan ini telah kedaluwarsa atau Anda sudah memverifikasi email Anda menggunakan kode OTP. Silakan masuk untuk melanjutkan."
-                    actionHref="/login"
-                    actionLabel="Ke Halaman Masuk"
-                    tone="warning"
-                />
-            </main>
-        )
-    }
-
-    if (params.reset === "success") {
-        return (
-            <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
-                <ErrorState 
-                    icon={CheckCircle2}
-                    title="Kata Sandi Berhasil Direset"
-                    description="Kata sandi Anda telah diperbarui dengan aman. Anda sekarang dapat masuk ke akun Anda."
-                    actionHref="/login"
-                    actionLabel="Ke Halaman Masuk"
-                    tone="success"
-                />
-            </main>
-        )
-    }
-
-    const cookieStore = await cookies();
-    const isVerified = cookieStore.get("email_verified_flash")?.value === "1";
-
+  if (params.error === "oauth_failed" || params.error === "missing_code") {
     return (
-        <main className="dark text-foreground min-h-screen w-full relative flex flex-col items-center justify-center px-4 pt-24 pb-12 font-sans overflow-x-hidden">
-            <style dangerouslySetInnerHTML={{ __html: `
-                body {
-                  background-color: #00205B !important;
-                }
-                .form-visibility-fix input {
-                    background-color: rgba(255, 255, 255, 0.1) !important;
-                    border-color: rgba(255, 255, 255, 0.3) !important;
-                    color: white !important;
-                }
-                .form-visibility-fix input::placeholder {
-                    color: rgba(255, 255, 255, 0.5) !important;
-                }
-                .form-visibility-fix label {
-                    color: white !important;
-                    font-weight: 500 !important;
-                }
-                .form-visibility-fix .text-muted-foreground {
-                    color: rgba(255, 255, 255, 0.75) !important;
-                }
-                .form-visibility-fix a {
-                    color: #93c5fd !important;
-                }
-                .form-visibility-fix a:hover {
-                    color: white !important;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.3);
-                }
-                @keyframes aurora-ribbon-1 {
-                0% { transform: translateY(0) rotate(-2deg) skewY(2deg); opacity: 0.15; }
-                25% { transform: translateY(-5vh) rotate(3deg) skewY(-3deg) scaleY(1.2); opacity: 0.25; }
-                50% { transform: translateY(2vh) rotate(-1deg) skewY(4deg) scaleY(0.9); opacity: 0.2; }
-                75% { transform: translateY(-3vh) rotate(2deg) skewY(-2deg) scaleY(1.1); opacity: 0.3; }
-                100% { transform: translateY(0) rotate(-2deg) skewY(2deg); opacity: 0.15; }
-                }
-                @keyframes aurora-ribbon-2 {
-                0% { transform: translateY(2vh) rotate(3deg) skewY(-2deg); opacity: 0.12; }
-                33% { transform: translateY(-3vh) rotate(-2deg) skewY(3deg) scaleY(1.3); opacity: 0.22; }
-                66% { transform: translateY(4vh) rotate(1deg) skewY(-4deg) scaleY(0.8); opacity: 0.18; }
-                100% { transform: translateY(2vh) rotate(3deg) skewY(-2deg); opacity: 0.12; }
-                }
-                @keyframes aurora-ribbon-3 {
-                0% { transform: translateY(-3vh) rotate(-1deg) skewY(1deg) scaleY(0.9); opacity: 0.2; }
-                30% { transform: translateY(3vh) rotate(2deg) skewY(-2deg) scaleY(1.2); opacity: 0.15; }
-                70% { transform: translateY(-4vh) rotate(-2deg) skewY(3deg) scaleY(1); opacity: 0.25; }
-                100% { transform: translateY(-3vh) rotate(-1deg) skewY(1deg) scaleY(0.9); opacity: 0.2; }
-                }
-                .animate-aurora-ribbon-1 { animation: aurora-ribbon-1 12s ease-in-out infinite; }
-                .animate-aurora-ribbon-2 { animation: aurora-ribbon-2 16s ease-in-out infinite; }
-                .animate-aurora-ribbon-3 { animation: aurora-ribbon-3 20s ease-in-out infinite; }
-            `}} />
-            
-            <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-                <div className="absolute top-[20%] left-[-10vw] w-[120vw] h-[15vh] bg-[#307FE2] blur-[60px] rounded-[100%] animate-aurora-ribbon-1 opacity-50" />
-                <div className="absolute top-[45%] right-[-10vw] w-[130vw] h-[12vh] bg-[#307FE2] blur-[50px] rounded-[100%] animate-aurora-ribbon-2 opacity-50" />
-                <div className="absolute bottom-[25%] left-[-15vw] w-[140vw] h-[18vh] bg-[#307FE2] blur-[70px] rounded-[100%] animate-aurora-ribbon-3 opacity-50" />
+      <AuthStatusLayout
+        title="Tautan Verifikasi Tidak Valid"
+        description="Tautan ini telah kedaluwarsa atau sudah digunakan. Silakan masuk atau minta kode baru untuk melanjutkan."
+        actionHref="/login"
+        actionLabel="Ke Halaman Masuk"
+      />
+    );
+  }
+
+  if (params.reset === "success") {
+    return (
+      <AuthStatusLayout
+        title="Kata Sandi Berhasil Direset"
+        description="Kata sandi Anda telah diperbarui dengan aman. Anda sekarang dapat masuk menggunakan kata sandi baru Anda."
+        actionHref="/login"
+        actionLabel="Masuk ke Akun"
+      />
+    );
+  }
+
+  const cookieStore = await cookies();
+  const isVerified = cookieStore.get("email_verified_flash")?.value === "1";
+
+  return (
+    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-2 font-sans overflow-x-hidden">
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: `
+            body {
+              background-color: white !important;
+            }
+            .light-form-fix input {
+              background-color: white !important;
+              border-color: rgba(0, 0, 0, 0.2) !important;
+              color: black !important;
+            }
+            .light-form-fix input::placeholder {
+              color: rgba(0, 0, 0, 0.4) !important;
+            }
+            .light-form-fix label {
+              color: black !important;
+              font-weight: 500 !important;
+            }
+            .light-form-fix .text-muted-foreground {
+              color: rgba(0, 0, 0, 0.6) !important;
+            }
+            .light-form-fix button[role="checkbox"] {
+              border-color: rgba(0, 0, 0, 0.3) !important;
+            }
+            .light-form-fix button[role="checkbox"][data-state="checked"] {
+              background-color: black !important;
+              border-color: black !important;
+              color: white !important;
+            }
+            .light-form-fix button[role="checkbox"][data-state="checked"] svg {
+              color: white !important;
+            }
+            .light-form-fix button > svg.lucide-eye, .light-form-fix button > svg.lucide-eye-off {
+              color: rgba(0, 0, 0, 0.5) !important;
+            }
+            .light-form-fix button:hover > svg.lucide-eye, .light-form-fix button:hover > svg.lucide-eye-off {
+              color: black !important;
+            }
+          `,
+        }}
+      />
+
+      {/* Left side: Form */}
+      <div className="flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
+        <div className="absolute top-8 left-6 lg:left-12 z-50">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Beranda
+          </Link>
+        </div>
+
+        <div className="relative z-10 w-full max-w-[420px] space-y-8">
+          <section className="space-y-1">
+            <h1 className="text-black text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans">
+              Masuk ke akun Futura
+            </h1>
+            <p className="text-zinc-500 text-sm font-medium leading-relaxed tracking-tight font-sans">
+              Masuk untuk mengelola pendaftaran Anda
+            </p>
+          </section>
+
+          {isVerified && (
+            <div
+              className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-center"
+              role="alert"
+              aria-live="polite"
+            >
+              <p className="text-xs sm:text-sm font-medium text-emerald-800">
+                Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.
+              </p>
             </div>
+          )}
 
-            <ParallaxBackgrounds isStatic className="absolute inset-0 z-[2] mix-blend-screen opacity-40" />
+          <section className="font-sans light-form-fix">
+            <LoginForm isVerified={isVerified} />
+          </section>
+        </div>
+      </div>
 
-            <div className="relative z-10 w-full max-w-lg space-y-8 border border-white/15 p-6 md:p-8 rounded-2xl backdrop-blur-xl bg-neutral-950/15 shadow-2xl">
-                <section className="space-y-1">
-                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tighter text-balance font-sans text-white">
-                        Masuk ke akun Futura
-                    </h1>
-                    <p className="text-sm font-medium leading-relaxed text-white/70 tracking-tight font-sans">
-                        Masuk untuk mengelola pendaftaran Anda
-                    </p>
-                </section>
-
-                {isVerified && (
-                    <div 
-                        className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-200 shadow-sm text-center"
-                        role="alert"
-                        aria-live="polite"
-                    >
-                        <p className="text-sm font-medium">Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.</p>
-                    </div>
-                )}
-
-                <section className="font-sans form-visibility-fix">
-                    <LoginForm isVerified={isVerified} />
-                </section>
-            </div>
-        </main>
-    )
+      {/* Right side: Rounded Blue Box */}
+      <div className="hidden lg:block p-4 lg:p-6 relative">
+        <div className="w-full h-full min-h-[500px] bg-[#00205B] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/20 to-transparent pointer-events-none" />
+        </div>
+      </div>
+    </main>
+  );
 }

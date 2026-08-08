@@ -65,7 +65,7 @@ export function NavbarDemo() {
       toast.success("Berhasil keluar")
   }
  
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+  if (pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/login" || pathname === "/register" || pathname === "/forgot-password" || pathname === "/reset-password") {
     return null;
   }
 

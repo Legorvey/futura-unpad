@@ -122,7 +122,7 @@ export async function updateMemberIdentity(memberId: string, data: IdentityData)
   
   const parsedData = IdentityDataSchema.safeParse(data);
   if (!parsedData.success) {
-    throw new Error("Invalid input data: " + parsedData.error.errors[0].message);
+    throw new Error("Invalid input data: " + parsedData.error.message);
   }
 
   // We should verify that the current user owns this member record

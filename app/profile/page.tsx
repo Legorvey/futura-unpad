@@ -91,7 +91,7 @@ export default async function ProfilePage() {
 
   const [
     { data: latestRegistration, error },
-    { data: latestMechaturaRegistration, error: mechaturaError },
+    { data: latestMechaturaMembership, error: mechaturaError },
   ] =
     await Promise.all([
       adminSupabase
@@ -105,14 +105,10 @@ export default async function ProfilePage() {
         .limit(1)
         .maybeSingle<ProfileRegistration>(),
       adminSupabase
-        .from("mechatura_registrations")
-        .select(
-          "id,team_name,institution,competition_type,robot_name,registration_status,payment_status,payment_amount,midtrans_order_id,created_at,paid_at,mechatura_members(full_name,email,phone,is_leader)"
-        )
+        .from("mechatura_members")
+        .select("id, mechatura_teams(id, name, created_at, payment_status, category)")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle<ProfileMechaturaRegistration>(),
+        .maybeSingle(),
     ])
 
   if (error || mechaturaError) {
@@ -135,9 +131,6 @@ export default async function ProfilePage() {
     throw new Error(membersError.message)
   }
 
-  const mechaturaMembers = latestMechaturaRegistration?.mechatura_members || [];
-  const mechaturaLeader = mechaturaMembers.find(m => m.is_leader);
-
   const groupMembers = membersData ?? []
   const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
   const checkedInCount = latestRegistration ? (latestRegistration.attended ? 1 : 0) + groupMembers.filter(m => m.attended).length : 0
@@ -145,19 +138,11 @@ export default async function ProfilePage() {
   const academicStatus = isAcademicStatus(latestRegistration?.status_akademika)
     ? latestRegistration.status_akademika
     : null
-  const mechaturaPaymentStatus = isPaymentStatus(
-    latestMechaturaRegistration?.payment_status
-  )
-    ? latestMechaturaRegistration.payment_status
-    : "unpaid"
-  const mechaturaCompetition = isMechaturaCompetitionType(
-    latestMechaturaRegistration?.competition_type
-  )
-    ? latestMechaturaRegistration.competition_type
-    : null
-  const isMechaturaPaymentComplete = isCompletedPaymentStatus(
-    mechaturaPaymentStatus
-  )
+    
+  const hasMechaturaTeam = !!latestMechaturaMembership?.mechatura_teams;
+  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams) 
+    ? latestMechaturaMembership?.mechatura_teams[0] 
+    : latestMechaturaMembership?.mechatura_teams;
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -231,66 +216,37 @@ export default async function ProfilePage() {
               <div>
                 <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Mechatura</h2>
                 <p className="text-sm tracking-tight text-white/50">
-                  {latestMechaturaRegistration ? `Terdaftar pada ${formatDate(latestMechaturaRegistration.created_at)}` : "Pendaftaran saat ini belum dibuka"}
+                  {mechaturaTeam ? `Terdaftar pada ${formatDate(mechaturaTeam.created_at)}` : "Belum bergabung di tim manapun"}
                 </p>
               </div>
             </div>
-            {latestMechaturaRegistration && (
+            {mechaturaTeam && (
               <div className="flex items-center">
-                <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${isMechaturaPaymentComplete ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
-                  {isMechaturaPaymentComplete ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {paymentStatusLabels[mechaturaPaymentStatus]}
+                <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${mechaturaTeam.payment_status === 'verified' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
+                  {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
+                  {mechaturaTeam.payment_status.replace('_', ' ')}
                 </span>
               </div>
             )}
           </div>
 
           <div className="px-2">
-            {latestMechaturaRegistration ? (
-              <div className="space-y-10">
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Nama Tim</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{latestMechaturaRegistration.team_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Kategori Lomba</p>
-                    <p className="text-lg font-medium tracking-tight text-white">
-                      {mechaturaCompetition ? mechaturaCompetitionLabels[mechaturaCompetition] : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Nama Robot</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{latestMechaturaRegistration.robot_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Ketua Tim</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{mechaturaLeader?.full_name ?? "-"}</p>
-                  </div>
+            {mechaturaTeam ? (
+              <div className="flex flex-col sm:flex-row items-center justify-between py-6">
+                <div>
+                  <p className="text-lg font-medium text-white mb-1">{mechaturaTeam.name}</p>
+                  <p className="text-sm text-white/60 capitalize">Kategori: {mechaturaTeam.category.replace('_', ' ')}</p>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  {isMechaturaPaymentComplete ? (
-                    <Button asChild variant="outline" className="h-12 px-6 rounded-xl bg-white/[0.05] border-white/10 text-white hover:bg-white/[0.1] transition-colors">
-                      <Link href={`/payment/success?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
-                        Lihat Bukti Pembayaran <ChevronRight className="w-4 h-4 ml-2 opacity-70" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild variant="outline" className="h-12 px-6 rounded-xl bg-white/[0.05] border-white/10 text-white hover:bg-white/[0.1] transition-colors">
-                      <Link href={`/payment?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
-                        Detail Pembayaran <ChevronRight className="w-4 h-4 ml-2 opacity-70" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
+                <Button asChild className="h-12 px-8 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium mt-4 sm:mt-0">
+                  <Link href="/profile/mechatura" prefetch={true}>Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2" /></Link>
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="text-xl font-medium tracking-tight text-white mb-3">Tim Belum Dibentuk</p>
-                <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Anda belum membentuk tim atau mendaftar untuk Kompetisi Robotika Mechatura.</p>
+                <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Anda belum membentuk tim atau bergabung dalam Kompetisi Robotika Mechatura.</p>
                 <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
-                  <Link href="/mechatura/form" prefetch={true}>Daftar Sekarang</Link>
+                  <Link href="/mechatura" prefetch={true}>Daftar Sekarang</Link>
                 </Button>
               </div>
             )}

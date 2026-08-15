@@ -57,155 +57,152 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-xl border-amber-500/20">
-        <DialogHeader className="mb-4">
-          <DialogTitle className="text-3xl font-bold tracking-tight">
-            Registrasi Mechatura <span className="text-amber-500">2026</span>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="mb-2">
+          <DialogTitle className="text-2xl font-semibold tracking-tight">
+            Registrasi Mechatura 2026
           </DialogTitle>
           <DialogDescription>
-            Lengkapi tahapan di bawah ini untuk memulai perjalanan kompetisi Anda.
+            Pilih kategori lomba dan bentuk tim Anda untuk melanjutkan.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-8 pb-4">
+        <div className="space-y-6 pb-2">
           {/* STEP 1: CATEGORY */}
-          <div className="space-y-4 relative">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-500 font-bold text-sm">
+          <div className="space-y-3 relative">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
                 1
               </div>
-              <h3 className="text-lg font-semibold">Pilih Kategori Lomba</h3>
+              <h3 className="text-base font-medium">Pilih Kategori Lomba</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-11">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8">
               <button
                 type="button"
                 onClick={() => setCategory("robot_sumo")}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
+                className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   category === "robot_sumo"
-                    ? "border-amber-500 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    : "border-border hover:border-amber-500/50 hover:bg-amber-500/5"
+                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
+                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
                 }`}
               >
-                <div className={`p-3 rounded-lg ${category === "robot_sumo" ? "bg-amber-500 text-black" : "bg-muted text-muted-foreground"}`}>
-                  <Bot className="w-6 h-6" />
+                <div className={`p-2 rounded-md ${category === "robot_sumo" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                  <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-foreground">Robot Sumo</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Adu ketangkasan robot di arena</p>
+                  <h4 className="font-medium text-foreground text-sm">Robot Sumo</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">Adu ketangkasan robot di arena</p>
                 </div>
               </button>
               
               <button
                 type="button"
                 onClick={() => setCategory("robot_transporter")}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
+                className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   category === "robot_transporter"
-                    ? "border-amber-500 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    : "border-border hover:border-amber-500/50 hover:bg-amber-500/5"
+                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
+                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
                 }`}
               >
-                <div className={`p-3 rounded-lg ${category === "robot_transporter" ? "bg-amber-500 text-black" : "bg-muted text-muted-foreground"}`}>
-                  <Car className="w-6 h-6" />
+                <div className={`p-2 rounded-md ${category === "robot_transporter" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                  <Car className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-foreground">Robot Transporter</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Selesaikan misi pemindahan objek</p>
+                  <h4 className="font-medium text-foreground text-sm">Robot Transporter</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">Selesaikan misi pemindahan objek</p>
                 </div>
               </button>
             </div>
           </div>
 
           {/* STEP 2: ACTION */}
-          <div className={`space-y-4 transition-all duration-500 ${!category ? "opacity-40 grayscale pointer-events-none blur-[1px]" : "opacity-100"}`}>
-            <div className="flex items-center gap-3">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-colors ${category ? "bg-amber-500/20 text-amber-500" : "bg-muted text-muted-foreground"}`}>
+          <div className={`space-y-3 transition-opacity duration-300 ${!category ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
                 2
               </div>
-              <h3 className="text-lg font-semibold">Status Tim</h3>
+              <h3 className="text-base font-medium">Status Tim</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-11">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8">
               <button
                 type="button"
                 onClick={() => setAction("create")}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
+                className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   action === "create"
-                    ? "border-amber-500 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    : "border-border hover:border-amber-500/50 hover:bg-amber-500/5"
+                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
+                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
                 }`}
               >
-                <div className={`p-3 rounded-lg ${action === "create" ? "bg-amber-500 text-black" : "bg-muted text-muted-foreground"}`}>
-                  <Plus className="w-6 h-6" />
+                <div className={`p-2 rounded-md ${action === "create" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                  <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-foreground">Buat Tim Baru</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Jadi ketua & undang anggota</p>
+                  <h4 className="font-medium text-foreground text-sm">Buat Tim Baru</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">Jadi ketua & undang anggota</p>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setAction("join")}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
+                className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   action === "join"
-                    ? "border-amber-500 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    : "border-border hover:border-amber-500/50 hover:bg-amber-500/5"
+                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
+                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
                 }`}
               >
-                <div className={`p-3 rounded-lg ${action === "join" ? "bg-amber-500 text-black" : "bg-muted text-muted-foreground"}`}>
-                  <Link2 className="w-6 h-6" />
+                <div className={`p-2 rounded-md ${action === "join" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                  <Link2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-foreground">Bergabung</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Gunakan kode dari ketua tim</p>
+                  <h4 className="font-medium text-foreground text-sm">Bergabung</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">Gunakan kode dari ketua tim</p>
                 </div>
               </button>
             </div>
           </div>
 
           {/* STEP 3: FORM */}
-          <div className={`space-y-4 transition-all duration-500 ${!action || !category ? "opacity-40 grayscale pointer-events-none blur-[1px] h-0 overflow-hidden" : "opacity-100 h-auto"}`}>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-500 font-bold text-sm">
+          <div className={`space-y-3 transition-opacity duration-300 ${!action || !category ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
                 3
               </div>
-              <h3 className="text-lg font-semibold">Detail {action === "create" ? "Tim" : "Undangan"}</h3>
+              <h3 className="text-base font-medium">Detail {action === "create" ? "Tim" : "Undangan"}</h3>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-6 pl-11">
+            <form onSubmit={handleSubmit} className="space-y-5 pl-8">
               {action === "create" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="teamName" className="font-medium text-muted-foreground">Nama Tim Anda</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="teamName" className="text-sm font-medium">Nama Tim Anda</Label>
                   <Input
                     id="teamName"
-                    placeholder="Masukkan nama tim yang keren..."
+                    placeholder="Masukkan nama tim..."
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     required
-                    className="h-12 bg-background focus-visible:ring-amber-500 text-lg"
+                    className="max-w-sm"
                   />
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="joinCode" className="font-medium text-muted-foreground">Kode Undangan</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="joinCode" className="text-sm font-medium">Kode Undangan</Label>
                   <Input
                     id="joinCode"
-                    placeholder="Masukkan 6-karakter kode"
+                    placeholder="Masukkan 6 karakter kode..."
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     required
-                    className="h-12 bg-background focus-visible:ring-amber-500 text-lg tracking-widest uppercase font-mono"
+                    className="max-w-sm uppercase font-mono tracking-widest"
                   />
                 </div>
               )}
               
-              <Button type="submit" disabled={isSubmitting} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-black font-bold text-lg rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]">
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                ) : (
-                  <>{action === "create" ? "Bentuk Tim & Lanjut" : "Gabung Tim"}</>
-                )}
+              <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {action === "create" ? "Bentuk Tim & Lanjut" : "Gabung Tim"}
               </Button>
             </form>
           </div>

@@ -108,6 +108,7 @@ export default async function ProfilePage() {
         .from("mechatura_members")
         .select("id, mechatura_teams(id, name, created_at, payment_status, category)")
         .eq("user_id", user.id)
+        .limit(1)
         .maybeSingle(),
     ])
 

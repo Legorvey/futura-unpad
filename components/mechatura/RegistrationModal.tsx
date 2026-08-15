@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { createTeam, joinTeam } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bot, Car, Users, UserPlus } from "lucide-react";
 
 interface MechaturaRegistrationModalProps {
   isOpen: boolean;
@@ -77,38 +77,45 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button
                 variant="outline"
-                className="h-32 text-lg flex flex-col gap-2"
+                className="h-32 text-lg flex flex-col gap-3 group hover:border-amber-400 transition-colors"
                 onClick={() => handleCategorySelect("robot_sumo")}
               >
-                <span>🤖</span>
-                Robot Sumo
+                <Bot className="w-8 h-8 group-hover:text-amber-500 transition-colors" />
+                <span>Robot Sumo</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-32 text-lg flex flex-col gap-2"
+                className="h-32 text-lg flex flex-col gap-3 group hover:border-amber-400 transition-colors"
                 onClick={() => handleCategorySelect("robot_transporter")}
               >
-                <span>🏎️</span>
-                Robot Transporter
+                <Car className="w-8 h-8 group-hover:text-amber-500 transition-colors" />
+                <span>Robot Transporter</span>
               </Button>
             </div>
           )}
 
           {step === 2 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button
-                variant="outline"
-                className="h-32 text-lg"
-                onClick={() => handleActionSelect("create")}
-              >
-                Create a Team
-              </Button>
-              <Button
-                variant="outline"
-                className="h-32 text-lg"
-                onClick={() => handleActionSelect("join")}
-              >
-                Join a Team
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-32 text-lg flex flex-col gap-3 group hover:border-amber-400 transition-colors"
+                  onClick={() => handleActionSelect("create")}
+                >
+                  <Users className="w-8 h-8 group-hover:text-amber-500 transition-colors" />
+                  <span>Create a Team</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-32 text-lg flex flex-col gap-3 group hover:border-amber-400 transition-colors"
+                  onClick={() => handleActionSelect("join")}
+                >
+                  <UserPlus className="w-8 h-8 group-hover:text-amber-500 transition-colors" />
+                  <span>Join a Team</span>
+                </Button>
+              </div>
+              <Button variant="ghost" onClick={() => setStep(1)}>
+                Back
               </Button>
             </div>
           )}

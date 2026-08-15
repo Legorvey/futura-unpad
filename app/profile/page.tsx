@@ -265,18 +265,18 @@ export default async function ProfilePage() {
                     <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">Nama Tim</h3>
                     <p className="text-3xl font-bold text-white tracking-tight drop-shadow-sm">{mechaturaTeam.name}</p>
                   </div>
-                  
+
                   <div>
                     <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2.5">Status Keanggotaan</h3>
                     <div className="flex items-center gap-3">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/20 shadow-inner">
-                         {latestMechaturaMembership?.is_leader ? <span className="text-[11px] leading-none">👑</span> : <span className="text-[11px] leading-none">👤</span>}
+                        {latestMechaturaMembership?.is_leader ? <span className="text-[11px] leading-none">👑</span> : <span className="text-[11px] leading-none">👤</span>}
                       </div>
                       <p className="text-lg font-medium text-white/90">{mechaturaRoleText}</p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col w-full sm:w-auto sm:min-w-[280px]">
                   <Button asChild className="relative w-full h-12 px-6 rounded-xl bg-gradient-to-b from-[#307FE2] to-[#2060B2] text-white font-medium transition-all group overflow-hidden shadow-[0_0_20px_rgba(48,127,226,0.3)] hover:shadow-[0_0_30px_rgba(48,127,226,0.5)] border border-[#4d94eb] hover:border-white/50 mb-5">
                     <Link href="/profile/mechatura" prefetch={true}>
@@ -285,7 +285,7 @@ export default async function ProfilePage() {
                       </span>
                     </Link>
                   </Button>
-                  
+
                   <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-4.5 shadow-inner backdrop-blur-md relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                     <div className="p-1">
@@ -297,11 +297,11 @@ export default async function ProfilePage() {
                         </div>
                       </div>
                       <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#2060B2] to-[#4d94eb] rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(48,127,226,0.8)] relative" 
+                        <div
+                          className="h-full bg-gradient-to-r from-[#2060B2] to-[#4d94eb] rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(48,127,226,0.8)] relative"
                           style={{ width: `${(mechaturaMemberCount / 3) * 100}%` }}
                         >
-                           <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] opacity-50" />
+                          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] opacity-50" />
                         </div>
                       </div>
                     </div>

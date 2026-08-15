@@ -12,17 +12,9 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
                 <div className="absolute bottom-[-10%] left-[20vw] w-[60vw] h-[30vh] bg-[#307FE2] blur-[120px] rounded-[100%] opacity-40 animate-aurora-ribbon-3" />
             </div>
 
-            <div className="relative z-10 pt-32 pb-24 px-[18px] sm:px-8 mx-auto w-full max-w-5xl">
-                <div className="space-y-3 mb-10">
-                    <h1 className="text-4xl sm:text-5xl font-medium tracking-[-0.05em] text-white">
-                        Profil Saya
-                    </h1>
-                    <p className="max-w-xl text-base font-light tracking-tight text-white/50">
-                        Kelola akun Futura Anda dan pantau status pendaftaran acara.
-                    </p>
-                </div>
+            <div className="relative z-10 pt-32 pb-24 w-full">
                 <ProfileTabs />
-                <div className="mt-12">
+                <div className="mt-12 w-full max-w-5xl mx-auto px-[18px] sm:px-8 [&:has([data-full-width])]:max-w-none [&:has([data-full-width])]:px-0 [&:has([data-full-width])]:mt-6">
                     {children}
                 </div>
                 <Suspense fallback={null}>

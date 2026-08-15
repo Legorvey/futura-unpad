@@ -3,12 +3,26 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { createTeam, joinTeam } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader2, Bot, Car, Users, UserPlus, Plus, Link2 } from "lucide-react";
+import { Loader2, Bot, Car, Plus, Link2 } from "lucide-react";
+import { z } from "zod";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FormTextField } from "@/components/form/form-text-field";
+import { FieldGroup } from "@/components/ui/field";
+
+const createTeamSchema = z.object({
+  teamName: z.string().min(3, "Nama tim minimal 3 karakter").max(50, "Nama tim maksimal 50 karakter")
+});
+
+const joinTeamSchema = z.object({
+  joinCode: z.string().length(6, "Kode undangan harus 6 karakter")
+});
+
+type CreateTeamValues = z.infer<typeof createTeamSchema>;
+type JoinTeamValues = z.infer<typeof joinTeamSchema>;
 
 interface MechaturaRegistrationModalProps {
   isOpen: boolean;
@@ -19,24 +33,39 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
   const router = useRouter();
   const [category, setCategory] = useState<string | null>(null);
   const [action, setAction] = useState<"create" | "join" | null>(null);
-  const [teamName, setTeamName] = useState("");
-  const [joinCode, setJoinCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const createForm = useForm<CreateTeamValues>({
+    resolver: zodResolver(createTeamSchema),
+    defaultValues: { teamName: "" }
+  });
 
+  const joinForm = useForm<JoinTeamValues>({
+    resolver: zodResolver(joinTeamSchema),
+    defaultValues: { joinCode: "" }
+  });
+
+  const handleCreateSubmit = async (values: CreateTeamValues) => {
+    setIsSubmitting(true);
     try {
-      if (action === "create") {
-        if (!category) throw new Error("Kategori belum dipilih");
-        await createTeam(category, teamName);
-        toast.success("Tim berhasil dibuat!");
-      } else {
-        if (!category) throw new Error("Kategori belum dipilih");
-        await joinTeam(joinCode, category);
-        toast.success("Berhasil bergabung dengan tim!");
-      }
+      if (!category) throw new Error("Kategori belum dipilih");
+      await createTeam(category, values.teamName);
+      toast.success("Tim berhasil dibuat!");
+      onOpenChange(false);
+      router.push("/profile/mechatura");
+    } catch (error: any) {
+      toast.error(error.message || "Terjadi kesalahan");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleJoinSubmit = async (values: JoinTeamValues) => {
+    setIsSubmitting(true);
+    try {
+      if (!category) throw new Error("Kategori belum dipilih");
+      await joinTeam(values.joinCode, category);
+      toast.success("Berhasil bergabung dengan tim!");
       onOpenChange(false);
       router.push("/profile/mechatura");
     } catch (error: any) {
@@ -50,8 +79,8 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
     if (!open) {
       setCategory(null);
       setAction(null);
-      setTeamName("");
-      setJoinCode("");
+      createForm.reset();
+      joinForm.reset();
     }
     onOpenChange(open);
   };
@@ -174,38 +203,43 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
               <h3 className="text-base font-medium">Detail {action === "create" ? "Tim" : "Undangan"}</h3>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-5 pl-8">
+            <div className="pl-8">
               {action === "create" ? (
-                <div className="space-y-1.5">
-                  <Label htmlFor="teamName" className="text-sm font-medium">Nama Tim Anda</Label>
-                  <Input
-                    id="teamName"
-                    placeholder="Masukkan nama tim..."
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    required
-                    className="max-w-sm"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <Label htmlFor="joinCode" className="text-sm font-medium">Kode Undangan</Label>
-                  <Input
-                    id="joinCode"
-                    placeholder="Masukkan 6 karakter kode..."
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value)}
-                    required
-                    className="max-w-sm uppercase font-mono tracking-widest"
-                  />
-                </div>
-              )}
-              
-              <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {action === "create" ? "Bentuk Tim & Lanjut" : "Gabung Tim"}
-              </Button>
-            </form>
+                <FormProvider {...createForm}>
+                  <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} noValidate className="space-y-5">
+                    <FieldGroup>
+                      <FormTextField<CreateTeamValues>
+                        name="teamName"
+                        label="Nama Tim Anda"
+                        placeholder="Masukkan nama tim..."
+                        className="max-w-sm"
+                      />
+                    </FieldGroup>
+                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Bentuk Tim & Lanjut
+                    </Button>
+                  </form>
+                </FormProvider>
+              ) : action === "join" ? (
+                <FormProvider {...joinForm}>
+                  <form onSubmit={joinForm.handleSubmit(handleJoinSubmit)} noValidate className="space-y-5">
+                    <FieldGroup>
+                      <FormTextField<JoinTeamValues>
+                        name="joinCode"
+                        label="Kode Undangan"
+                        placeholder="Masukkan 6 karakter kode..."
+                        className="max-w-sm uppercase font-mono tracking-widest"
+                      />
+                    </FieldGroup>
+                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Gabung Tim
+                    </Button>
+                  </form>
+                </FormProvider>
+              ) : null}
+            </div>
           </div>
 
         </div>

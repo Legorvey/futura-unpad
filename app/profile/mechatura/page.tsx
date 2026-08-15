@@ -40,17 +40,17 @@ export default async function MechaturaProfilePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl py-8">
+    <div data-full-width className="mx-auto w-full max-w-[100rem] px-6 md:px-12 lg:px-20">
       <h1 className="text-3xl font-bold text-white mb-2">Mechatura Dashboard</h1>
       <p className="text-white/60 mb-8">
         Manage your team&apos;s registration and documents.
       </p>
       
-      <MechaturaProfileClient 
-        currentUserMembership={membership}
-        team={membership.mechatura_teams}
-        allMembers={teamMembers}
-      />
+        <MechaturaProfileClient 
+          currentUserMembership={membership}
+          team={membership.mechatura_teams}
+          allMembers={teamMembers}
+        />
     </div>
   );
 }

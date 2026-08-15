@@ -17,6 +17,7 @@ export default async function MechaturaProfilePage() {
     .from("mechatura_members")
     .select("*, mechatura_teams(*)")
     .eq("user_id", user.id)
+    .limit(1)
     .maybeSingle();
 
   if (memberError) {

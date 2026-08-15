@@ -106,7 +106,7 @@ export default async function ProfilePage() {
         .maybeSingle<ProfileRegistration>(),
       adminSupabase
         .from("mechatura_members")
-        .select("id, mechatura_teams(id, name, created_at, payment_status, category)")
+        .select("id, is_leader, full_name, mechatura_teams(id, name, created_at, payment_status, category, mechatura_members(id, is_leader, full_name))")
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle(),
@@ -139,18 +139,33 @@ export default async function ProfilePage() {
   const academicStatus = isAcademicStatus(latestRegistration?.status_akademika)
     ? latestRegistration.status_akademika
     : null
-    
+
   const hasMechaturaTeam = !!latestMechaturaMembership?.mechatura_teams;
-  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams) 
-    ? latestMechaturaMembership?.mechatura_teams[0] 
+  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams)
+    ? latestMechaturaMembership?.mechatura_teams[0]
     : latestMechaturaMembership?.mechatura_teams;
+
+  let mechaturaRoleText = "";
+  let mechaturaMemberCount = 0;
+  if (latestMechaturaMembership && mechaturaTeam && Array.isArray(mechaturaTeam.mechatura_members)) {
+    mechaturaMemberCount = mechaturaTeam.mechatura_members.length;
+    if (latestMechaturaMembership.is_leader) {
+      mechaturaRoleText = "Ketua";
+    } else {
+      const sortedNonLeaders = mechaturaTeam.mechatura_members
+        .filter((m: any) => !m.is_leader)
+        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+      const myIndex = sortedNonLeaders.findIndex((m: any) => m.id === latestMechaturaMembership.id);
+      mechaturaRoleText = myIndex !== -1 ? `Anggota ${myIndex + 1}` : "Anggota";
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl">
       <div className="space-y-6">
-        
+
         {/* SEMINAR */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
+        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
@@ -225,7 +240,7 @@ export default async function ProfilePage() {
               <div className="flex items-center">
                 <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${mechaturaTeam.payment_status === 'verified' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
                   {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {mechaturaTeam.payment_status.replace('_', ' ')}
+                  {mechaturaTeam.payment_status.charAt(0).toUpperCase() + mechaturaTeam.payment_status.slice(1).replace('_', ' ')}
                 </span>
               </div>
             )}
@@ -233,14 +248,42 @@ export default async function ProfilePage() {
 
           <div className="px-2">
             {mechaturaTeam ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between py-6">
-                <div>
-                  <p className="text-lg font-medium text-white mb-1">{mechaturaTeam.name}</p>
-                  <p className="text-sm text-white/60 capitalize">Kategori: {mechaturaTeam.category.replace('_', ' ')}</p>
+              <div className="flex flex-col rounded-2xl bg-black/20 border border-white/5 p-6 shadow-inner backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h3 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Informasi Tim</h3>
+                    <div className="flex flex-wrap items-end gap-3">
+                      <p className="text-2xl font-medium text-white tracking-tight">{mechaturaTeam.name}</p>
+                      <span className="mb-1 rounded bg-[#307FE2]/20 px-2 py-0.5 text-xs font-medium text-[#307FE2] border border-[#307FE2]/30 capitalize">
+                        {mechaturaTeam.category.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                  <Button asChild className="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium transition-all group">
+                    <Link href="/profile/mechatura" prefetch={true}>
+                      Buka Dashboard <ChevronRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
                 </div>
-                <Button asChild className="h-12 px-8 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium mt-4 sm:mt-0">
-                  <Link href="/profile/mechatura" prefetch={true}>Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2" /></Link>
-                </Button>
+                
+                <div className="grid grid-cols-2 gap-6 sm:gap-12 border-t border-white/10 pt-6">
+                  <div>
+                    <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Status</p>
+                    <p className="font-medium text-white">{mechaturaRoleText}</p>
+                  </div>
+                  <div className="max-w-[200px]">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-xs text-white/50 uppercase tracking-wider">Anggota Tim</p>
+                      <p className="text-xs font-medium text-white">{mechaturaMemberCount}/3</p>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#307FE2] rounded-full transition-all duration-500" 
+                        style={{ width: `${(mechaturaMemberCount / 3) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">

@@ -33,7 +33,8 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
         await createTeam(category, teamName);
         toast.success("Tim berhasil dibuat!");
       } else {
-        await joinTeam(joinCode);
+        if (!category) throw new Error("Kategori belum dipilih");
+        await joinTeam(joinCode, category);
         toast.success("Berhasil bergabung dengan tim!");
       }
       onOpenChange(false);

@@ -30,6 +30,17 @@ export async function createTeam(category: string, teamName: string) {
     throw new Error("You must be logged in to create a team.");
   }
 
+  // Check if user is already in a team
+  const { data: existingMembership } = await supabase
+    .from("mechatura_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingMembership) {
+    throw new Error("Anda sudah terdaftar di sebuah tim.");
+  }
+
   const joinCode = generateJoinCode();
 
   // 1. Create team
@@ -70,7 +81,7 @@ export async function createTeam(category: string, teamName: string) {
 /**
  * Join an existing team using a join code.
  */
-export async function joinTeam(joinCode: string) {
+export async function joinTeam(joinCode: string, selectedCategory: string) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -78,15 +89,30 @@ export async function joinTeam(joinCode: string) {
     throw new Error("You must be logged in to join a team.");
   }
 
+  // Check if user is already in a team
+  const { data: existingMembership } = await supabase
+    .from("mechatura_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingMembership) {
+    throw new Error("Anda sudah terdaftar di sebuah tim.");
+  }
+
   // 1. Find team
   const { data: team, error: findError } = await supabase
     .from("mechatura_teams")
-    .select("id")
+    .select("id, category")
     .eq("join_code", joinCode.toUpperCase())
     .single();
 
   if (findError || !team) {
-    throw new Error("Invalid join code or team not found.");
+    throw new Error("Kode undangan tidak valid atau tim tidak ditemukan.");
+  }
+
+  if (team.category !== selectedCategory) {
+    throw new Error(`Tim ini terdaftar di kategori ${team.category === "robot_sumo" ? "Robot Sumo" : "Robot Transporter"}, berbeda dengan pilihan Anda.`);
   }
 
   // 2. Add member

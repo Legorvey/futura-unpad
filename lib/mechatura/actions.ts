@@ -70,7 +70,8 @@ export async function createTeam(category: string, teamName: string) {
     });
 
   if (memberError) {
-    // Note: in a real production environment, you might want a transaction via RPC here.
+    // Rollback: Delete the orphaned team if member insertion fails
+    await supabase.from("mechatura_teams").delete().eq("id", team.id);
     throw new Error(memberError.message);
   }
 
@@ -113,6 +114,16 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
 
   if (team.category !== selectedCategory) {
     throw new Error(`Tim ini terdaftar di kategori ${team.category === "robot_sumo" ? "Robot Sumo" : "Robot Transporter"}, berbeda dengan pilihan Anda.`);
+  }
+
+  // Check team capacity (max 3)
+  const { count } = await supabase
+    .from("mechatura_members")
+    .select("*", { count: "exact", head: true })
+    .eq("team_id", team.id);
+
+  if (count !== null && count >= 3) {
+    throw new Error("Tim ini sudah penuh (maksimal 3 anggota).");
   }
 
   // 2. Add member
@@ -181,6 +192,32 @@ export async function updateMemberIdentity(memberId: string, data: IdentityData)
  */
 export async function submitPaymentProof(teamId: string, paymentProofLink: string) {
   const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) throw new Error("Unauthorized");
+
+  // Authorization: check if user is leader
+  const { data: membership } = await supabase
+    .from("mechatura_members")
+    .select("is_leader")
+    .eq("user_id", user.id)
+    .eq("team_id", teamId)
+    .single();
+
+  if (!membership?.is_leader) {
+    throw new Error("Only the team leader can submit payment proof.");
+  }
+
+  // Check if already verified
+  const { data: team } = await supabase
+    .from("mechatura_teams")
+    .select("payment_status")
+    .eq("id", teamId)
+    .single();
+
+  if (team?.payment_status === "verified") {
+    throw new Error("Payment is already verified and cannot be modified.");
+  }
   
   const parsedLink = z.string().url().safeParse(paymentProofLink);
   if (!parsedLink.success) throw new Error("Invalid URL for payment proof");
@@ -206,6 +243,21 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
  */
 export async function updateRobotDocuments(teamId: string, robotDocumentLink: string) {
   const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) throw new Error("Unauthorized");
+
+  // Authorization: check if user is leader
+  const { data: membership } = await supabase
+    .from("mechatura_members")
+    .select("is_leader")
+    .eq("user_id", user.id)
+    .eq("team_id", teamId)
+    .single();
+
+  if (!membership?.is_leader) {
+    throw new Error("Only the team leader can submit robot documents.");
+  }
   
   const parsedLink = z.string().url().safeParse(robotDocumentLink);
   if (!parsedLink.success) throw new Error("Invalid URL for robot document");

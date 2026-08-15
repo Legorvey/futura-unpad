@@ -230,7 +230,14 @@ export default async function ProfilePage() {
                 <Bot className="h-6 w-6 text-[#307FE2]" />
               </div>
               <div>
-                <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Mechatura</h2>
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-2xl font-medium tracking-tight text-white">Mechatura</h2>
+                  {mechaturaTeam && (
+                    <span className="rounded bg-[#307FE2]/20 px-2 py-0.5 text-xs font-medium text-[#307FE2] border border-[#307FE2]/30 capitalize">
+                      {mechaturaTeam.category.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm tracking-tight text-white/50">
                   {mechaturaTeam ? `Terdaftar pada ${formatDate(mechaturaTeam.created_at)}` : "Belum bergabung di tim manapun"}
                 </p>
@@ -248,31 +255,26 @@ export default async function ProfilePage() {
 
           <div className="px-2">
             {mechaturaTeam ? (
-              <div className="flex flex-col rounded-2xl bg-black/20 border border-white/5 p-6 shadow-inner backdrop-blur-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h3 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Informasi Tim</h3>
-                    <div className="flex flex-wrap items-end gap-3">
-                      <p className="text-2xl font-medium text-white tracking-tight">{mechaturaTeam.name}</p>
-                      <span className="mb-1 rounded bg-[#307FE2]/20 px-2 py-0.5 text-xs font-medium text-[#307FE2] border border-[#307FE2]/30 capitalize">
-                        {mechaturaTeam.category.replace('_', ' ')}
-                      </span>
-                    </div>
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-8">
+                <div>
+                  <h3 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Nama Tim</h3>
+                  <p className="text-2xl font-medium text-white tracking-tight">{mechaturaTeam.name}</p>
+                  
+                  <div className="mt-8">
+                    <h3 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Status Keanggotaan</h3>
+                    <p className="text-base font-medium text-white">{mechaturaRoleText}</p>
                   </div>
-                  <Button asChild className="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium transition-all group">
+                </div>
+                
+                <div className="flex flex-col w-full sm:w-auto sm:min-w-[240px]">
+                  <Button asChild className="w-full h-11 px-6 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium transition-all group mb-4">
                     <Link href="/profile/mechatura" prefetch={true}>
                       Buka Dashboard <ChevronRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6 sm:gap-12 border-t border-white/10 pt-6">
-                  <div>
-                    <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Status</p>
-                    <p className="font-medium text-white">{mechaturaRoleText}</p>
-                  </div>
-                  <div className="max-w-[200px]">
-                    <div className="flex items-center justify-between mb-1.5">
+                  
+                  <div className="w-full bg-white/[0.02] border border-white/5 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
                       <p className="text-xs text-white/50 uppercase tracking-wider">Anggota Tim</p>
                       <p className="text-xs font-medium text-white">{mechaturaMemberCount}/3</p>
                     </div>

@@ -63,7 +63,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
           <IdentityView currentUserMembership={currentUserMembership} allMembers={allMembers} />
         )}
         {activeView === "robot" && (
-          <RobotAndPaymentView team={team} />
+          <RobotAndPaymentView team={team} currentUserMembership={currentUserMembership} />
         )}
       </div>
     </div>
@@ -192,7 +192,8 @@ function IdentityView({ currentUserMembership, allMembers }: any) {
   );
 }
 
-function RobotAndPaymentView({ team }: any) {
+function RobotAndPaymentView({ team, currentUserMembership }: any) {
+  const isLeader = currentUserMembership?.is_leader;
   const [paymentLink, setPaymentLink] = useState(team.payment_proof_link || "");
   const [robotLink, setRobotLink] = useState(team.robot_document_link || "");
   const [isSavingPayment, setIsSavingPayment] = useState(false);
@@ -240,26 +241,32 @@ function RobotAndPaymentView({ team }: any) {
           </p>
         </div>
 
-        <form onSubmit={handlePaymentSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Payment Proof (Google Drive Link)</Label>
-            <Input 
-              type="url"
-              value={paymentLink} 
-              onChange={e => setPaymentLink(e.target.value)} 
-              required 
-              disabled={team.payment_status === "verified"}
-            />
+        {isLeader ? (
+          <form onSubmit={handlePaymentSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Payment Proof (Google Drive Link)</Label>
+              <Input 
+                type="url"
+                value={paymentLink} 
+                onChange={e => setPaymentLink(e.target.value)} 
+                required 
+                disabled={team.payment_status === "verified"}
+              />
+            </div>
+            <Button 
+              type="submit" 
+              disabled={isSavingPayment || team.payment_status === "verified"} 
+              className="w-full"
+            >
+              {isSavingPayment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit Proof
+            </Button>
+          </form>
+        ) : (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-sm text-center font-medium">
+            Hanya ketua tim yang dapat mengunggah bukti pembayaran.
           </div>
-          <Button 
-            type="submit" 
-            disabled={isSavingPayment || team.payment_status === "verified"} 
-            className="w-full"
-          >
-            {isSavingPayment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Submit Proof
-          </Button>
-        </form>
+        )}
       </div>
 
       {/* Robot Documents Section */}
@@ -269,22 +276,28 @@ function RobotAndPaymentView({ team }: any) {
           <p className="text-sm text-white/50">Submit your team's robot design and specifications document.</p>
         </div>
 
-        <form onSubmit={handleRobotSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Document (Google Drive Link)</Label>
-            <Input 
-              type="url"
-              value={robotLink} 
-              onChange={e => setRobotLink(e.target.value)} 
-              required 
-            />
-            <p className="text-xs text-white/40 mt-1">Make sure the link is set to "Anyone with the link can view".</p>
+        {isLeader ? (
+          <form onSubmit={handleRobotSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Document (Google Drive Link)</Label>
+              <Input 
+                type="url"
+                value={robotLink} 
+                onChange={e => setRobotLink(e.target.value)} 
+                required 
+              />
+              <p className="text-xs text-white/40 mt-1">Make sure the link is set to "Anyone with the link can view".</p>
+            </div>
+            <Button type="submit" disabled={isSavingRobot}>
+              {isSavingRobot && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Documents
+            </Button>
+          </form>
+        ) : (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-sm text-center font-medium">
+            Hanya ketua tim yang dapat mengunggah dokumen robot.
           </div>
-          <Button type="submit" disabled={isSavingRobot}>
-            {isSavingRobot && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Documents
-          </Button>
-        </form>
+        )}
       </div>
     </div>
   );

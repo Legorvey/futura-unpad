@@ -106,8 +106,9 @@ export default async function ProfilePage() {
         .maybeSingle<ProfileRegistration>(),
       adminSupabase
         .from("mechatura_members")
-        .select("id, mechatura_teams(id, name, created_at, payment_status, category)")
+        .select("id, is_leader, full_name, mechatura_teams(id, name, created_at, payment_status, category, mechatura_members(id, is_leader, full_name))")
         .eq("user_id", user.id)
+        .limit(1)
         .maybeSingle(),
     ])
 
@@ -138,18 +139,33 @@ export default async function ProfilePage() {
   const academicStatus = isAcademicStatus(latestRegistration?.status_akademika)
     ? latestRegistration.status_akademika
     : null
-    
+
   const hasMechaturaTeam = !!latestMechaturaMembership?.mechatura_teams;
-  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams) 
-    ? latestMechaturaMembership?.mechatura_teams[0] 
+  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams)
+    ? latestMechaturaMembership?.mechatura_teams[0]
     : latestMechaturaMembership?.mechatura_teams;
+
+  let mechaturaRoleText = "";
+  let mechaturaMemberCount = 0;
+  if (latestMechaturaMembership && mechaturaTeam && Array.isArray(mechaturaTeam.mechatura_members)) {
+    mechaturaMemberCount = mechaturaTeam.mechatura_members.length;
+    if (latestMechaturaMembership.is_leader) {
+      mechaturaRoleText = "Ketua";
+    } else {
+      const sortedNonLeaders = mechaturaTeam.mechatura_members
+        .filter((m: any) => !m.is_leader)
+        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+      const myIndex = sortedNonLeaders.findIndex((m: any) => m.id === latestMechaturaMembership.id);
+      mechaturaRoleText = myIndex !== -1 ? `Anggota ${myIndex + 1}` : "Anggota";
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl">
       <div className="space-y-6">
-        
+
         {/* SEMINAR */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
+        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
@@ -207,45 +223,96 @@ export default async function ProfilePage() {
         </section>
 
         {/* MECHATURA */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
-                <Bot className="h-6 w-6 text-[#307FE2]" />
+        <section className="relative overflow-hidden rounded-3xl border border-[#307FE2]/30 bg-gradient-to-b from-white/[0.04] to-transparent p-[18px] sm:p-8 transition-all hover:border-[#307FE2]/50 hover:shadow-[0_0_40px_rgba(48,127,226,0.15)] group/card">
+          {/* Decorative Glows */}
+          <div className="absolute top-0 right-0 -mt-24 -mr-24 h-[300px] w-[300px] rounded-full bg-[#307FE2]/20 blur-[100px] pointer-events-none opacity-50 group-hover/card:opacity-80 transition-opacity duration-700" />
+          <div className="absolute bottom-0 left-0 -mb-24 -ml-24 h-[250px] w-[250px] rounded-full bg-[#307FE2]/10 blur-[80px] pointer-events-none opacity-30 group-hover/card:opacity-60 transition-opacity duration-700" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
+            <div className="flex items-center gap-5">
+              <div className="p-3.5 bg-gradient-to-br from-[#307FE2]/20 to-transparent backdrop-blur-md rounded-2xl border border-[#307FE2]/30 shadow-[0_0_20px_rgba(48,127,226,0.2)]">
+                <Bot className="h-7 w-7 text-[#5fa3fa]" />
               </div>
               <div>
-                <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Mechatura</h2>
-                <p className="text-sm tracking-tight text-white/50">
+                <div className="flex items-center gap-3 mb-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Mechatura</h2>
+                  {mechaturaTeam && (
+                    <span className="rounded-full bg-gradient-to-r from-[#307FE2]/20 to-[#307FE2]/10 px-3 py-0.5 text-xs font-bold text-[#5fa3fa] border border-[#307FE2]/30 capitalize shadow-sm backdrop-blur-md tracking-wide">
+                      {mechaturaTeam.category.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm tracking-tight text-white/50 font-medium">
                   {mechaturaTeam ? `Terdaftar pada ${formatDate(mechaturaTeam.created_at)}` : "Belum bergabung di tim manapun"}
                 </p>
               </div>
             </div>
             {mechaturaTeam && (
               <div className="flex items-center">
-                <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${mechaturaTeam.payment_status === 'verified' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
+                <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${mechaturaTeam.payment_status === 'verified' ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400' : 'bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 border-yellow-500/30 text-yellow-400'}`}>
                   {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {mechaturaTeam.payment_status.replace('_', ' ')}
+                  {mechaturaTeam.payment_status.charAt(0).toUpperCase() + mechaturaTeam.payment_status.slice(1).replace('_', ' ')}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="px-2">
+          <div className="relative z-10 px-2">
             {mechaturaTeam ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between py-6">
-                <div>
-                  <p className="text-lg font-medium text-white mb-1">{mechaturaTeam.name}</p>
-                  <p className="text-sm text-white/60 capitalize">Kategori: {mechaturaTeam.category.replace('_', ' ')}</p>
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-8">
+                <div className="flex flex-col h-full justify-between gap-8 py-1">
+                  <div>
+                    <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">Nama Tim</h3>
+                    <p className="text-3xl font-bold text-white tracking-tight drop-shadow-sm">{mechaturaTeam.name}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2.5">Status Keanggotaan</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/20 shadow-inner">
+                        {latestMechaturaMembership?.is_leader ? <span className="text-[11px] leading-none">👑</span> : <span className="text-[11px] leading-none">👤</span>}
+                      </div>
+                      <p className="text-lg font-medium text-white/90">{mechaturaRoleText}</p>
+                    </div>
+                  </div>
                 </div>
-                <Button asChild className="h-12 px-8 rounded-xl bg-[#307FE2] text-white hover:bg-[#307FE2]/90 font-medium mt-4 sm:mt-0">
-                  <Link href="/profile/mechatura" prefetch={true}>Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2" /></Link>
-                </Button>
+
+                <div className="flex flex-col w-full sm:w-auto sm:min-w-[280px]">
+                  <Button asChild className="relative w-full h-12 px-6 rounded-xl bg-gradient-to-b from-[#307FE2] to-[#2060B2] text-white font-medium transition-all group overflow-hidden shadow-[0_0_20px_rgba(48,127,226,0.3)] hover:shadow-[0_0_30px_rgba(48,127,226,0.5)] border border-[#4d94eb] hover:border-white/50 mb-5">
+                    <Link href="/profile/mechatura" prefetch={true}>
+                      <span className="relative z-10 flex items-center justify-center w-full">
+                        Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1.5" />
+                      </span>
+                    </Link>
+                  </Button>
+
+                  <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-4.5 shadow-inner backdrop-blur-md relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="p-1">
+                      <div className="flex items-center justify-between mb-3.5">
+                        <p className="text-[11px] text-white/50 font-bold uppercase tracking-[0.2em]">Anggota Tim</p>
+                        <div className="flex items-center gap-1.5 bg-white/5 rounded-md px-2 py-0.5 border border-white/10">
+                          <span className="text-xs font-bold text-white">{mechaturaMemberCount}</span>
+                          <span className="text-xs font-medium text-white/40">/ 3</span>
+                        </div>
+                      </div>
+                      <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#2060B2] to-[#4d94eb] rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(48,127,226,0.8)] relative"
+                          style={{ width: `${(mechaturaMemberCount / 3) * 100}%` }}
+                        >
+                          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] opacity-50" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="text-xl font-medium tracking-tight text-white mb-3">Tim Belum Dibentuk</p>
                 <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Anda belum membentuk tim atau bergabung dalam Kompetisi Robotika Mechatura.</p>
-                <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
+                <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all">
                   <Link href="/mechatura" prefetch={true}>Daftar Sekarang</Link>
                 </Button>
               </div>

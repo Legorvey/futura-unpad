@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments } from "@/lib/mechatura/actions";
+import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, consentTeamDeletion } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
 import { Loader2, Copy, Check } from "lucide-react";
 import { z } from "zod";
@@ -32,7 +32,7 @@ type IdentityValues = z.infer<typeof identitySchema>;
 type PaymentValues = z.infer<typeof paymentSchema>;
 type RobotValues = z.infer<typeof robotSchema>;
 
-export function MechaturaProfileClient({ currentUserMembership, team, allMembers }: any) {
+export function MechaturaProfileClient({ currentUserMembership, team, allMembers, deletionRequest }: any) {
   const [copied, setCopied] = useState(false);
   const copyCode = () => {
     navigator.clipboard.writeText(team.join_code);
@@ -41,6 +41,17 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
   };
 
   const isLeader = currentUserMembership?.is_leader;
+  
+  const hasConsented = deletionRequest?.team_deletion_consents?.some((c: any) => c.member_id === currentUserMembership.user_id);
+
+  const handleConsent = async () => {
+    try {
+      await consentTeamDeletion(deletionRequest.id, team.id);
+      toast.success("Persetujuan penghapusan berhasil dikirim.");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengirim persetujuan.");
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -53,14 +64,31 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
           </p>
         </div>
         
-        <div className="bg-[#00205B] p-5 rounded-xl border border-white/10 flex items-center gap-8 min-w-[300px] justify-between">
-          <div>
-            <p className="text-xs text-white/50 mb-1 uppercase tracking-wider font-semibold">Team Join Code</p>
-            <p className="font-mono text-2xl font-bold tracking-widest text-white">{team.join_code}</p>
+        <div className="flex flex-col gap-4">
+          <div className="bg-[#00205B] p-5 rounded-xl border border-white/10 flex items-center gap-8 min-w-[300px] justify-between">
+            <div>
+              <p className="text-xs text-white/50 mb-1 uppercase tracking-wider font-semibold">Team Join Code</p>
+              <p className="font-mono text-2xl font-bold tracking-widest text-white">{team.join_code}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={copyCode} className="text-white hover:bg-white/10 shrink-0">
+              {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={copyCode} className="text-white hover:bg-white/10 shrink-0">
-            {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
-          </Button>
+          
+          {deletionRequest && (
+            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+              <h3 className="text-red-400 font-semibold mb-1">Penghapusan Tim Tertunda</h3>
+              <p className="text-sm text-red-300/80 mb-3">Leader telah meminta untuk menghapus tim ini. Menunggu persetujuan semua anggota.</p>
+              {!hasConsented && (
+                <Button variant="destructive" size="sm" onClick={handleConsent} className="w-full">
+                  Setujui Penghapusan
+                </Button>
+              )}
+              {hasConsented && (
+                <p className="text-xs text-red-400 font-medium">✅ Anda telah menyetujui.</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -79,6 +107,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
       <div className="lg:col-span-8 space-y-8">
         <IdentitySection currentUserMembership={currentUserMembership} />
         <RobotDocumentsSection team={team} isLeader={isLeader} />
+        <TeamManagementSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} />
       </div>
     </div>
   </div>
@@ -304,6 +333,155 @@ function RobotDocumentsSection({ team, isLeader }: any) {
           Hanya ketua tim yang dapat mengunggah dokumen robot.
         </div>
       )}
+    </div>
+  );
+}
+
+function TeamManagementSection({ team, currentUserMembership, allMembers }: any) {
+  const isLeader = currentUserMembership?.is_leader;
+  const otherMembers = allMembers.filter((m: any) => m.id !== currentUserMembership.id);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirmLeave, setShowConfirmLeave] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [selectedNewLeader, setSelectedNewLeader] = useState<string>("");
+
+  const handleLeave = async () => {
+    setIsProcessing(true);
+    try {
+      await leaveTeam(team.id);
+      toast.success("Berhasil keluar dari tim.");
+      window.location.href = "/mechatura";
+    } catch (err: any) {
+      toast.error(err.message || "Gagal keluar dari tim.");
+    } finally {
+      setIsProcessing(false);
+      setShowConfirmLeave(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!selectedNewLeader) {
+      toast.error("Pilih member baru untuk menjadi leader.");
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await transferLeadership(team.id, selectedNewLeader);
+      toast.success("Kepemimpinan berhasil ditransfer.");
+      setShowTransfer(false);
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mentransfer kepemimpinan.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsProcessing(true);
+    try {
+      await initiateTeamDeletion(team.id);
+      toast.success(allMembers.length > 1 ? "Permintaan penghapusan tim dikirim. Menunggu persetujuan member lain." : "Tim berhasil dihapus.");
+      if (allMembers.length === 1) {
+        window.location.href = "/mechatura";
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menghapus tim.");
+    } finally {
+      setIsProcessing(false);
+      setShowConfirmDelete(false);
+    }
+  };
+
+  return (
+    <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-6">
+      <div>
+        <h3 className="text-xl font-medium text-white mb-2">Team Management</h3>
+        <p className="text-sm text-white/50">Manage your membership and team status.</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        {!isLeader && (
+          <>
+            <Button variant="destructive" onClick={() => setShowConfirmLeave(true)}>
+              Keluar dari Tim
+            </Button>
+            
+            {showConfirmLeave && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4">
+                  <h4 className="text-lg font-semibold text-white mb-2">Konfirmasi Keluar</h4>
+                  <p className="text-white/70 mb-6 text-sm">Apakah Anda yakin ingin keluar dari tim ini?</p>
+                  <div className="flex justify-end gap-3">
+                    <Button variant="ghost" onClick={() => setShowConfirmLeave(false)} disabled={isProcessing}>Batal</Button>
+                    <Button variant="destructive" onClick={handleLeave} disabled={isProcessing}>
+                      {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Ya, Keluar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {isLeader && (
+          <>
+            <Button variant="outline" onClick={() => setShowTransfer(true)} disabled={otherMembers.length === 0} className="border-white/20 text-white hover:bg-white/10">
+              Transfer Leadership
+            </Button>
+            <Button variant="destructive" onClick={() => setShowConfirmDelete(true)}>
+              Hapus Tim
+            </Button>
+
+            {showTransfer && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4">
+                  <h4 className="text-lg font-semibold text-white mb-2">Transfer Leadership</h4>
+                  <p className="text-white/70 mb-4 text-sm">Pilih member untuk dijadikan leader baru:</p>
+                  <select 
+                    className="w-full mb-6 bg-white/5 border border-white/10 rounded-lg p-2.5 text-white"
+                    value={selectedNewLeader}
+                    onChange={(e) => setSelectedNewLeader(e.target.value)}
+                  >
+                    <option value="">Pilih Member...</option>
+                    {otherMembers.map((m: any) => (
+                      <option key={m.id} value={m.user_id}>{m.full_name || 'Unnamed Member'}</option>
+                    ))}
+                  </select>
+                  <div className="flex justify-end gap-3">
+                    <Button variant="ghost" onClick={() => setShowTransfer(false)} disabled={isProcessing}>Batal</Button>
+                    <Button className="bg-[#307FE2] hover:bg-[#2060B2] text-white" onClick={handleTransfer} disabled={isProcessing || !selectedNewLeader}>
+                      {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Transfer
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showConfirmDelete && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4">
+                  <h4 className="text-lg font-semibold text-white mb-2">Konfirmasi Hapus Tim</h4>
+                  <p className="text-white/70 mb-6 text-sm">
+                    Are you sure you want to delete this team?
+                    {allMembers.length > 1 && " Tim memiliki lebih dari 1 anggota, sehingga membutuhkan persetujuan seluruh anggota (unanimous consent)."}
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <Button variant="ghost" onClick={() => setShowConfirmDelete(false)} disabled={isProcessing}>Batal</Button>
+                    <Button variant="destructive" onClick={handleDelete} disabled={isProcessing}>
+                      {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Ya, Hapus
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

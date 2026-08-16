@@ -39,14 +39,6 @@ export default async function MechaturaProfilePage() {
     throw new Error(teamMembersError.message);
   }
 
-  // Fetch pending deletion request if any
-  const { data: deletionRequest } = await supabase
-    .from("team_deletion_requests")
-    .select("*, team_deletion_consents(member_id)")
-    .eq("team_id", membership.team_id)
-    .eq("status", "pending")
-    .maybeSingle();
-
   return (
     <div data-full-width className="mx-auto w-full max-w-[100rem] px-6 md:px-12 lg:px-20">
       <h1 className="text-3xl font-bold text-white mb-2">Mechatura Dashboard</h1>
@@ -58,7 +50,6 @@ export default async function MechaturaProfilePage() {
           currentUserMembership={membership}
           team={membership.mechatura_teams}
           allMembers={teamMembers}
-          deletionRequest={deletionRequest}
         />
     </div>
   );

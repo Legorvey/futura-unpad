@@ -1,12 +1,12 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const IdentityDataSchema = z.object({
-  full_name: z.string().min(1).max(255),
-  institution: z.string().min(1).max(255),
+  full_name: z.string().min(3).max(255),
+  institution: z.string().min(8).max(255),
   city: z.string().min(1).max(255),
   phone_number: z.string().min(1).max(50),
   instagram_username: z.string().max(100).optional(),
@@ -75,7 +75,7 @@ export async function createTeam(category: string, teamName: string) {
     throw new Error(memberError.message);
   }
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true, teamId: team.id, joinCode };
 }
 
@@ -142,7 +142,7 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
     throw new Error(memberError.message);
   }
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true, teamId: team.id };
 }
 
@@ -183,7 +183,7 @@ export async function updateMemberIdentity(memberId: string, data: IdentityData)
     throw new Error(error.message);
   }
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }
 
@@ -234,7 +234,7 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
     throw new Error(error.message);
   }
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }
 
@@ -273,7 +273,7 @@ export async function updateRobotDocuments(teamId: string, robotDocumentLink: st
     throw new Error(error.message);
   }
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }
 
@@ -309,7 +309,7 @@ export async function leaveTeam(teamId: string) {
 
   if (error) throw new Error(error.message);
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }
 
@@ -346,8 +346,10 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
     throw new Error("Anggota baru tidak ditemukan dalam tim ini.");
   }
 
+  const supabaseAdmin = createAdminClient();
+
   // Update current leader to false
-  const { error: err1 } = await supabase
+  const { error: err1 } = await supabaseAdmin
     .from("mechatura_members")
     .update({ is_leader: false })
     .eq("user_id", user.id)
@@ -356,7 +358,7 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
   if (err1) throw new Error(err1.message);
 
   // Update new leader to true
-  const { error: err2 } = await supabase
+  const { error: err2 } = await supabaseAdmin
     .from("mechatura_members")
     .update({ is_leader: true })
     .eq("user_id", newLeaderId)
@@ -365,19 +367,19 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
   if (err2) throw new Error(err2.message);
 
   // Update leader_id in teams table
-  const { error: err3 } = await supabase
+  const { error: err3 } = await supabaseAdmin
     .from("mechatura_teams")
     .update({ leader_id: newLeaderId })
     .eq("id", teamId);
 
   if (err3) throw new Error(err3.message);
 
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }
 
 /**
- * Initiate team deletion by leader.
+ * Disband the team by leader.
  */
 export async function initiateTeamDeletion(teamId: string) {
   const supabase = await createClient();
@@ -397,123 +399,14 @@ export async function initiateTeamDeletion(teamId: string) {
     throw new Error("Hanya leader yang dapat menghapus tim.");
   }
 
-  // Count members
-  const { count: memberCount, error: countError } = await supabase
-    .from("mechatura_members")
-    .select("*", { count: "exact", head: true })
-    .eq("team_id", teamId);
+  // Delete team immediately (cascade should handle members)
+  const { error: delError } = await supabase
+    .from("mechatura_teams")
+    .delete()
+    .eq("id", teamId);
+  
+  if (delError) throw new Error(delError.message);
 
-  if (countError) throw new Error(countError.message);
-
-  if (memberCount === 1) {
-    // Single user team, delete immediately
-    const { error: delError } = await supabase
-      .from("mechatura_teams")
-      .delete()
-      .eq("id", teamId);
-    
-    if (delError) throw new Error(delError.message);
-  } else {
-    // Multi user team, initiate request
-    // Check if request already exists
-    const { data: existingReq } = await supabase
-      .from("team_deletion_requests")
-      .select("id")
-      .eq("team_id", teamId)
-      .eq("status", "pending")
-      .maybeSingle();
-
-    if (existingReq) {
-      throw new Error("Permintaan penghapusan tim sudah berjalan.");
-    }
-
-    const { data: newReq, error: reqError } = await supabase
-      .from("team_deletion_requests")
-      .insert({
-        team_id: teamId,
-        initiated_by: user.id,
-        status: "pending"
-      })
-      .select("id")
-      .single();
-
-    if (reqError) throw new Error(reqError.message);
-
-    // Auto consent for leader
-    const { error: consentError } = await supabase
-      .from("team_deletion_consents")
-      .insert({
-        request_id: newReq.id,
-        member_id: user.id
-      });
-
-    if (consentError) throw new Error(consentError.message);
-  }
-
-  revalidatePath("/profile/mechatura");
-  return { success: true };
-}
-
-/**
- * Submit consent for team deletion.
- */
-export async function consentTeamDeletion(requestId: string, teamId: string) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) throw new Error("Unauthorized");
-
-  // Verify membership
-  const { data: membership } = await supabase
-    .from("mechatura_members")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("team_id", teamId)
-    .single();
-
-  if (!membership) {
-    throw new Error("Anda tidak tergabung dalam tim ini.");
-  }
-
-  // Insert consent
-  const { error: consentError } = await supabase
-    .from("team_deletion_consents")
-    .insert({
-      request_id: requestId,
-      member_id: user.id
-    });
-
-  if (consentError && consentError.code !== '23505') { // ignore duplicate consent
-    throw new Error(consentError.message);
-  }
-
-  // Check unanimous consent
-  const { count: totalMembers } = await supabase
-    .from("mechatura_members")
-    .select("*", { count: "exact", head: true })
-    .eq("team_id", teamId);
-
-  const { count: totalConsents } = await supabase
-    .from("team_deletion_consents")
-    .select("*", { count: "exact", head: true })
-    .eq("request_id", requestId);
-
-  if (totalMembers === totalConsents) {
-    // Execute deletion
-    const { error: delError } = await supabase
-      .from("mechatura_teams")
-      .delete()
-      .eq("id", teamId);
-    
-    if (delError) throw new Error(delError.message);
-
-    // Update request status
-    await supabase
-      .from("team_deletion_requests")
-      .update({ status: "executed" })
-      .eq("id", requestId);
-  }
-
-  revalidatePath("/profile/mechatura");
+  revalidatePath("/profile", "layout");
   return { success: true };
 }

@@ -104,12 +104,16 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
   // 1. Find team
   const { data: team, error: findError } = await supabase
     .from("mechatura_teams")
-    .select("id, category")
+    .select("id, category, submission_status")
     .eq("join_code", joinCode.toUpperCase())
     .single();
 
   if (findError || !team) {
     throw new Error("Kode undangan tidak valid atau tim tidak ditemukan.");
+  }
+
+  if (team.submission_status !== "draft") {
+    throw new Error("Tim ini sudah melakukan finalisasi pendaftaran dan tidak dapat menerima anggota baru.");
   }
 
   if (team.category !== selectedCategory) {
@@ -406,6 +410,63 @@ export async function initiateTeamDeletion(teamId: string) {
     .eq("id", teamId);
   
   if (delError) throw new Error(delError.message);
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}
+
+/**
+ * Finalize the team submission.
+ */
+export async function finalizeSubmission(teamId: string) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) throw new Error("Unauthorized");
+
+  // Fetch the team and its members
+  const { data: teamData, error: teamError } = await supabase
+    .from("mechatura_teams")
+    .select("*, mechatura_members(*)")
+    .eq("id", teamId)
+    .single();
+
+  if (teamError || !teamData) {
+    throw new Error("Tim tidak ditemukan.");
+  }
+
+  // Verify leader
+  const membership = teamData.mechatura_members.find((m: any) => m.user_id === user.id);
+  if (!membership?.is_leader) {
+    throw new Error("Hanya leader yang dapat melakukan finalisasi data.");
+  }
+
+  // Validation Schemas
+  const FinalizeSchema = z.object({
+    payment_proof_link: z.string().url(),
+    robot_document_link: z.string().url(),
+    mechatura_members: z.array(z.object({
+      full_name: z.string().min(1),
+      institution: z.string().min(1),
+      city: z.string().min(1),
+      phone_number: z.string().min(1),
+      student_id_link: z.string().url(),
+    })).min(1),
+  });
+
+  try {
+    FinalizeSchema.parse(teamData);
+  } catch (err: any) {
+    throw new Error("Data belum lengkap. Pastikan seluruh anggota telah mengisi profil (KTM, Twibbon), dan Anda telah mengunggah bukti pembayaran serta dokumen robot.");
+  }
+
+  // Update submission_status
+  const { error: updateError } = await supabase
+    .from("mechatura_teams")
+    .update({ submission_status: "submitted" })
+    .eq("id", teamId);
+  
+  if (updateError) throw new Error(updateError.message);
 
   revalidatePath("/profile", "layout");
   return { success: true };

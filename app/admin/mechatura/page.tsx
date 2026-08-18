@@ -7,8 +7,7 @@ import { isCompletedPaymentStatus } from "@/lib/payment";
 import { requireAdminOrRedirect } from "@/lib/auth";
 import MechaturaListClient from "./mechatura-list-client";
 import type {
-    AdminMechaturaLeader,
-    AdminMechaturaRegistration,
+    AdminMechaturaTeam,
 } from "./teams";
 import {
     type AdminSearchParams,
@@ -53,55 +52,60 @@ async function MechaturaAdminData({
     const { data: leaderSearchMatches, error: leaderSearchError } = searchPattern
         ? await adminSupabase
             .from("mechatura_members")
-            .select("registration_id")
+            .select("team_id")
             .eq("is_leader", true)
             .or(
-                `full_name.ilike.${searchPattern},email.ilike.${searchPattern},phone.ilike.${searchPattern}`
+                `full_name.ilike.${searchPattern},phone_number.ilike.${searchPattern}`
             )
             .limit(10_000)
-            .returns<Array<Pick<AdminMechaturaLeader, "registration_id">>>()
+            .returns<Array<{ team_id: string }>>()
         : { data: [], error: null };
 
     if (leaderSearchError) {
         throw new Error(leaderSearchError.message);
     }
 
-    const leaderRegistrationIds = Array.from(
-        new Set((leaderSearchMatches ?? []).map((leader) => leader.registration_id))
+    const leaderTeamIds = Array.from(
+        new Set((leaderSearchMatches ?? []).map((leader) => leader.team_id))
     );
     const filterOptions = {
         categoryFilter,
         paymentFilter,
         statusFilter,
         searchPattern,
-        leaderRegistrationIds,
+        leaderRegistrationIds: leaderTeamIds,
     };
-    const buildFilteredRegistrationQuery = (
+    const buildFilteredTeamQuery = (
         select: string,
         options?: { count?: "exact"; head?: boolean }
     ) =>
         applyMechaturaFilters(
-            adminSupabase.from("mechatura_registrations").select(select, options),
+            adminSupabase.from("mechatura_teams").select(select, options),
             filterOptions
         );
 
     const [
         { data: requestedPageData, error: pageError, count },
-        { data: statsData, error: statsError },
+        { count: totalTeams },
+        { count: paidTeams },
+        { count: sumoTeams },
+        { count: transporterTeams },
     ] = await Promise.all([
-        buildFilteredRegistrationQuery(mechaturaRegistrationColumns, { count: "exact" })
+        buildFilteredTeamQuery(mechaturaRegistrationColumns, { count: "exact" })
             .order("created_at", { ascending: false })
-            .order("team_name", { ascending: true })
+            .order("name", { ascending: true })
             .range(requestedFrom, requestedTo)
-            .returns<AdminMechaturaRegistration[]>(),
-        adminSupabase.rpc("get_mechatura_stats"),
+            .returns<AdminMechaturaTeam[]>(),
+        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }),
+        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).in("payment_status", ["paid", "settled", "verified"]),
+        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_sumo"),
+        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_transporter"),
     ]);
 
-    if (pageError || statsError) {
-        throw new Error(pageError?.message ?? statsError?.message);
+    if (pageError) {
+        throw new Error(pageError.message);
     }
     
-    const { total: totalTeams, paid: paidTeams, sumo: sumoTeams, transporter: transporterTeams } = statsData;
     const totalFilteredRegistrations = count ?? requestedPageData?.length ?? 0;
     const totalPages = Math.max(1, Math.ceil(totalFilteredRegistrations / pageSize));
     const page = Math.min(requestedPage, totalPages);
@@ -109,11 +113,11 @@ async function MechaturaAdminData({
 
     if (page !== requestedPage) {
         const { data: clampedPageData, error: clampedPageError } =
-            await buildFilteredRegistrationQuery(mechaturaRegistrationColumns)
+            await buildFilteredTeamQuery(mechaturaRegistrationColumns)
                 .order("created_at", { ascending: false })
-                .order("team_name", { ascending: true })
+                .order("name", { ascending: true })
                 .range((page - 1) * pageSize, page * pageSize - 1)
-                .returns<AdminMechaturaRegistration[]>();
+                .returns<AdminMechaturaTeam[]>();
 
         if (clampedPageError) {
             throw new Error(clampedPageError.message);
@@ -122,28 +126,11 @@ async function MechaturaAdminData({
         registrations = clampedPageData ?? [];
     }
 
-    const { data: leaders, error: leadersError } = registrations.length
-        ? await adminSupabase
-            .from("mechatura_members")
-            .select("registration_id,full_name,email,phone")
-            .in(
-                "registration_id",
-                registrations.map((registration) => registration.id)
-            )
-            .eq("is_leader", true)
-            .returns<AdminMechaturaLeader[]>()
-        : { data: [], error: null };
-
-    if (leadersError) {
-        throw new Error(leadersError.message);
-    }
-
     const from = (page - 1) * pageSize;
 
     return (
         <MechaturaListClient
             registrations={registrations}
-            leaders={leaders ?? []}
             searchParam={searchParam}
             categoryFilter={categoryFilter}
             paymentFilter={paymentFilter}
@@ -158,10 +145,10 @@ async function MechaturaAdminData({
                 endItem: Math.min(from + pageSize, totalFilteredRegistrations),
             }}
             stats={{
-                totalTeams,
-                paidTeams,
-                sumoTeams,
-                transporterTeams,
+                totalTeams: totalTeams ?? 0,
+                paidTeams: paidTeams ?? 0,
+                sumoTeams: sumoTeams ?? 0,
+                transporterTeams: transporterTeams ?? 0,
             }}
         />
     );

@@ -21,8 +21,7 @@ type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
 
 type MechaturaMemberRow = {
   full_name: string;
-  email: string | null;
-  phone: string | null;
+  phone_number: string | null;
   is_leader: boolean;
 };
 
@@ -72,7 +71,7 @@ export async function findMechaturaPaymentOrder(
 ): Promise<MechaturaPaymentOrder | null> {
   const { data: registration, error } = await supabase
     .from("mechatura_registrations")
-    .select(`${mechaturaPaymentOrderSelect},mechatura_members(full_name,email,phone,is_leader)`)
+    .select(`${mechaturaPaymentOrderSelect},mechatura_members(full_name,phone_number,is_leader)`)
     .eq("midtrans_order_id", orderId)
     .maybeSingle<MechaturaRegistrationPaymentRow>();
 
@@ -93,7 +92,7 @@ export async function findMechaturaPaymentOrder(
     
   const leader = members.find((m) => m.is_leader);
 
-  if (!leader?.email || !leader.phone) {
+  if (!leader?.phone_number) {
     return null;
   }
 
@@ -111,8 +110,8 @@ export async function findMechaturaPaymentOrder(
     paidAt: registration.paid_at ?? null,
     leader: {
       name: leader.full_name,
-      email: leader.email,
-      phone: leader.phone,
+      email: "dummy@example.com",
+      phone: leader.phone_number,
     },
     members: members.filter((m) => !m.is_leader).map((m) => ({ name: m.full_name })),
   };

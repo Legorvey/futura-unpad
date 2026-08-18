@@ -31,32 +31,35 @@ import {
 } from "@/lib/payment";
 import { formatMechaturaDateTime } from "@/lib/mechatura/format";
 
-export type AdminMechaturaRegistration = {
+export type AdminMechaturaMember = {
     id: string;
     team_id: string;
-    team_name: string;
-    institution: string;
-    competition_type: unknown;
-    robot_name: string;
-    payment_status: string | null;
-    attended: boolean | null;
-    check_in_time: string | null;
-    created_at: string | null;
-    registration_status: "approved" | "rejected" | "registered" | "waiting_payment" | null;
-    member_document_path: string | null;
-    robot_document_path: string | null;
-};
-
-export type AdminMechaturaLeader = {
-    registration_id: string;
+    user_id: string;
+    is_leader: boolean;
     full_name: string;
-    email: string | null;
-    phone: string | null;
+    phone_number: string | null;
+    institution: string | null;
+    city: string | null;
+    instagram_username: string | null;
+    student_id_link: string | null;
+    created_at: string;
 };
 
-export type MechaturaTeamData = AdminMechaturaRegistration & {
-    leader?: AdminMechaturaLeader;
+export type AdminMechaturaTeam = {
+    id: string;
+    join_code: string;
+    name: string;
+    category: string;
+    payment_status: string | null;
+    payment_proof_link: string | null;
+    robot_document_link: string | null;
+    submission_status: "draft" | "submitted";
+    admin_approval_status: "pending" | "approved" | "rejected";
+    created_at: string | null;
+    mechatura_members: AdminMechaturaMember[];
 };
+
+export type MechaturaTeamData = AdminMechaturaTeam;
 
 const statusClassName: Record<PaymentStatus, string> = {
     unpaid: "bg-zinc-100 text-zinc-700",
@@ -70,35 +73,6 @@ const statusClassName: Record<PaymentStatus, string> = {
 
 const getStatus = (status: string | null): PaymentStatus =>
     status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
-
-function AttendanceCheckbox({ team }: { team: MechaturaTeamData }) {
-    const router = useRouter();
-    const toggleAttendance = useToggleMechaturaAttendanceMutation();
-
-    const handleToggle = async (checked: boolean | "indeterminate") => {
-        try {
-            await toggleAttendance.mutateAsync({
-                registration_id: team.id,
-                attended: checked === true,
-            });
-            router.refresh();
-        } catch (e) {
-            console.error("Error toggling attendance", e);
-        }
-    };
-
-    return (
-        <div className="flex items-center justify-center gap-2">
-            <Checkbox
-                checked={!!team.attended}
-                onCheckedChange={handleToggle}
-                disabled={toggleAttendance.isPending}
-                aria-label="Attendance status"
-                className={toggleAttendance.isPending ? "opacity-50" : ""}
-            />
-        </div>
-    );
-}
 
 const copyText = async (value: string | null | undefined, label: string) => {
     if (!value) {
@@ -116,21 +90,16 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
     const [approveOpen, setApproveOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    
+    const leader = team.mechatura_members?.find(m => m.is_leader);
 
-    const handleDownload = async (path: string | null, label: string) => {
-        if (!path) {
+    const handleDownload = async (url: string | null, label: string) => {
+        if (!url) {
             toast.error(`Tidak ada ${label} yang tersedia`);
             return;
         }
-        
-        try {
-            const url = await getMechaturaDocumentUrl(path);
-            if (!url) throw new Error("Pembuatan URL gagal");
-            window.open(url, '_blank');
-            toast.success(`Membuka ${label}`);
-        } catch (error) {
-            toast.error(`Gagal mengunduh ${label}`);
-        }
+        window.open(url, '_blank');
+        toast.success(`Membuka ${label}`);
     };
 
     const handleStatusUpdate = async (status: "approved" | "rejected") => {
@@ -151,7 +120,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
             router.refresh();
         } catch (e) {
             toast.error("Gagal menghapus tim");
-            throw e; // Let ConfirmDialog catch it for internal error handling too
+            throw e; 
         }
     };
 
@@ -182,15 +151,12 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
 
                     <DropdownMenuGroup>
                         <DropdownMenuLabel>Salin</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => copyText(team.team_id, "ID Tim")}>
+                        <DropdownMenuItem onClick={() => copyText(team.join_code, "Join Code")}>
                             <Tags className="h-4 w-4" />
-                            ID Tim
+                            Join Code
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyText(team.leader?.email, "Email Ketua")}>
-                            <Mail className="h-4 w-4" />
-                            Email Ketua
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyText(team.leader?.phone, "Telepon Ketua")}>
+
+                        <DropdownMenuItem onClick={() => copyText(leader?.phone_number, "Telepon Ketua")}>
                             <Phone className="h-4 w-4" />
                             Telepon Ketua
                         </DropdownMenuItem>
@@ -200,15 +166,15 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                     <DropdownMenuGroup>
                         <DropdownMenuLabel>Dokumen</DropdownMenuLabel>
                         <DropdownMenuItem 
-                            onClick={() => handleDownload(team.member_document_path, "Dokumen Anggota")}
-                            disabled={!team.member_document_path}
+                            onClick={() => handleDownload(team.payment_proof_link, "Bukti Pembayaran")}
+                            disabled={!team.payment_proof_link}
                         >
                             <FileText className="h-4 w-4" />
-                            Dok. Anggota
+                            Bukti Bayar
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                            onClick={() => handleDownload(team.robot_document_path, "Dokumen Robot")}
-                            disabled={!team.robot_document_path}
+                            onClick={() => handleDownload(team.robot_document_link, "Dokumen Robot")}
+                            disabled={!team.robot_document_link}
                         >
                             <FileText className="h-4 w-4" />
                             Dok. Robot
@@ -221,7 +187,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                         <DropdownMenuLabel>Pendaftaran</DropdownMenuLabel>
                         <DropdownMenuItem 
                             onClick={(e) => { e.preventDefault(); setApproveOpen(true); }}
-                            disabled={isPending || team.registration_status === "approved"}
+                            disabled={isPending || team.admin_approval_status === "approved" || team.submission_status !== "submitted"}
                             className="text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950"
                         >
                             <CheckCircle className="h-4 w-4" />
@@ -229,7 +195,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                             onClick={(e) => { e.preventDefault(); setRejectOpen(true); }}
-                            disabled={isPending || team.registration_status === "rejected"}
+                            disabled={isPending || team.admin_approval_status === "rejected" || team.submission_status !== "submitted"}
                             className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
                         >
                             <XCircle className="h-4 w-4" />
@@ -262,7 +228,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                 open={approveOpen}
                 onOpenChange={setApproveOpen}
                 title="Setujui Pendaftaran Tim?"
-                description={`Tindakan ini akan menandai pendaftaran tim ${team.team_name} sebagai disetujui.`}
+                description={`Tindakan ini akan menandai pendaftaran tim ${team.name} sebagai disetujui.`}
                 confirmText="Setujui Pendaftaran"
                 cancelText="Batal"
                 variant="default"
@@ -272,7 +238,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                 open={rejectOpen}
                 onOpenChange={setRejectOpen}
                 title="Tolak Pendaftaran Tim?"
-                description={`Tindakan ini akan menandai pendaftaran tim ${team.team_name} sebagai ditolak. Pastikan Anda memiliki alasan yang sah.`}
+                description={`Tindakan ini akan menandai pendaftaran tim ${team.name} sebagai ditolak. Pastikan Anda memiliki alasan yang sah.`}
                 confirmText="Tolak Pendaftaran"
                 cancelText="Batal"
                 variant="destructive"
@@ -291,57 +257,44 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
         ),
     },
     {
-        accessorKey: "attended",
-        header: () => <div className="text-center">Check In</div>,
-        cell: ({ row }) => (
-            <div className="flex items-center justify-center">
-                <AttendanceCheckbox team={row.original} />
-            </div>
-        )
-    },
-    {
-        accessorKey: "team_name",
+        accessorKey: "name",
         header: "Tim",
         cell: ({ row }) => (
             <div className="min-w-0">
-                <p className="font-medium">{row.original.team_name}</p>
+                <p className="font-medium">{row.original.name}</p>
+                <p className="text-xs text-muted-foreground mt-1 tracking-wide uppercase">
+                    ID: {row.original.join_code}
+                </p>
             </div>
         ),
     },
     {
-        accessorKey: "competition_type",
+        accessorKey: "category",
         header: "Kategori",
         cell: ({ row }) => {
             const team = row.original;
-            const category = isMechaturaCompetitionType(team.competition_type)
-                ? mechaturaCompetitionLabels[team.competition_type]
-                : "-";
+            const categoryLabel = team.category === "robot_sumo" ? "Robot Sumo" : team.category === "robot_transporter" ? "Robot Transporter" : team.category;
             
             return (
                 <div>
-                    <p className="font-medium">{category}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        {team.robot_name}
-                    </p>
+                    <p className="font-medium">{categoryLabel}</p>
                 </div>
             );
         },
     },
     {
-        accessorKey: "leader",
+        id: "leader",
         header: "Ketua",
         cell: ({ row }) => {
-            const leader = row.original.leader;
+            const leader = row.original.mechatura_members?.find((m: any) => m.is_leader);
             return (
                 <div className="min-w-0">
                     <p className="font-medium">
                         {leader?.full_name ?? "-"}
                     </p>
-                    <p className="mt-1 max-w-64 truncate text-xs text-muted-foreground">
-                        {leader?.email ?? "-"}
-                    </p>
+
                     <p className="mt-1 text-xs text-muted-foreground">
-                        {leader?.phone ?? "-"}
+                        {leader?.phone_number ?? "-"}
                     </p>
                 </div>
             );
@@ -362,15 +315,16 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
         },
     },
     {
-        accessorKey: "registration_status",
+        id: "status",
         header: "Status",
         cell: ({ row }) => {
-            const status = row.original.registration_status;
-            if (status === 'approved') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-800">Disetujui</span>;
-            if (status === 'rejected') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800">Ditolak</span>;
-            if (status === 'waiting_payment') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-800">Menunggu Pembayaran</span>;
-            if (status === 'registered') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-800">Terdaftar</span>;
-            return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-zinc-100 text-zinc-700">Tidak diketahui</span>;
+            const submitStatus = row.original.submission_status;
+            const approval = row.original.admin_approval_status;
+            if (submitStatus === 'draft') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-zinc-100 text-zinc-700">Draft</span>;
+            
+            if (approval === 'approved') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-800">Disetujui</span>;
+            if (approval === 'rejected') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800">Ditolak</span>;
+            return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-800">Menunggu</span>;
         },
     },
     {

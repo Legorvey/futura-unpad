@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-export async function updateMechaturaRegistrationStatus(id: string, status: "approved" | "rejected" | "registered" | "waiting_payment") {
+export async function updateMechaturaRegistrationStatus(id: string, status: "pending" | "approved" | "rejected") {
     const { user, adminAccess } = await requireAdmin();
     if (!user || !adminAccess) {
         throw new Error("Unauthorized");
@@ -12,13 +12,13 @@ export async function updateMechaturaRegistrationStatus(id: string, status: "app
 
     const adminSupabase = createAdminClient();
     const { error } = await adminSupabase
-        .from("mechatura_registrations")
-        .update({ registration_status: status })
+        .from("mechatura_teams")
+        .update({ admin_approval_status: status })
         .eq("id", id);
 
     if (error) {
         console.error("Failed to update status:", error);
-        throw new Error("Failed to update registration status");
+        throw new Error("Failed to update team approval status");
     }
 
     revalidatePath("/admin/mechatura");

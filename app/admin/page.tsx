@@ -13,35 +13,33 @@ import { createAdminClient } from "@/lib/supabase-admin"
 import { requireAdminOrRedirect } from "@/lib/auth"
 import { Suspense } from "react"
 import AdminLoading from "./admin-loading"
-import { RevenueChart, type RevenueData } from "./revenue-chart"
 
 async function AdminDashboardData() {
     const { user } = await requireAdminOrRedirect()
     const adminSupabase = createAdminClient()
 
+    // Fetch counts directly using PostgREST
     const [
-        { data: stats, error: statsError },
-        { data: revenueData, error: revenueError }
+        { count: seminarTotal },
+        { count: seminarMahasiswa },
+        { count: seminarSiswa },
+        { count: seminarDosen },
+        { count: seminarUmum },
+        { count: mechaturaTotal },
+        { count: mechaturaPaid },
+        { count: mechaturaSumo },
+        { count: mechaturaTransporter }
     ] = await Promise.all([
-        adminSupabase.rpc("get_admin_dashboard_stats"),
-        adminSupabase.rpc("get_daily_revenue").returns<RevenueData[]>()
-    ])
-    
-    if (statsError || revenueError) {
-        throw new Error(statsError?.message ?? revenueError?.message);
-    }
-
-    const {
-        seminar_total: totalRegistrations,
-        seminar_mahasiswa: mahasiswaCount,
-        seminar_siswa: siswaCount,
-        seminar_dosen: dosenCount,
-        seminar_umum: umumCount,
-        mechatura_total: totalMechaturaCount,
-        mechatura_paid: mechaturaPaidCount,
-        mechatura_sumo: sumoCount,
-        mechatura_transporter: transporterCount
-    } = stats;
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }),
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "mahasiswa"),
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "siswa"),
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "dosen"),
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "umum"),
+        adminSupabase.from("mechatura_teams").select("*", { count: "exact", head: true }),
+        adminSupabase.from("mechatura_teams").select("*", { count: "exact", head: true }).eq("admin_approval_status", "approved"),
+        adminSupabase.from("mechatura_teams").select("*", { count: "exact", head: true }).eq("category", "robot_sumo"),
+        adminSupabase.from("mechatura_teams").select("*", { count: "exact", head: true }).eq("category", "robot_transporter")
+    ]);
 
     return (
         <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -59,10 +57,6 @@ async function AdminDashboardData() {
                 </div>
             </section>
 
-            <section>
-                <RevenueChart data={Array.isArray(revenueData) ? revenueData : []} />
-            </section>
-
             <section className="relative z-10">
                 <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
                     Seminar
@@ -76,7 +70,7 @@ async function AdminDashboardData() {
                             <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Pendaftar</p>
                         </div>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {totalRegistrations}
+                            {seminarTotal}
                         </p>
                     </div>
 
@@ -85,7 +79,7 @@ async function AdminDashboardData() {
                             <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Mahasiswa</p>
                         </div>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {mahasiswaCount}
+                            {seminarMahasiswa}
                         </p>
                     </div>
 
@@ -94,7 +88,7 @@ async function AdminDashboardData() {
                             <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Siswa</p>
                         </div>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {siswaCount}
+                            {seminarSiswa}
                         </p>
                     </div>
 
@@ -103,7 +97,7 @@ async function AdminDashboardData() {
                             <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Dosen / Umum</p>
                         </div>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {dosenCount} / {umumCount}
+                            {seminarDosen} / {seminarUmum}
                         </p>
                     </div>
                 </div>
@@ -120,25 +114,25 @@ async function AdminDashboardData() {
                         </div>
                         <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Total Tim</p>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {totalMechaturaCount}
+                            {mechaturaTotal}
                         </p>
                     </div>
                     <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-500/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Tim Lunas</p>
+                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Tim Disetujui</p>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-emerald-400 relative z-10 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
-                            {mechaturaPaidCount}
+                            {mechaturaPaid}
                         </p>
                     </div>
                     <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
                         <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Robot Sumo</p>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {sumoCount}
+                            {mechaturaSumo}
                         </p>
                     </div>
                     <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
                         <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Robot Transporter</p>
                         <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
-                            {transporterCount}
+                            {mechaturaTransporter}
                         </p>
                     </div>
                 </div>

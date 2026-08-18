@@ -27,18 +27,16 @@ export const defaultPageSize = 10;
 
 export const mechaturaRegistrationColumns = [
     "id",
-    "team_id",
-    "team_name",
-    "institution",
-    "competition_type",
-    "robot_name",
+    "join_code",
+    "name",
+    "category",
     "payment_status",
-    "attended",
-    "check_in_time",
+    "payment_proof_link",
+    "robot_document_link",
+    "submission_status",
+    "admin_approval_status",
     "created_at",
-    "registration_status",
-    "member_document_path",
-    "robot_document_path",
+    "mechatura_members(id, user_id, is_leader, full_name, phone_number, institution, city, instagram_username, student_id_link, created_at)",
 ].join(",");
 
 export const firstParam = (value: string | string[] | undefined) =>
@@ -95,11 +93,21 @@ export const applyMechaturaFilters = <T,>(
     let filteredQuery = query as FilterableQuery<T>;
 
     if (categoryFilter !== "all") {
-        filteredQuery = filteredQuery.eq("competition_type", categoryFilter);
+        const categoryMap: Record<string, string> = {
+            "sumo": "robot_sumo",
+            "transporter": "robot_transporter",
+        };
+        filteredQuery = filteredQuery.eq("category", categoryMap[categoryFilter] || categoryFilter);
     }
 
     if (statusFilter !== "all") {
-        filteredQuery = filteredQuery.eq("registration_status", statusFilter);
+        if (statusFilter === "waiting_payment") {
+            filteredQuery = filteredQuery.eq("payment_status", "pending");
+        } else if (statusFilter === "registered") {
+            filteredQuery = filteredQuery.eq("submission_status", "submitted");
+        } else {
+            filteredQuery = filteredQuery.eq("admin_approval_status", statusFilter);
+        }
     }
 
     if (paymentFilter === "unpaid") {
@@ -110,10 +118,8 @@ export const applyMechaturaFilters = <T,>(
 
     if (searchPattern) {
         const registrationFilters = [
-            `team_id.ilike.${searchPattern}`,
-            `team_name.ilike.${searchPattern}`,
-            `institution.ilike.${searchPattern}`,
-            `robot_name.ilike.${searchPattern}`,
+            `join_code.ilike.${searchPattern}`,
+            `name.ilike.${searchPattern}`,
         ];
 
         if (leaderRegistrationIds.length > 0) {

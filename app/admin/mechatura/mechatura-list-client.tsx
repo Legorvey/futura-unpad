@@ -12,7 +12,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { DataTable } from "./data-table";
-import { columns, type AdminMechaturaLeader, type AdminMechaturaRegistration } from "./teams";
+import { columns, type AdminMechaturaTeam } from "./teams";
 import {
     buildMechaturaPageHref,
     pageSizeOptions,
@@ -24,8 +24,7 @@ import {
 } from "./_lib/mechatura-utils";
 
 type MechaturaListClientProps = {
-    registrations: AdminMechaturaRegistration[];
-    leaders: AdminMechaturaLeader[];
+    registrations: AdminMechaturaTeam[];
     searchParam?: string;
     categoryFilter: MechaturaCategoryFilter;
     paymentFilter: MechaturaPaymentFilter;
@@ -64,7 +63,6 @@ const PaymentIcons: Record<string, React.ElementType> = {
 
 export default function MechaturaListClient({
     registrations,
-    leaders,
     searchParam,
     categoryFilter,
     paymentFilter,
@@ -76,9 +74,7 @@ export default function MechaturaListClient({
     const router = useRouter();
     const hasActiveFilters =
         !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || statusFilter !== "all";
-    const leaderByRegistrationId = new Map(
-        leaders.map((leader) => [leader.registration_id, leader])
-    );
+
     const metrics = [
         { label: "Total tim", value: stats.totalTeams },
         { label: "Tim lunas", value: stats.paidTeams },
@@ -144,10 +140,7 @@ export default function MechaturaListClient({
         });
     }
 
-    const teamData = registrations.map((reg) => ({
-        ...reg,
-        leader: leaderByRegistrationId.get(reg.id),
-    }));
+    const teamData = registrations;
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

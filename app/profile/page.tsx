@@ -106,7 +106,7 @@ export default async function ProfilePage() {
         .maybeSingle<ProfileRegistration>(),
       adminSupabase
         .from("mechatura_members")
-        .select("id, is_leader, full_name, mechatura_teams(id, name, created_at, payment_status, category, mechatura_members(id, is_leader, full_name))")
+        .select("id, is_leader, full_name, mechatura_teams(id, name, created_at, payment_status, category, submission_status, admin_approval_status, mechatura_members(id, is_leader, full_name))")
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle(),
@@ -261,7 +261,22 @@ export default async function ProfilePage() {
               </div>
             </div>
             {mechaturaTeam && (
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${
+                  mechaturaTeam.submission_status === 'submitted'
+                    ? mechaturaTeam.admin_approval_status === 'approved'
+                      ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400'
+                      : mechaturaTeam.admin_approval_status === 'rejected'
+                      ? 'bg-gradient-to-r from-red-500/20 to-red-500/10 border-red-500/30 text-red-400'
+                      : 'bg-gradient-to-r from-amber-500/20 to-amber-500/10 border-amber-500/30 text-amber-400'
+                    : 'bg-gradient-to-r from-white/10 to-white/5 border-white/20 text-white/70'
+                }`}>
+                  {mechaturaTeam.submission_status === 'submitted' ? (
+                    mechaturaTeam.admin_approval_status.charAt(0).toUpperCase() + mechaturaTeam.admin_approval_status.slice(1)
+                  ) : (
+                    'Draft'
+                  )}
+                </span>
                 <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${mechaturaTeam.payment_status === 'verified' ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400' : 'bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 border-yellow-500/30 text-yellow-400'}`}>
                   {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
                   {mechaturaTeam.payment_status.charAt(0).toUpperCase() + mechaturaTeam.payment_status.slice(1).replace('_', ' ')}

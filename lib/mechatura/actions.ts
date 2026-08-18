@@ -9,7 +9,7 @@ const IdentityDataSchema = z.object({
   institution: z.string().min(8).max(255),
   city: z.string().min(1).max(255),
   phone_number: z.string().min(1).max(50),
-  instagram_username: z.string().max(100).optional(),
+  instagram_username: z.string().url().max(500).optional().or(z.literal("")),
   student_id_link: z.string().url().max(1000),
 });
 

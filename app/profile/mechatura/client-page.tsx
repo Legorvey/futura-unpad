@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
-import { Loader2, Copy, Check } from "lucide-react";
+import { Loader2, Copy, Check, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormTextField } from "@/components/form/form-text-field";
 import { FieldGroup } from "@/components/ui/field";
+import MechaturaProfileSidebar from "./sidebar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const identitySchema = z.object({
   full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
   institution: z.string().min(2, "Institusi minimal 8 karakter"),
   city: z.string().min(2, "Kota minimal 2 karakter"),
   phone_number: z.string().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
-  instagram_username: z.string().optional(),
+  instagram_username: z.string().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
   student_id_link: z.string().url("Link Google Drive tidak valid")
 });
 
@@ -41,52 +52,58 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
   };
 
   const isLeader = currentUserMembership?.is_leader;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   return (
-    <div className="space-y-8">
-      {/* Team Header Info on Top */}
-      <div className="p-6 md:p-8 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-semibold text-white">{team.name}</h2>
-          <p className="text-white/60 capitalize mt-2 text-lg mb-6 md:mb-0">
-            Category: {team.category.replace("_", " ")}
-          </p>
-          <div className="mt-6">
-            <TeamManagementSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} />
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-4">
-          <div className="bg-[#00205B] p-5 rounded-xl border border-white/10 flex items-center gap-8 min-w-[300px] justify-between">
-            <div>
-              <p className="text-xs text-white/50 mb-1 uppercase tracking-wider font-semibold">Team Join Code</p>
-              <p className="font-mono text-2xl font-bold tracking-widest text-white">{team.join_code}</p>
-            </div>
-            <Button variant="ghost" size="icon" onClick={copyCode} className="text-white hover:bg-white/10 shrink-0">
-              {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Sidebar - Sticky */}
-        <div className="lg:col-span-4 sticky top-8 space-y-6">
-
-        {/* Team Members Status */}
+    <div className="flex flex-col lg:flex-row items-stretch gap-0 relative lg:-mx-8 lg:-my-8 h-full rounded-[inherit]">
+      <MechaturaProfileSidebar 
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      >
         <TeamMembersSection allMembers={allMembers} />
-
-        {/* Payment Section */}
         <PaymentSection team={team} isLeader={isLeader} />
-      </div>
+      </MechaturaProfileSidebar>
 
-      {/* Right Content - Forms */}
-      <div className="lg:col-span-8 space-y-8">
+      <section className="flex-1 space-y-6 p-6 sm:p-8 lg:p-10 transition-all duration-300 min-w-0 bg-background/50 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl">
+        <TeamHeaderSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} copyCode={copyCode} copied={copied} />
         <IdentitySection currentUserMembership={currentUserMembership} />
         <RobotDocumentsSection team={team} isLeader={isLeader} />
+      </section>
+    </div>
+  );
+}
+
+function TeamHeaderSection({ team, currentUserMembership, allMembers, copyCode, copied }: any) {
+  return (
+    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-foreground">{team.name}</h2>
+        <p className="text-muted-foreground capitalize mt-2 text-base mb-6 md:mb-0">
+          Category: {team.category.replace("_", " ")}
+        </p>
+        <div className="mt-6">
+          <TeamManagementSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} />
+        </div>
+      </div>
+      
+      <div className="flex flex-col gap-4">
+        <div className="bg-muted p-4 rounded-xl border border-border/50 flex items-center gap-6 min-w-[260px] justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Team Join Code</p>
+            <p className="font-mono text-xl font-bold tracking-widest text-foreground">{team.join_code}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={copyCode} className="text-foreground hover:bg-background shrink-0">
+            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+          </Button>
+        </div>
       </div>
     </div>
-  </div>
   );
 }
 
@@ -110,17 +127,33 @@ function PaymentSection({ team, isLeader }: any) {
     }
   };
 
+  const statusColors: Record<string, string> = {
+    verified: "bg-green-500/10 text-green-600 border-green-500/20",
+    pending: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    unpaid: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  };
+  const statusColor = statusColors[team.payment_status] || "bg-muted text-muted-foreground border-border";
+
   return (
-    <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 space-y-6">
-      <div>
-        <h3 className="text-xl font-medium text-white mb-2">Team Payment</h3>
-        <p className="text-sm text-white/50">Status: <span className="text-white capitalize font-medium">{team.payment_status.replace("_", " ")}</span></p>
+    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-foreground">Team Payment</h3>
+        <span className={`px-2.5 py-1 rounded-full border text-[11px] font-semibold tracking-wide capitalize ${statusColor}`}>
+          {team.payment_status.replace("_", " ")}
+        </span>
       </div>
 
-      <div className="bg-white/5 rounded-xl aspect-square flex items-center justify-center border border-white/10 p-4">
-        <p className="text-white/40 text-center text-sm">
-          [Insert QRIS Image Here]<br/>
-          Note: Admin will manually verify payments.
+      <div className="space-y-3">
+        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-1.5">
+            <span className="text-sm font-semibold text-primary">Transfer / QRIS</span>
+            <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-[240px]">
+              [Insert Rekening/QRIS detail here]<br/>
+              Admin will verify manually.
+            </p>
+        </div>
+
+        <p className="text-[10px] text-center text-muted-foreground/60 italic">
+          *Peserta yang mundur/diskualifikasi tidak mendapat refund.
         </p>
       </div>
 
@@ -146,7 +179,7 @@ function PaymentSection({ team, isLeader }: any) {
           </form>
         </FormProvider>
       ) : (
-        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-sm text-center font-medium">
+        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg text-sm text-center font-medium">
           Hanya ketua tim yang dapat mengunggah bukti pembayaran.
         </div>
       )}
@@ -182,11 +215,17 @@ function IdentitySection({ currentUserMembership }: any) {
   };
 
   return (
-    <div className="space-y-8 p-6 rounded-2xl bg-white/[0.03] border border-white/10">
-      <div className="space-y-6">
+    <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
+      <div className="space-y-5">
         <div>
-          <h3 className="text-xl font-medium text-white">Your Details</h3>
-          <p className="text-sm text-white/50">Please fill out your personal information.</p>
+          <h3 className="text-lg font-medium text-foreground">Your Details</h3>
+          <div className="text-sm text-muted-foreground mt-1 space-y-2">
+            <p>Lengkapi informasi pribadi Anda untuk keperluan pendaftaran.</p>
+            <ul className="list-disc pl-5 space-y-0.5">
+              <li><strong>Student ID / Identitas:</strong> Wajib upload KTM (mahasiswa), Kartu Pelajar, atau KTP/identitas resmi (umum) via Google Drive.</li>
+              <li><strong>Twibbon:</strong> Wajib unggah twibbon di Instagram publik & follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a></li>
+            </ul>
+          </div>
         </div>
         
         <FormProvider {...identityForm}>
@@ -210,7 +249,9 @@ function IdentitySection({ currentUserMembership }: any) {
               />
               <FormTextField<IdentityValues>
                 name="instagram_username"
-                label="Instagram Username"
+                label="Instagram Post Link (Twibbon)"
+                type="url"
+                description="Harus berupa link postingan Instagram twibbon pribadi Anda (contoh: https://instagram.com/p/...)"
               />
               <FormTextField<IdentityValues>
                 name="student_id_link"
@@ -219,7 +260,7 @@ function IdentitySection({ currentUserMembership }: any) {
               />
             </FieldGroup>
             
-            <Button type="submit" disabled={isSaving} className="mt-4">
+            <Button type="submit" disabled={isSaving} className="mt-2">
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Details
             </Button>
@@ -232,22 +273,24 @@ function IdentitySection({ currentUserMembership }: any) {
 
 function TeamMembersSection({ allMembers }: any) {
   return (
-    <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
-      <h3 className="text-xl font-medium text-white">Team Members Status</h3>
+    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-4">
+      <div>
+        <h3 className="text-lg font-medium text-foreground">Team Members Status</h3>
+      </div>
       <div className="space-y-3">
         {allMembers.map((m: any) => {
           const isComplete = m.full_name && m.student_id_link;
           return (
-            <div key={m.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+            <div key={m.id} className="p-3.5 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between">
               <div>
-                <p className="text-white font-medium">
+                <p className="text-foreground font-medium text-sm">
                   {m.full_name || "Unnamed Member"}
-                  {m.is_leader && <span className="ml-2 text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">Leader</span>}
+                  {m.is_leader && <span className="ml-2 text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-semibold">Leader</span>}
                 </p>
               </div>
               <div>
                 {isComplete ? (
-                  <Check className="w-5 h-5 text-green-500" />
+                  <Check className="w-4 h-4 text-green-500" />
                 ) : (
                   <div className="w-2 h-2 rounded-full bg-yellow-500" title="Incomplete" />
                 )}
@@ -281,10 +324,17 @@ function RobotDocumentsSection({ team, isLeader }: any) {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-6">
+    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-5">
       <div>
-        <h3 className="text-xl font-medium text-white mb-2">Robot Documents</h3>
-        <p className="text-sm text-white/50">Submit your team's robot design and specifications document.</p>
+        <h3 className="text-lg font-medium text-foreground mb-1">Robot Documents & Spesifikasi</h3>
+        <div className="text-sm text-muted-foreground mt-2 space-y-2">
+          <p>Kumpulkan dokumen desain dan spesifikasi robot. Robot <strong>wajib buatan sendiri</strong> (bukan kit pabrikan).</p>
+          <ul className="list-disc pl-5 space-y-0.5">
+            <li><strong>Semua Robot:</strong> Kendali manual (tanpa fitur otomatis). Maksimal tegangan 12.6 Volt.</li>
+            <li><strong>Sumo:</strong> Maks 20x20 cm. Berat maks 3 kg.</li>
+            <li><strong>Transporter:</strong> Maks 20x20 cm (panjang x lebar). Tinggi dan berat tidak dibatasi. Dilarang menggunakan magnet.</li>
+          </ul>
+        </div>
       </div>
 
       {isLeader ? (
@@ -305,7 +355,7 @@ function RobotDocumentsSection({ team, isLeader }: any) {
           </form>
         </FormProvider>
       ) : (
-        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-sm text-center font-medium">
+        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg text-sm text-center font-medium">
           Hanya ketua tim yang dapat mengunggah dokumen robot.
         </div>
       )}
@@ -376,83 +426,96 @@ function TeamManagementSection({ team, currentUserMembership, allMembers }: any)
             Keluar dari Tim
           </Button>
           
-          {showConfirmLeave && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-              <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4">
-                <h4 className="text-lg font-semibold text-white mb-2">Konfirmasi Keluar</h4>
-                <p className="text-white/70 mb-6 text-sm">Apakah Anda yakin ingin keluar dari tim ini?</p>
-                <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setShowConfirmLeave(false)} disabled={isProcessing}>Batal</Button>
-                  <Button variant="destructive" onClick={handleLeave} disabled={isProcessing}>
-                    {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Ya, Keluar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          <Dialog open={showConfirmLeave} onOpenChange={setShowConfirmLeave}>
+            <DialogContent className="sm:max-w-[425px] mechatura-wrapper bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-foreground">
+                  <AlertTriangle className="h-5 w-5 text-destructive" /> Konfirmasi Keluar
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground">
+                  Apakah Anda yakin ingin keluar dari tim ini?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="mt-4">
+                <Button variant="ghost" className="text-foreground hover:bg-muted" onClick={() => setShowConfirmLeave(false)} disabled={isProcessing}>Batal</Button>
+                <Button onClick={handleLeave} disabled={isProcessing}>
+                  {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Ya, Keluar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
       {isLeader && (
         <>
-          <Button variant="outline" onClick={() => setShowTransfer(true)} disabled={otherMembers.length === 0} className="border-white/20 text-white hover:bg-white/10">
+          <Button variant="outline" onClick={() => setShowTransfer(true)} disabled={otherMembers.length === 0} className="border-border text-foreground hover:bg-muted">
             Transfer Leadership
           </Button>
           <Button variant="destructive" onClick={() => setShowConfirmDelete(true)}>
             Hapus Tim
           </Button>
 
-          {showTransfer && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-              <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4">
-                <h4 className="text-lg font-semibold text-white mb-2">Transfer Leadership</h4>
-                <p className="text-white/70 mb-4 text-sm">Pilih member untuk dijadikan leader baru:</p>
-                <select 
-                  className="w-full mb-6 bg-white/5 border border-white/10 rounded-lg p-2.5 text-white"
-                  value={selectedNewLeader}
-                  onChange={(e) => setSelectedNewLeader(e.target.value)}
-                >
-                  <option value="">Pilih Member...</option>
-                  {otherMembers.map((m: any) => (
-                    <option key={m.id} value={m.user_id}>{m.full_name || 'Unnamed Member'}</option>
-                  ))}
-                </select>
-                <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setShowTransfer(false)} disabled={isProcessing}>Batal</Button>
-                  <Button className="bg-[#307FE2] hover:bg-[#2060B2] text-white" onClick={handleTransfer} disabled={isProcessing || !selectedNewLeader}>
-                    {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Transfer
-                  </Button>
-                </div>
+          <Dialog open={showTransfer} onOpenChange={setShowTransfer}>
+            <DialogContent className="sm:max-w-[425px] mechatura-wrapper bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">Transfer Leadership</DialogTitle>
+                <DialogDescription className="text-muted-foreground">
+                  Pilih member untuk dijadikan leader baru:
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Select value={selectedNewLeader} onValueChange={setSelectedNewLeader}>
+                  <SelectTrigger className="w-full bg-background border-border text-foreground">
+                    <SelectValue placeholder="Pilih Member..." />
+                  </SelectTrigger>
+                  <SelectContent className="mechatura-wrapper bg-card border-border">
+                    {otherMembers.map((m: any) => (
+                      <SelectItem key={m.id} value={m.user_id} className="text-foreground focus:bg-muted focus:text-foreground">
+                        {m.full_name || 'Unnamed Member'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-          )}
+              <DialogFooter>
+                <Button variant="ghost" className="text-foreground hover:bg-muted" onClick={() => setShowTransfer(false)} disabled={isProcessing}>Batal</Button>
+                <Button onClick={handleTransfer} disabled={isProcessing || !selectedNewLeader}>
+                  {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Transfer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-          {showConfirmDelete && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-              <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/10 max-w-sm w-full mx-4 text-left">
-                <h4 className="text-lg font-semibold text-white mb-2">Konfirmasi Hapus Tim</h4>
-                <p className="text-white/70 mb-4 text-sm">
-                  Ketik <strong>{team.name}</strong> untuk mengonfirmasi penghapusan tim. Seluruh data tim akan hilang dan tidak dapat dikembalikan.
-                </p>
-                <input
-                  type="text"
+          <Dialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
+            <DialogContent className="sm:max-w-[425px] mechatura-wrapper bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-foreground">
+                  <AlertTriangle className="h-5 w-5 text-destructive" /> Hapus Tim
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground">
+                  Ketik <strong className="text-foreground">{team.name}</strong> untuk mengonfirmasi penghapusan tim. Seluruh data tim akan hilang dan tidak dapat dikembalikan.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Input
                   value={confirmTeamName}
                   onChange={(e) => setConfirmTeamName(e.target.value)}
-                  className="w-full mb-6 bg-white/5 border border-white/10 rounded-lg p-2.5 text-white"
                   placeholder="Nama Tim"
+                  className="w-full bg-background border-border text-foreground"
                 />
-                <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setShowConfirmDelete(false)} disabled={isProcessing}>Batal</Button>
-                  <Button variant="destructive" onClick={handleDelete} disabled={isProcessing || confirmTeamName !== team.name}>
-                    {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Ya, Hapus Tim
-                  </Button>
-                </div>
               </div>
-            </div>
-          )}
+              <DialogFooter>
+                <Button variant="ghost" className="text-foreground hover:bg-muted" onClick={() => setShowConfirmDelete(false)} disabled={isProcessing}>Batal</Button>
+                <Button onClick={handleDelete} disabled={isProcessing || confirmTeamName !== team.name}>
+                  {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Ya, Hapus Tim
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>

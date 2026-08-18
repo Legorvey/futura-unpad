@@ -192,6 +192,18 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                 </div>
               </button>
             </div>
+            <div className="pl-8 pt-2">
+              {action === "create" && (
+                <div className="text-xs text-muted-foreground bg-blue-500/10 text-blue-600 dark:text-blue-400 p-3 rounded-lg border border-blue-500/20">
+                  <strong>Ketentuan Tim Baru:</strong> Satu tim terdiri dari 1-3 anggota (1 ketua) dengan pembimbing opsional. Bebas lintas institusi (pelajar, mahasiswa, umum). Satu peserta hanya boleh terdaftar pada satu tim. Pastikan nama tim tidak mengandung unsur SARA atau pornografi.
+                </div>
+              )}
+              {action === "join" && (
+                <div className="text-xs text-muted-foreground bg-amber-500/10 text-amber-600 dark:text-amber-400 p-3 rounded-lg border border-amber-500/20">
+                  <strong>Ketentuan Bergabung:</strong> Anda hanya dapat bergabung ke dalam 1 tim. Pastikan kode undangan (join code) yang Anda masukkan benar dan tim yang dituju belum mencapai batas maksimal (3 anggota).
+                </div>
+              )}
+            </div>
           </div>
 
           {/* STEP 3: FORM */}

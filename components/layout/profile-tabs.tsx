@@ -10,11 +10,13 @@ export function ProfileTabs() {
 
     if (pathname.includes("/profile/mechatura")) {
         return (
-            <div className="mx-auto w-full max-w-[100rem] px-6 md:px-12 lg:px-20 -mb-2">
-                <Link href="/profile" className="inline-flex items-center text-sm font-medium text-white/50 hover:text-white transition-colors">
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    Kembali ke Profil
-                </Link>
+            <div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8 -mb-2">
+                <div className="px-2">
+                    <Link href="/profile" className="inline-flex items-center text-sm font-medium text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 px-3.5 py-2 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm group">
+                        <ChevronLeft className="w-4 h-4 mr-1.5 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-all" />
+                        Kembali ke Profil
+                    </Link>
+                </div>
             </div>
         )
     }

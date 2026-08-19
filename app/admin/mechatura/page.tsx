@@ -126,11 +126,37 @@ async function MechaturaAdminData({
         registrations = clampedPageData ?? [];
     }
 
+    const enrichedRegistrations = await Promise.all(
+        registrations.map(async (team) => {
+            if (!team.mechatura_members) return team;
+            
+            const enrichedMembers = await Promise.all(
+                team.mechatura_members.map(async (m) => {
+                    let fallback_name = null;
+                    if (m.user_id) {
+                        try {
+                            const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
+                            if (userData?.user) {
+                                const meta = userData.user.user_metadata || {};
+                                fallback_name = meta.display_name || meta.username || userData.user.email || null;
+                            }
+                        } catch (e) {
+                            // ignore error
+                        }
+                    }
+                    return { ...m, fallback_name };
+                })
+            );
+            
+            return { ...team, mechatura_members: enrichedMembers };
+        })
+    );
+
     const from = (page - 1) * pageSize;
 
     return (
         <MechaturaListClient
-            registrations={registrations}
+            registrations={enrichedRegistrations}
             searchParam={searchParam}
             categoryFilter={categoryFilter}
             paymentFilter={paymentFilter}

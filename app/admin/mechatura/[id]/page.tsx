@@ -62,6 +62,7 @@ type MechaturaDetailRegistration = {
 
 type MechaturaDetailMember = {
     id: string;
+    user_id: string | null;
     full_name: string | null;
     phone_number: string | null;
     institution: string | null;
@@ -69,6 +70,7 @@ type MechaturaDetailMember = {
     instagram_username: string | null;
     student_id_link: string | null;
     is_leader: boolean | null;
+    fallback_name?: string | null;
 };
 
 type DocumentLink = {
@@ -269,7 +271,7 @@ export default async function MechaturaRegistrationDetails({
 
     const { data: members, error: membersError } = await adminSupabase
         .from("mechatura_members")
-        .select("id,full_name,phone_number,institution,city,instagram_username,student_id_link,is_leader")
+        .select("id,user_id,full_name,phone_number,institution,city,instagram_username,student_id_link,is_leader")
         .eq("team_id", registrationData.id)
         .order("is_leader", { ascending: false })
         .order("full_name", { ascending: true })
@@ -278,6 +280,27 @@ export default async function MechaturaRegistrationDetails({
     if (membersError) {
         throw new Error(membersError.message);
     }
+
+    const enrichedMembers = await Promise.all(
+        (members || []).map(async (m) => {
+            let fallback_name = null;
+            if (m.user_id) {
+                try {
+                    const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
+                    if (userData?.user) {
+                        const meta = userData.user.user_metadata || {};
+                        fallback_name = meta.display_name || meta.username || userData.user.email || null;
+                    }
+                } catch (e) {
+                    // ignore error
+                }
+            }
+            return {
+                ...m,
+                fallback_name
+            };
+        })
+    );
 
     const paymentStatus = getPaymentStatus(registrationData.payment_status);
     const competition = registrationData.category === "robot_sumo" ? "Robot Sumo" : registrationData.category === "robot_transporter" ? "Robot Transporter" : registrationData.category;
@@ -335,7 +358,7 @@ export default async function MechaturaRegistrationDetails({
                     <section className="overflow-hidden rounded-xl border border-border bg-card/90">
                         <div className="border-b border-border bg-card p-6">
                             <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                                Anggota Tim ({members?.length ?? 0})
+                                Anggota Tim ({enrichedMembers?.length ?? 0})
                             </h3>
                         </div>
                         <Table>
@@ -359,15 +382,15 @@ export default async function MechaturaRegistrationDetails({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {members?.length ? (
-                                    members.map((member, index) => (
+                                {enrichedMembers?.length ? (
+                                    enrichedMembers.map((member, index) => (
                                         <TableRow key={member.id}>
                                             <TableCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                                                 {index + 1}
                                             </TableCell>
                                             <TableCell className="px-4 py-3">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <span className="font-medium whitespace-nowrap text-foreground">{member.full_name ?? "-"}</span>
+                                                    <span className="font-medium whitespace-nowrap text-foreground">{member.full_name || member.fallback_name || "Anggota Belum Bernama"}</span>
                                                     <div>
                                                         <span
                                                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${member.is_leader

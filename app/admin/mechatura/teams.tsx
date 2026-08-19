@@ -43,6 +43,7 @@ export type AdminMechaturaMember = {
     instagram_username: string | null;
     student_id_link: string | null;
     created_at: string;
+    fallback_name?: string | null;
 };
 
 export type AdminMechaturaTeam = {
@@ -290,7 +291,7 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
             return (
                 <div className="min-w-0">
                     <p className="font-medium">
-                        {leader?.full_name ?? "-"}
+                        {leader?.full_name || leader?.fallback_name || "-"}
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">

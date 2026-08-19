@@ -1,5 +1,6 @@
 import { getCachedAuth } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { redirect } from "next/navigation";
 import { MechaturaProfileClient } from "./client-page";
 
@@ -29,7 +30,6 @@ export default async function MechaturaProfilePage() {
     redirect("/mechatura");
   }
 
-  // Fetch all members of this team
   const { data: teamMembers, error: teamMembersError } = await supabase
     .from("mechatura_members")
     .select("*")
@@ -38,6 +38,28 @@ export default async function MechaturaProfilePage() {
   if (teamMembersError) {
     throw new Error(teamMembersError.message);
   }
+
+  const adminSupabase = createAdminClient();
+  const enrichedTeamMembers = await Promise.all(
+    (teamMembers || []).map(async (m) => {
+      let fallback_name = null;
+      if (m.user_id) {
+        try {
+          const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
+          if (userData?.user) {
+            const meta = userData.user.user_metadata || {};
+            fallback_name = meta.display_name || meta.username || userData.user.email || null;
+          }
+        } catch (e) {
+          // ignore error
+        }
+      }
+      return {
+        ...m,
+        fallback_name
+      };
+    })
+  );
 
   return (
     <div data-full-width className="w-full flex flex-col items-center pb-32 mechatura-wrapper text-white">
@@ -78,7 +100,7 @@ export default async function MechaturaProfilePage() {
                   <MechaturaProfileClient 
                       currentUserMembership={membership}
                       team={membership.mechatura_teams}
-                      allMembers={teamMembers}
+                      allMembers={enrichedTeamMembers}
                   />
               </div>
           </section>

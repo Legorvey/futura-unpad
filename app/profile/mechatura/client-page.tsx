@@ -163,13 +163,8 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
         </span>
       </div>
 
-      <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
-        <p>Silakan unggah bukti pembayaran Anda untuk menyelesaikan pendaftaran.</p>
-        <ul className="list-none space-y-1 mt-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
-          <li>• Transfer via Rekening Bank / QRIS yang tertera pada panduan.</li>
-          <li>• Admin akan memverifikasi secara manual.</li>
-          <li>• Peserta yang mundur/diskualifikasi tidak mendapatkan refund.</li>
-        </ul>
+      <div className="flex flex-col items-center justify-center p-6 bg-muted/30 border-2 border-dashed border-border/60 rounded-2xl w-full max-w-[220px] aspect-square mx-auto">
+        <p className="text-xs text-muted-foreground text-center font-medium">Gambar QRIS / Panduan Pembayaran<br/><span className="text-[10px] font-normal opacity-70 mt-1 block">(Placeholder)</span></p>
       </div>
 
       {isLeader ? (
@@ -311,18 +306,22 @@ function TeamMembersSection({ allMembers }: any) {
         {allMembers.map((m: any, index: number) => {
           const isComplete = m.full_name && m.student_id_link;
           return (
-            <div key={m.id} className={`py-3 flex items-center justify-between ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
-              <div>
-                <p className="text-foreground font-medium text-sm">
-                  {m.full_name || "Anggota Belum Bernama"}
-                  {m.is_leader && <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-semibold">Ketua</span>}
+            <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground font-medium text-sm leading-snug flex flex-wrap items-center gap-1.5">
+                  <span className="break-all sm:break-words line-clamp-2 overflow-hidden">{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
+                  {m.is_leader && (
+                    <span className="inline-flex items-center justify-center text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold shrink-0">
+                      Ketua
+                    </span>
+                  )}
                 </p>
               </div>
-              <div>
+              <div className="shrink-0 mt-0.5">
                 {isComplete ? (
-                  <span className="text-xs font-semibold text-emerald-500">Lengkap</span>
+                  <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
                 ) : (
-                  <span className="text-xs font-medium text-muted-foreground">Belum Lengkap</span>
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Belum Lengkap</span>
                 )}
               </div>
             </div>
@@ -532,7 +531,7 @@ function TeamManagementSection({ team, currentUserMembership, allMembers, isSubm
                   <SelectContent className="mechatura-wrapper bg-card border-border">
                     {otherMembers.map((m: any) => (
                       <SelectItem key={m.id} value={m.user_id} className="text-foreground focus:bg-muted focus:text-foreground">
-                        {m.full_name || 'Anggota Belum Bernama'}
+                        {m.full_name || m.fallback_name || 'Anggota Belum Bernama'}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const identitySchema = z.object({
   full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
-  institution: z.string().min(2, "Institusi minimal 8 karakter"),
+  institution: z.string().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().min(2, "Kota minimal 2 karakter"),
   phone_number: z.string().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
   instagram_username: z.string().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),

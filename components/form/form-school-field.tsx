@@ -1,9 +1,15 @@
+"use client";
+
+import * as React from "react";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { ReactNode } from "react";
 
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { SchoolCombobox } from "@/components/school-combobox";
+import {
+  SchoolCombobox,
+  type InstitutionType,
+} from "@/components/school-combobox";
 import { cn } from "@/lib/utils";
 
 export interface FormSchoolFieldProps<TValues extends FieldValues> {
@@ -24,6 +30,10 @@ export function FormSchoolField<TValues extends FieldValues = FieldValues>({
   const { control } = useFormContext<TValues>();
   const id = String(name);
 
+  // institution_type is local UI state — not persisted in form
+  const [institutionType, setInstitutionType] =
+    React.useState<InstitutionType>("SD");
+
   return (
     <Field className={cn("gap-2", className)}>
       <FieldLabel htmlFor={id}>
@@ -38,9 +48,13 @@ export function FormSchoolField<TValues extends FieldValues = FieldValues>({
               id={id}
               value={field.value ?? ""}
               onChange={field.onChange}
+              institutionType={institutionType}
+              onInstitutionTypeChange={setInstitutionType}
               disabled={disabled}
               aria-invalid={!!fieldState.error}
-              aria-describedby={fieldState.error ? `${id}-error` : undefined}
+              aria-describedby={
+                fieldState.error ? `${id}-error` : undefined
+              }
             />
             {fieldState.error && (
               <FieldError id={`${id}-error`}>

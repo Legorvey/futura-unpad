@@ -189,7 +189,7 @@ export function SchoolCombobox({
             "focus-visible:border-amber-300 focus-visible:ring-3 focus-visible:ring-amber-300/50",
             "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             ariaInvalid && "border-destructive ring-3 ring-destructive/20",
-            "bg-slate-100/50 dark:bg-transparent"
+            "bg-slate-100/50 dark:bg-input/30"
           )}
         >
           <span className={cn("flex-1 truncate text-left", !value && "text-muted-foreground")}>
@@ -338,7 +338,7 @@ export function PlainInstitutionInput({
       aria-invalid={ariaInvalid}
       aria-describedby={ariaDescribedBy}
       className={cn(
-        "h-11 rounded-[8px] bg-slate-100/50 dark:bg-transparent",
+        "h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30",
         "focus-visible:border-amber-300 focus-visible:ring-3 focus-visible:ring-amber-300/50"
       )}
     />

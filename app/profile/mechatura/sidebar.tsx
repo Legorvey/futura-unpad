@@ -64,7 +64,7 @@ export default function MechaturaProfileSidebar({
           // Desktop: static/embedded flow, fixed width, always visible
           "lg:relative lg:w-80 xl:w-96 lg:h-auto lg:translate-x-0 lg:bg-muted/10 lg:border-r lg:border-border/50 lg:z-0 lg:rounded-l-2xl lg:transition-none",
           // Mobile: fixed off-canvas drawer from the left
-          "fixed inset-y-0 left-0 z-[101] h-[100dvh] w-[280px] bg-background/95 backdrop-blur-xl shadow-2xl lg:shadow-none lg:backdrop-blur-none touch-pan-y",
+          "fixed inset-y-0 left-0 z-[101] h-[100dvh] w-[300px] bg-background/95 backdrop-blur-xl shadow-2xl lg:shadow-none lg:backdrop-blur-none touch-pan-y",
           isOpen ? "translate-x-0" : "-translate-x-full" 
         )}
       >

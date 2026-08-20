@@ -160,18 +160,7 @@ export default async function ProfilePage() {
     }
   }
 
-  let pendingDeletion = false;
-  if (mechaturaTeam) {
-    const { data } = await adminSupabase
-      .from("team_deletion_requests")
-      .select("status")
-      .eq("team_id", mechaturaTeam.id)
-      .eq("status", "pending")
-      .maybeSingle();
-    if (data) {
-      pendingDeletion = true;
-    }
-  }
+
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -288,12 +277,7 @@ export default async function ProfilePage() {
           <div className="relative z-10 px-2">
             {mechaturaTeam ? (
               <div className="flex flex-col gap-6">
-                {pendingDeletion && (
-                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-                    <h3 className="text-red-400 font-semibold mb-1 text-sm sm:text-base">Penghapusan Tim Tertunda</h3>
-                    <p className="text-xs sm:text-sm text-red-300/80">Leader telah meminta untuk menghapus tim ini. Silakan buka Dashboard Tim untuk memberikan persetujuan.</p>
-                  </div>
-                )}
+
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-8">
                   <div className="flex flex-col h-full justify-between gap-8 py-1">
                   <div>

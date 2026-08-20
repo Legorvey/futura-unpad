@@ -63,13 +63,15 @@ export type AdminMechaturaTeam = {
 export type MechaturaTeamData = AdminMechaturaTeam;
 
 const statusClassName: Record<PaymentStatus, string> = {
-    unpaid: "bg-zinc-100 text-zinc-700",
-    pending: "bg-amber-100 text-amber-800",
-    paid: "bg-emerald-100 text-emerald-800",
-    failed: "bg-red-100 text-red-800",
-    expired: "bg-slate-100 text-slate-700",
-    cancelled: "bg-neutral-100 text-neutral-700",
-    settled: "bg-blue-100 text-blue-800",
+    unpaid: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30",
+    pending: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30",
+    paid: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
+    failed: "bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30",
+    expired: "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-500/20 dark:text-zinc-300 dark:border-zinc-500/30",
+    cancelled: "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-500/20 dark:text-neutral-300 dark:border-neutral-500/30",
+    settled: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
+    pending_verification: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30",
+    verified: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
 };
 
 const getStatus = (status: string | null): PaymentStatus =>
@@ -249,7 +251,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
     );
 }
 
-export const columns: ColumnDef<MechaturaTeamData>[] = [
+export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[] => [
     {
         id: "index",
         header: "#",
@@ -260,14 +262,22 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
     {
         accessorKey: "name",
         header: "Tim",
-        cell: ({ row }) => (
-            <div className="min-w-0">
-                <p className="font-medium">{row.original.name}</p>
-                <p className="text-xs text-muted-foreground mt-1 tracking-wide uppercase">
-                    ID: {row.original.join_code}
-                </p>
-            </div>
-        ),
+        cell: ({ row }) => {
+            const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
+            const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
+            
+            const nameMatches = isMatch(row.original.name);
+            const codeMatches = isMatch(row.original.join_code);
+            
+            return (
+                <div className="min-w-0 flex flex-col gap-1 items-start">
+                    <span className={`font-medium ${nameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm' : ''}`}>{row.original.name}</span>
+                    <span className={`text-xs text-muted-foreground tracking-wide uppercase ${codeMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm font-medium' : ''}`}>
+                        ID: {row.original.join_code}
+                    </span>
+                </div>
+            );
+        },
     },
     {
         accessorKey: "category",
@@ -287,31 +297,44 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
         id: "leader",
         header: "Ketua",
         cell: ({ row }) => {
-            const leader = row.original.mechatura_members?.find((m: any) => m.is_leader);
-            return (
-                <div className="min-w-0">
-                    <p className="font-medium">
-                        {leader?.full_name || leader?.fallback_name || "-"}
-                    </p>
+            const members = row.original.mechatura_members || [];
+            const leader = members.find((m: any) => m.is_leader);
+            
+            const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
+            const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
+            
+            const leaderNameMatches = isMatch(leader?.full_name) || isMatch(leader?.fallback_name);
+            const leaderPhoneMatches = isMatch(leader?.phone_number);
 
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        {leader?.phone_number ?? "-"}
-                    </p>
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: "payment_status",
-        header: "Pembayaran",
-        cell: ({ row }) => {
-            const status = getStatus(row.original.payment_status);
+            // Find matching non-leader members
+            const matchedAnggotas = members.filter((m: any) => !m.is_leader && (
+                isMatch(m.full_name) || 
+                isMatch(m.fallback_name) || 
+                isMatch(m.phone_number)
+            ));
+            
             return (
-                <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClassName[status]}`}
-                >
-                    {paymentStatusLabels[status]}
-                </span>
+                <div className="min-w-0 flex flex-col gap-1 relative">
+                    <div className="flex flex-col">
+                        <span className={`font-medium text-[13px] leading-tight ${leaderNameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit' : ''}`}>
+                            {leader?.full_name || leader?.fallback_name || "-"}
+                        </span>
+                        <span className={`text-[11px] text-muted-foreground mt-0.5 ${leaderPhoneMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit font-medium' : ''}`}>
+                            {leader?.phone_number ?? "-"}
+                        </span>
+                    </div>
+
+                    {matchedAnggotas.length > 0 && (
+                        <div className="absolute top-full mt-1.5 left-0 z-50">
+                            <div className="relative">
+                                <div className="absolute -top-1 left-2 w-2 h-2 bg-yellow-300 rotate-45 transform origin-center rounded-[1px]" />
+                                <div className="inline-block px-2 py-1 bg-yellow-300 text-yellow-950 text-[10px] font-medium rounded-md shadow-sm relative z-10">
+                                    {matchedAnggotas.length} result{matchedAnggotas.length > 1 ? 's' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             );
         },
     },
@@ -319,13 +342,30 @@ export const columns: ColumnDef<MechaturaTeamData>[] = [
         id: "status",
         header: "Status",
         cell: ({ row }) => {
-            const submitStatus = row.original.submission_status;
-            const approval = row.original.admin_approval_status;
-            if (submitStatus === 'draft') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-zinc-100 text-zinc-700">Draft</span>;
+            const team = row.original;
+            const paymentStatus = getStatus(team.payment_status);
+            const submitStatus = team.submission_status;
+            const approval = team.admin_approval_status;
             
-            if (approval === 'approved') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-800">Disetujui</span>;
-            if (approval === 'rejected') return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800">Ditolak</span>;
-            return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-800">Menunggu</span>;
+            return (
+                <div className="flex flex-col gap-1.5 items-start">
+                    {submitStatus === 'draft' ? (
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30">Submit: Draft</span>
+                    ) : (
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30">Submit: Done</span>
+                    )}
+                    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClassName[paymentStatus]}`}>
+                        Bayar: {paymentStatusLabels[paymentStatus]}
+                    </span>
+                    {approval === 'approved' ? (
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">Admin: Disetujui</span>
+                    ) : approval === 'rejected' ? (
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30">Admin: Ditolak</span>
+                    ) : (
+                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">Admin: Menunggu</span>
+                    )}
+                </div>
+            );
         },
     },
     {

@@ -216,6 +216,8 @@ export default async function PaymentPage({
     failed: "bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30",
     expired: "bg-neutral-500/15 text-neutral-800 dark:text-neutral-300 border border-neutral-500/30",
     cancelled: "bg-neutral-500/15 text-neutral-800 dark:text-neutral-300 border border-neutral-500/30",
+    pending_verification: "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30",
+    verified: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30",
   }[paymentStatus] || "bg-muted text-muted-foreground";
 
   const content = (

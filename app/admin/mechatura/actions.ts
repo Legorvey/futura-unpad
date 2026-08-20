@@ -13,7 +13,10 @@ export async function updateMechaturaRegistrationStatus(id: string, status: "pen
     const adminSupabase = createAdminClient();
     const { error } = await adminSupabase
         .from("mechatura_teams")
-        .update({ admin_approval_status: status })
+        .update({ 
+            admin_approval_status: status,
+            ...(status === "approved" ? { payment_status: "verified" } : {})
+        })
         .eq("id", id);
 
     if (error) {

@@ -8,19 +8,21 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mechaturaCompetitionLabels, paymentStatusLabels } from "@/lib/payment";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid, Swords, Truck, CircleDollarSign, Clock, CheckCircle2, BadgeCheck, XCircle, List, Ban, FileText } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, LayoutGrid, Swords, Truck, CircleDollarSign, Clock, CheckCircle2, BadgeCheck, XCircle, List, Ban, FileText, Send } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { DataTable } from "./data-table";
-import { columns, type AdminMechaturaTeam } from "./teams";
+import { getColumns, type AdminMechaturaTeam } from "./teams";
 import {
     buildMechaturaPageHref,
     pageSizeOptions,
     paymentFilters,
+    submissionFilters,
+    approvalFilters,
     type MechaturaCategoryFilter,
     type MechaturaPaymentFilter,
-    type MechaturaStatusFilter,
-    statusFilters,
+    type MechaturaSubmissionFilter,
+    type MechaturaApprovalFilter,
 } from "./_lib/mechatura-utils";
 
 type MechaturaListClientProps = {
@@ -28,7 +30,8 @@ type MechaturaListClientProps = {
     searchParam?: string;
     categoryFilter: MechaturaCategoryFilter;
     paymentFilter: MechaturaPaymentFilter;
-    statusFilter: MechaturaStatusFilter;
+    submissionFilter: MechaturaSubmissionFilter;
+    approvalFilter: MechaturaApprovalFilter;
     pageSize: number;
     pagination: {
         page: number;
@@ -53,11 +56,8 @@ const categoryOptions = [
 ];
 
 const PaymentIcons: Record<string, React.ElementType> = {
-    pending: Clock,
-    paid: CheckCircle2,
-    settled: BadgeCheck,
-    expired: XCircle,
-    failed: Ban,
+    pending_verification: Clock,
+    verified: CheckCircle2,
     all: CircleDollarSign
 };
 
@@ -66,18 +66,19 @@ export default function MechaturaListClient({
     searchParam,
     categoryFilter,
     paymentFilter,
-    statusFilter,
+    submissionFilter,
+    approvalFilter,
     pageSize,
     pagination,
     stats,
 }: MechaturaListClientProps) {
     const router = useRouter();
     const hasActiveFilters =
-        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || statusFilter !== "all";
+        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || submissionFilter !== "all" || approvalFilter !== "all";
 
     const metrics = [
         { label: "Total tim", value: stats.totalTeams },
-        { label: "Tim lunas", value: stats.paidTeams },
+        { label: "Tim lunas / verified", value: stats.paidTeams },
         { label: "Robot Sumo", value: stats.sumoTeams },
         { label: "Robot Transporter", value: stats.transporterTeams },
     ];
@@ -88,7 +89,8 @@ export default function MechaturaListClient({
             search: searchParam,
             category: categoryFilter,
             payment: paymentFilter,
-            status: statusFilter,
+            submission: submissionFilter,
+            approval: approvalFilter,
         });
 
     const updateFilter = (key: string, value: string | undefined) => {
@@ -98,7 +100,8 @@ export default function MechaturaListClient({
             search: key === "search" ? value : searchParam,
             category: key === "category" ? (value as any) : categoryFilter,
             payment: key === "payment" ? (value as any) : paymentFilter,
-            status: key === "status" ? (value as any) : statusFilter,
+            submission: key === "submission" ? (value as any) : submissionFilter,
+            approval: key === "approval" ? (value as any) : approvalFilter,
         });
         router.push(newHref);
     };
@@ -127,16 +130,25 @@ export default function MechaturaListClient({
             onRemove: () => updateFilter("payment", "all")
         });
     }
-    if (statusFilter !== "all") {
-        const label = statusFilter === "waiting_payment" ? "Menunggu Pembayaran" : 
-                      statusFilter === "approved" ? "Disetujui" :
-                      statusFilter === "rejected" ? "Ditolak" :
-                      statusFilter === "registered" ? "Terdaftar" :
-                      (statusFilter as string).charAt(0).toUpperCase() + (statusFilter as string).slice(1);
+    if (submissionFilter !== "all") {
+        const label = submissionFilter === "draft" ? "Draft" : 
+                      submissionFilter === "submitted" ? "Submitted" : 
+                      (submissionFilter as string).charAt(0).toUpperCase() + (submissionFilter as string).slice(1);
         activeFilterPills.push({
-            key: "status",
-            label: `Status: ${label}`,
-            onRemove: () => updateFilter("status", "all")
+            key: "submission",
+            label: `Submission: ${label}`,
+            onRemove: () => updateFilter("submission", "all")
+        });
+    }
+    if (approvalFilter !== "all") {
+        const label = approvalFilter === "pending" ? "Menunggu" : 
+                      approvalFilter === "approved" ? "Disetujui" :
+                      approvalFilter === "rejected" ? "Ditolak" :
+                      (approvalFilter as string).charAt(0).toUpperCase() + (approvalFilter as string).slice(1);
+        activeFilterPills.push({
+            key: "approval",
+            label: `Approval: ${label}`,
+            onRemove: () => updateFilter("approval", "all")
         });
     }
 
@@ -154,7 +166,7 @@ export default function MechaturaListClient({
                 <div>
                     <h2 className="font-semibold text-2xl tracking-tight">Tim Mechatura</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Kelola tim kompetisi robotik, ketua, dan status pembayaran.
+                        Kelola tim kompetisi robotik, ketua, dan status pendaftaran.
                     </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -189,34 +201,33 @@ export default function MechaturaListClient({
 
             <div className="flex flex-col gap-5">
                 <form onSubmit={onSubmit} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
-                    <div className="relative flex-1 w-full xl:max-w-md">
+                    <div className="relative flex-1 w-full xl:max-w-[280px]">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <input
                             key={searchParam ?? "empty"}
                             name="search"
                             defaultValue={searchParam ?? ""}
-                            placeholder="Cari tim, institusi..."
+                            placeholder="Cari tim, institusi, atau nama anggota..."
                             className="h-10 w-full rounded-lg border border-input bg-background px-4 pl-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
-                        {/* Hidden submit button to allow Enter key to submit */}
                         <button type="submit" className="sr-only">Cari</button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[180px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2">
+                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2 text-xs">
                                         {(() => {
                                             const ActiveIcon = categoryOptions.find(o => o.value === categoryFilter)?.icon || LayoutGrid;
-                                            return <ActiveIcon className="h-4 w-4" />;
+                                            return <ActiveIcon className="h-3 w-3" />;
                                         })()}
-                                        {categoryOptions.find(o => o.value === categoryFilter)?.label || "Semua Tipe"}
+                                        {categoryOptions.find(o => o.value === categoryFilter)?.label || "Semua Kat."}
                                     </span>
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                    <ChevronDown className="h-3 w-3 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[180px]">
+                            <DropdownMenuContent className="w-[160px]">
                                 {categoryOptions.map((option) => (
                                     <DropdownMenuItem key={option.value} onSelect={() => updateFilter("category", option.value)}>
                                         <option.icon className="mr-2 h-4 w-4" />
@@ -228,15 +239,15 @@ export default function MechaturaListClient({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[180px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2">
+                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2 text-xs">
                                         {(() => {
                                             const ActiveIcon = PaymentIcons[paymentFilter] || CircleDollarSign;
-                                            return <ActiveIcon className="h-4 w-4" />;
+                                            return <ActiveIcon className="h-3 w-3" />;
                                         })()}
-                                        {paymentFilter === "all" ? "Semua Pembayaran" : paymentStatusLabels[paymentFilter as keyof typeof paymentStatusLabels]}
+                                        {paymentFilter === "all" ? "Semua Bayar" : paymentStatusLabels[paymentFilter as keyof typeof paymentStatusLabels]}
                                     </span>
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                    <ChevronDown className="h-3 w-3 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[180px]">
@@ -254,34 +265,57 @@ export default function MechaturaListClient({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[180px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2">
-                                        <FileText className="h-4 w-4" />
-                                        {statusFilter === "all" ? "Semua Status" : 
-                                         statusFilter === "waiting_payment" ? "Menunggu Pembayaran" : 
-                                         statusFilter === "approved" ? "Disetujui" :
-                                         statusFilter === "rejected" ? "Ditolak" :
-                                         statusFilter === "registered" ? "Terdaftar" :
-                                         (statusFilter as string).charAt(0).toUpperCase() + (statusFilter as string).slice(1)}
+                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2 text-xs">
+                                        <Send className="h-3 w-3" />
+                                        {submissionFilter === "all" ? "Semua Submit" : 
+                                         submissionFilter === "draft" ? "Draft" : 
+                                         submissionFilter === "submitted" ? "Submitted" :
+                                         (submissionFilter as string).charAt(0).toUpperCase() + (submissionFilter as string).slice(1)}
                                     </span>
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                    <ChevronDown className="h-3 w-3 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[180px]">
-                                {statusFilters.map((status) => (
-                                    <DropdownMenuItem key={status} onSelect={() => updateFilter("status", status)}>
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        {status === "all" ? "Semua Status" : 
-                                         status === "waiting_payment" ? "Menunggu Pembayaran" : 
-                                         status === "approved" ? "Disetujui" :
-                                         status === "rejected" ? "Ditolak" :
-                                         status === "registered" ? "Terdaftar" :
+                            <DropdownMenuContent className="w-[160px]">
+                                {submissionFilters.map((status) => (
+                                    <DropdownMenuItem key={status} onSelect={() => updateFilter("submission", status)}>
+                                        <Send className="mr-2 h-4 w-4" />
+                                        {status === "all" ? "Semua Submit" : 
+                                         status === "draft" ? "Draft" : 
+                                         status === "submitted" ? "Submitted" :
                                          (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
 
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2 text-xs">
+                                        <FileText className="h-3 w-3" />
+                                        {approvalFilter === "all" ? "Semua Approval" : 
+                                         approvalFilter === "pending" ? "Menunggu" : 
+                                         approvalFilter === "approved" ? "Disetujui" :
+                                         approvalFilter === "rejected" ? "Ditolak" :
+                                         (approvalFilter as string).charAt(0).toUpperCase() + (approvalFilter as string).slice(1)}
+                                    </span>
+                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[160px]">
+                                {approvalFilters.map((status) => (
+                                    <DropdownMenuItem key={status} onSelect={() => updateFilter("approval", status)}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        {status === "all" ? "Semua Approval" : 
+                                         status === "pending" ? "Menunggu" : 
+                                         status === "approved" ? "Disetujui" :
+                                         status === "rejected" ? "Ditolak" :
+                                         (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                     </div>
                 </form>
@@ -304,7 +338,7 @@ export default function MechaturaListClient({
                         ))}
                         <button 
                             type="button"
-                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all", status: "all" }))}
+                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all", submission: "all", approval: "all" }))}
                             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
                         >
                             Hapus semua
@@ -313,7 +347,7 @@ export default function MechaturaListClient({
                 )}
             </div>
 
-            <DataTable columns={columns} data={teamData} />
+            <DataTable columns={getColumns(searchParam)} data={teamData} />
 
             <div className="flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

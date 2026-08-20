@@ -1,6 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  SchoolCombobox,
+  PlainInstitutionInput,
+  INSTITUTION_TYPE_OPTIONS,
+  SEARCHABLE_TYPES,
+  type InstitutionType,
+} from "@/components/school-combobox";
 import { Button } from "@/components/ui/button";
 import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
@@ -9,7 +23,6 @@ import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormTextField } from "@/components/form/form-text-field";
-import { FormSchoolField } from "@/components/form/form-school-field";
 import { FieldGroup } from "@/components/ui/field";
 import MechaturaProfileSidebar from "./sidebar";
 import {
@@ -21,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const identitySchema = z.object({
   full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
@@ -202,6 +215,7 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
 
 function IdentitySection({ currentUserMembership, isSubmitted }: any) {
   const [isSaving, setIsSaving] = useState(false);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>("SD");
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(identitySchema),
@@ -227,6 +241,16 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
     }
   };
 
+  const handleTypeChange = (type: InstitutionType) => {
+    setInstitutionType(type);
+    // Reset institution value when category changes
+    identityForm.setValue("institution", "");
+  };
+
+  const institutionValue = identityForm.watch("institution");
+  const institutionError = identityForm.formState.errors.institution;
+  const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
+
   return (
     <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
       <div className="space-y-5">
@@ -246,20 +270,93 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
             </ul>
           </div>
         </div>
-        
+
         <FormProvider {...identityForm}>
           <form onSubmit={identityForm.handleSubmit(handleIdentitySubmit)} noValidate className="space-y-4">
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* ── Row 1: Nama Lengkap | Jenjang ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="full_name"
                 label="Nama Lengkap"
                 disabled={isSubmitted}
               />
-              <FormSchoolField<IdentityValues>
-                name="institution"
-                label="Institusi / Asal Sekolah"
-                disabled={isSubmitted}
-              />
+
+              {/* Jenjang / Kategori Institusi */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium leading-snug">
+                  Jenjang / Kategori Institusi
+                </label>
+                <Select
+                  value={institutionType}
+                  onValueChange={(v) => handleTypeChange(v as InstitutionType)}
+                  disabled={isSubmitted}
+                >
+                  <SelectTrigger className="h-11 w-full rounded-[8px]">
+                    <SelectValue placeholder="Pilih jenjang..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <span className="font-medium">{opt.label}</span>
+                        <span className="ml-1.5 text-muted-foreground text-xs">
+                          — {opt.sublabel}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* ── Row 2: Institution (full-width, dynamic) ── */}
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="institution"
+                className="text-sm font-medium leading-snug"
+              >
+                Institusi / Asal Sekolah
+              </label>
+              {isSearchable ? (
+                <SchoolCombobox
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  institutionType={institutionType}
+                  disabled={isSubmitted}
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              ) : institutionType === "perguruan_tinggi" ? (
+                <PlainInstitutionInput
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  disabled={isSubmitted}
+                  placeholder="Tulis nama lengkap universitas (Contoh: Universitas Padjadjaran, bukan UNPAD)"
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              ) : (
+                <PlainInstitutionInput
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  disabled={isSubmitted}
+                  placeholder="Nama instansi / komunitas / ketik 'Individu'"
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              )}
+              {institutionError && (
+                <div role="alert" id="institution-error" className="flex items-start gap-1.5 text-sm font-normal text-destructive">
+                  <span>{String(institutionError.message)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Row 3: Kota | Nomor WhatsApp ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="city"
                 label="Kota"
@@ -270,6 +367,10 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 label="Nomor WhatsApp"
                 disabled={isSubmitted}
               />
+            </div>
+
+            {/* ── Row 4: Instagram | Student ID ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="instagram_username"
                 label="Link Post Instagram (Twibbon)"
@@ -282,8 +383,8 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 type="url"
                 disabled={isSubmitted}
               />
-            </FieldGroup>
-            
+            </div>
+
             {!isSubmitted && (
               <Button type="submit" disabled={isSaving} className="mt-2">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

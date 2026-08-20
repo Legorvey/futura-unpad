@@ -49,11 +49,7 @@ export const INSTITUTION_TYPE_OPTIONS: {
   },
 ];
 
-const SEARCHABLE_TYPES: InstitutionType[] = ["SD", "SMP", "SMA", "SMK"];
-
-function mapJenjang(type: InstitutionType): string {
-  return type.toLowerCase();
-}
+export const SEARCHABLE_TYPES: InstitutionType[] = ["SD", "SMP", "SMA", "SMK"];
 
 function parseItems(raw: unknown[]): SchoolItem[] {
   return raw.map((item: any) => ({
@@ -63,34 +59,35 @@ function parseItems(raw: unknown[]): SchoolItem[] {
       `${item.sekolah ?? "?"}-${item.kecamatan ?? Math.random()}`,
     label: item.sekolah ?? item.nama ?? String(item),
     city:
-      item.kabupaten_kota ||
-      item.kab_kota ||
-      item.propinsi ||
-      undefined,
+      item.kabupaten_kota || item.kab_kota || item.propinsi || undefined,
   }));
 }
 
-// ─── Combobox (for SD/SMP/SMA/SMK) ───────────────────────────────────────────
+// ─── Props ────────────────────────────────────────────────────────────────────
 
-interface SearchableComboboxProps {
-  value: string;
+export interface SchoolComboboxProps {
+  /** The stored institution name string */
+  value?: string;
   onChange: (value: string) => void;
-  disabled?: boolean;
+  /** The jenjang to filter by (SD / SMP / SMA / SMK) */
   institutionType: InstitutionType;
+  disabled?: boolean;
   id?: string;
-  ariaInvalid?: boolean;
-  ariaDescribedBy?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
-function SearchableCombobox({
-  value,
+// ─── Searchable Combobox (SD / SMP / SMA / SMK) ───────────────────────────────
+
+export function SchoolCombobox({
+  value = "",
   onChange,
-  disabled,
   institutionType,
+  disabled,
   id,
-  ariaInvalid,
-  ariaDescribedBy,
-}: SearchableComboboxProps) {
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
+}: SchoolComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<SchoolItem[]>([]);
@@ -100,23 +97,22 @@ function SearchableCombobox({
   const [hasMore, setHasMore] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const jenjang = mapJenjang(institutionType);
+  const jenjang = institutionType.toLowerCase();
 
-  // Reset results when query or jenjang changes
+  // Reset when query or jenjang changes
   React.useEffect(() => {
     setResults([]);
     setPage(1);
     setHasMore(false);
   }, [query, institutionType]);
 
-  // Debounced search (page 1)
+  // Debounced search — page 1
   React.useEffect(() => {
     if (query.trim().length < 3) {
       setResults([]);
       setHasMore(false);
       return;
     }
-
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -134,11 +130,10 @@ function SearchableCombobox({
         setLoading(false);
       }
     }, 400);
-
     return () => clearTimeout(timer);
   }, [query, jenjang]);
 
-  // Load more
+  // Load more pages
   const handleLoadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -159,7 +154,7 @@ function SearchableCombobox({
     }
   };
 
-  // Focus on open
+  // Focus search input on open; reset on close
   React.useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -171,13 +166,9 @@ function SearchableCombobox({
     }
   }, [open]);
 
-  const handleSelect = (label: string) => {
-    onChange(label);
-    setOpen(false);
-  };
-
   const showHint = query.trim().length < 3;
-  const showEmpty = !loading && query.trim().length >= 3 && results.length === 0;
+  const showEmpty =
+    !loading && query.trim().length >= 3 && results.length === 0;
   const showResults = results.length > 0;
   const isFilled = !!value;
 
@@ -199,7 +190,7 @@ function SearchableCombobox({
             "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             ariaInvalid && "border-destructive ring-3 ring-destructive/20",
             isFilled
-              ? "bg-muted/60 text-foreground"
+              ? "bg-slate-100 text-foreground dark:bg-zinc-800"
               : "bg-background text-muted-foreground"
           )}
         >
@@ -272,7 +263,10 @@ function SearchableCombobox({
                 >
                   <button
                     type="button"
-                    onClick={() => handleSelect(item.label)}
+                    onClick={() => {
+                      onChange(item.label);
+                      setOpen(false);
+                    }}
                     className={cn(
                       "flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
                       value === item.label && "bg-accent/60"
@@ -290,7 +284,6 @@ function SearchableCombobox({
                 </li>
               ))}
 
-              {/* Load more */}
               {hasMore && (
                 <li className="px-1 py-1">
                   <button
@@ -315,27 +308,27 @@ function SearchableCombobox({
   );
 }
 
-// ─── Plain text input (for Perguruan Tinggi / Umum) ───────────────────────────
+// ─── Plain text input (Perguruan Tinggi / Umum) ───────────────────────────────
 
-interface PlainInputProps {
+export interface PlainInstitutionInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
   id?: string;
-  ariaInvalid?: boolean;
-  ariaDescribedBy?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
-function PlainInstitutionInput({
+export function PlainInstitutionInput({
   value,
   onChange,
   disabled,
   placeholder,
   id,
-  ariaInvalid,
-  ariaDescribedBy,
-}: PlainInputProps) {
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
+}: PlainInstitutionInputProps) {
   const isFilled = !!value;
   return (
     <Input
@@ -348,109 +341,10 @@ function PlainInstitutionInput({
       aria-describedby={ariaDescribedBy}
       className={cn(
         "h-11 rounded-[8px] transition-colors",
-        isFilled ? "bg-muted/60" : "bg-background"
+        isFilled
+          ? "bg-slate-100 dark:bg-zinc-800"
+          : "bg-background"
       )}
     />
-  );
-}
-
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-export interface SchoolComboboxProps {
-  /** The stored institution name string */
-  value?: string;
-  onChange: (value: string) => void;
-  /** The selected institution type (jenjang) */
-  institutionType: InstitutionType;
-  onInstitutionTypeChange: (type: InstitutionType) => void;
-  disabled?: boolean;
-  id?: string;
-  "aria-invalid"?: boolean;
-  "aria-describedby"?: string;
-}
-
-export function SchoolCombobox({
-  value = "",
-  onChange,
-  institutionType,
-  onInstitutionTypeChange,
-  disabled,
-  id,
-  "aria-invalid": ariaInvalid,
-  "aria-describedby": ariaDescribedBy,
-}: SchoolComboboxProps) {
-  const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
-
-  const handleTypeChange = (type: InstitutionType) => {
-    // Clear institution value when type changes
-    onChange("");
-    onInstitutionTypeChange(type);
-  };
-
-  return (
-    <div className="space-y-2">
-      {/* ── Jenjang selector ── */}
-      <div
-        role="group"
-        aria-label="Jenjang / Kategori Institusi"
-        className="flex flex-wrap gap-1.5"
-      >
-        {INSTITUTION_TYPE_OPTIONS.map((opt) => {
-          const selected = institutionType === opt.value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              disabled={disabled}
-              onClick={() => handleTypeChange(opt.value)}
-              title={opt.sublabel}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-all",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60",
-                "disabled:pointer-events-none disabled:opacity-50",
-                selected
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                  : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-              )}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Institution input ── */}
-      {isSearchable ? (
-        <SearchableCombobox
-          id={id}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          institutionType={institutionType}
-          ariaInvalid={ariaInvalid}
-          ariaDescribedBy={ariaDescribedBy}
-        />
-      ) : institutionType === "perguruan_tinggi" ? (
-        <PlainInstitutionInput
-          id={id}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          placeholder="Tulis nama lengkap universitas (Contoh: Universitas Padjadjaran, bukan UNPAD)"
-          ariaInvalid={ariaInvalid}
-          ariaDescribedBy={ariaDescribedBy}
-        />
-      ) : (
-        <PlainInstitutionInput
-          id={id}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          placeholder="Nama instansi / perusahaan / komunitas / ketik 'Individu'"
-          ariaInvalid={ariaInvalid}
-          ariaDescribedBy={ariaDescribedBy}
-        />
-      )}
-    </div>
   );
 }

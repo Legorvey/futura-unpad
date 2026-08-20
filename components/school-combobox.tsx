@@ -33,21 +33,21 @@ export const INSTITUTION_TYPE_OPTIONS: {
   label: string;
   sublabel: string;
 }[] = [
-  { value: "SD", label: "SD", sublabel: "Sekolah Dasar" },
-  { value: "SMP", label: "SMP", sublabel: "Sekolah Menengah Pertama" },
-  { value: "SMA", label: "SMA", sublabel: "Sekolah Menengah Atas" },
-  { value: "SMK", label: "SMK", sublabel: "Sekolah Menengah Kejuruan" },
-  {
-    value: "perguruan_tinggi",
-    label: "Perguruan Tinggi",
-    sublabel: "Universitas / Institut / Politeknik",
-  },
-  {
-    value: "umum",
-    label: "Umum",
-    sublabel: "Instansi / Komunitas / Individu",
-  },
-];
+    { value: "SD", label: "SD", sublabel: "Sekolah Dasar" },
+    { value: "SMP", label: "SMP", sublabel: "Sekolah Menengah Pertama" },
+    { value: "SMA", label: "SMA", sublabel: "Sekolah Menengah Atas" },
+    { value: "SMK", label: "SMK", sublabel: "Sekolah Menengah Kejuruan" },
+    {
+      value: "perguruan_tinggi",
+      label: "Perguruan Tinggi",
+      sublabel: "Universitas / Institut / Politeknik",
+    },
+    {
+      value: "umum",
+      label: "Umum",
+      sublabel: "Instansi / Komunitas / Individu",
+    },
+  ];
 
 export const SEARCHABLE_TYPES: InstitutionType[] = ["SD", "SMP", "SMA", "SMK"];
 
@@ -185,16 +185,14 @@ export function SchoolCombobox({
           aria-describedby={ariaDescribedBy}
           disabled={disabled}
           className={cn(
-            "flex h-11 w-full items-center justify-between rounded-[8px] border border-input px-2.5 py-1 text-sm shadow-xs transition-[color,background-color,box-shadow] outline-none",
+            "flex h-11 w-full items-center justify-between rounded-[8px] border border-input px-2.5 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
             "focus-visible:border-amber-300 focus-visible:ring-3 focus-visible:ring-amber-300/50",
             "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             ariaInvalid && "border-destructive ring-3 ring-destructive/20",
-            isFilled
-              ? "bg-slate-100 text-foreground dark:bg-zinc-800"
-              : "bg-background text-muted-foreground"
+            "bg-slate-100/50 dark:bg-transparent"
           )}
         >
-          <span className="flex-1 truncate text-left">
+          <span className={cn("flex-1 truncate text-left", !value && "text-muted-foreground")}>
             {value || "Pilih atau cari nama sekolah..."}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -202,12 +200,12 @@ export function SchoolCombobox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0 shadow-lg"
+        className="w-[var(--radix-popover-trigger-width)] p-0 gap-0 shadow-lg bg-white dark:bg-white dark:text-slate-900"
         align="start"
         sideOffset={4}
       >
         {/* Search bar */}
-        <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+        <div className="flex items-center gap-2 border-b border-border dark:border-slate-200 px-3 py-2">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
             ref={inputRef}
@@ -243,7 +241,7 @@ export function SchoolCombobox({
                   onChange(query.trim());
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black"
               >
                 <PlusCircle className="h-4 w-4 shrink-0 text-primary" />
                 <span>
@@ -268,8 +266,8 @@ export function SchoolCombobox({
                       setOpen(false);
                     }}
                     className={cn(
-                      "flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                      value === item.label && "bg-accent/60"
+                      "flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black",
+                      value === item.label && "bg-yellow-500 text-black"
                     )}
                   >
                     <span className="font-medium leading-snug">
@@ -290,7 +288,7 @@ export function SchoolCombobox({
                     type="button"
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="flex w-full items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-xs text-primary transition-colors hover:bg-accent disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-xs text-primary transition-colors hover:bg-yellow-500 hover:text-black disabled:opacity-50"
                   >
                     {loadingMore ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -340,10 +338,8 @@ export function PlainInstitutionInput({
       aria-invalid={ariaInvalid}
       aria-describedby={ariaDescribedBy}
       className={cn(
-        "h-11 rounded-[8px] transition-colors",
-        isFilled
-          ? "bg-slate-100 dark:bg-zinc-800"
-          : "bg-background"
+        "h-11 rounded-[8px] bg-slate-100/50 dark:bg-transparent",
+        "focus-visible:border-amber-300 focus-visible:ring-3 focus-visible:ring-amber-300/50"
       )}
     />
   );

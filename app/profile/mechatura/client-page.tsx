@@ -295,7 +295,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                   <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px]">
                     <SelectValue placeholder="Pilih jenjang..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
                     {INSTITUTION_TYPE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         <span className="font-medium">{opt.label}</span>

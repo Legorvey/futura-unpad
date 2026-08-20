@@ -49,7 +49,6 @@ export function FormSchoolField<TValues extends FieldValues = FieldValues>({
               value={field.value ?? ""}
               onChange={field.onChange}
               institutionType={institutionType}
-              onInstitutionTypeChange={setInstitutionType}
               disabled={disabled}
               aria-invalid={!!fieldState.error}
               aria-describedby={

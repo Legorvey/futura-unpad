@@ -292,7 +292,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                   onValueChange={(v) => handleTypeChange(v as InstitutionType)}
                   disabled={isSubmitted}
                 >
-                  <SelectTrigger className="h-11 w-full rounded-[8px]">
+                  <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px]">
                     <SelectValue placeholder="Pilih jenjang..." />
                   </SelectTrigger>
                   <SelectContent>

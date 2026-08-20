@@ -9,6 +9,7 @@ import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormTextField } from "@/components/form/form-text-field";
+import { FormSchoolField } from "@/components/form/form-school-field";
 import { FieldGroup } from "@/components/ui/field";
 import MechaturaProfileSidebar from "./sidebar";
 import {
@@ -254,7 +255,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 label="Nama Lengkap"
                 disabled={isSubmitted}
               />
-              <FormTextField<IdentityValues>
+              <FormSchoolField<IdentityValues>
                 name="institution"
                 label="Institusi / Asal Sekolah"
                 disabled={isSubmitted}
@@ -308,8 +309,8 @@ function TeamMembersSection({ allMembers }: any) {
           return (
             <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
               <div className="min-w-0 flex-1">
-                <p className="text-foreground font-medium text-sm leading-snug flex flex-wrap items-center gap-1.5">
-                  <span className="break-all sm:break-words line-clamp-2 overflow-hidden">{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
+                <p className="text-foreground font-medium text-sm leading-snug flex items-center gap-1.5 min-w-0">
+                  <span className="truncate" title={m.full_name || m.fallback_name || "Anggota Belum Bernama"}>{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
                   {m.is_leader && (
                     <span className="inline-flex items-center justify-center text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold shrink-0">
                       Ketua

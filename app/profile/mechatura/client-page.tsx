@@ -1,6 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  SchoolCombobox,
+  PlainInstitutionInput,
+  INSTITUTION_TYPE_OPTIONS,
+  SEARCHABLE_TYPES,
+  type InstitutionType,
+} from "@/components/school-combobox";
 import { Button } from "@/components/ui/button";
 import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
@@ -20,11 +34,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const identitySchema = z.object({
   full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
-  institution: z.string().min(2, "Institusi minimal 8 karakter"),
+  institution: z.string().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().min(2, "Kota minimal 2 karakter"),
   phone_number: z.string().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
   instagram_username: z.string().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
@@ -221,6 +235,7 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
 
 function IdentitySection({ currentUserMembership, isSubmitted }: any) {
   const [isSaving, setIsSaving] = useState(false);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>("SD");
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(identitySchema),
@@ -246,6 +261,16 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
     }
   };
 
+  const handleTypeChange = (type: InstitutionType) => {
+    setInstitutionType(type);
+    // Reset institution value when category changes
+    identityForm.setValue("institution", "");
+  };
+
+  const institutionValue = identityForm.watch("institution");
+  const institutionError = identityForm.formState.errors.institution;
+  const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
+
   return (
     <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
       <div className="space-y-5">
@@ -265,20 +290,93 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
             </ul>
           </div>
         </div>
-        
+
         <FormProvider {...identityForm}>
           <form onSubmit={identityForm.handleSubmit(handleIdentitySubmit)} noValidate className="space-y-4">
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* ── Row 1: Nama Lengkap | Jenjang ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="full_name"
                 label="Nama Lengkap"
                 disabled={isSubmitted}
               />
-              <FormTextField<IdentityValues>
-                name="institution"
-                label="Institusi / Asal Sekolah"
-                disabled={isSubmitted}
-              />
+
+              {/* Jenjang / Kategori Institusi */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium leading-snug">
+                  Jenjang / Kategori Institusi
+                </label>
+                <Select
+                  value={institutionType}
+                  onValueChange={(v) => handleTypeChange(v as InstitutionType)}
+                  disabled={isSubmitted}
+                >
+                  <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px]">
+                    <SelectValue placeholder="Pilih jenjang..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
+                    {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <span className="font-medium">{opt.label}</span>
+                        <span className="ml-1.5 text-muted-foreground text-xs">
+                          — {opt.sublabel}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* ── Row 2: Institution (full-width, dynamic) ── */}
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="institution"
+                className="text-sm font-medium leading-snug"
+              >
+                Institusi / Asal Sekolah
+              </label>
+              {isSearchable ? (
+                <SchoolCombobox
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  institutionType={institutionType}
+                  disabled={isSubmitted}
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              ) : institutionType === "perguruan_tinggi" ? (
+                <PlainInstitutionInput
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  disabled={isSubmitted}
+                  placeholder="Tulis nama lengkap universitas (Contoh: Universitas Padjadjaran, bukan UNPAD)"
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              ) : (
+                <PlainInstitutionInput
+                  id="institution"
+                  value={institutionValue}
+                  onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                  disabled={isSubmitted}
+                  placeholder="Nama instansi / komunitas / ketik 'Individu'"
+                  aria-invalid={!!institutionError}
+                  aria-describedby={institutionError ? "institution-error" : undefined}
+                />
+              )}
+              {institutionError && (
+                <div role="alert" id="institution-error" className="flex items-start gap-1.5 text-sm font-normal text-destructive">
+                  <span>{String(institutionError.message)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Row 3: Kota | Nomor WhatsApp ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="city"
                 label="Kota"
@@ -289,6 +387,10 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 label="Nomor WhatsApp"
                 disabled={isSubmitted}
               />
+            </div>
+
+            {/* ── Row 4: Instagram | Student ID ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="instagram_username"
                 label="Link Post Instagram (Twibbon)"
@@ -301,8 +403,8 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 type="url"
                 disabled={isSubmitted}
               />
-            </FieldGroup>
-            
+            </div>
+
             {!isSubmitted && (
               <Button type="submit" disabled={isSaving} className="mt-2">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -328,8 +430,8 @@ function TeamMembersSection({ allMembers }: any) {
           return (
             <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
               <div className="min-w-0 flex-1">
-                <p className="text-foreground font-medium text-sm leading-snug flex flex-wrap items-center gap-1.5">
-                  <span className="break-all sm:break-words line-clamp-2 overflow-hidden">{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
+                <p className="text-foreground font-medium text-sm leading-snug flex items-center gap-1.5 min-w-0">
+                  <span className="truncate" title={m.full_name || m.fallback_name || "Anggota Belum Bernama"}>{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
                   {m.is_leader && (
                     <span className="inline-flex items-center justify-center text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold shrink-0">
                       Ketua

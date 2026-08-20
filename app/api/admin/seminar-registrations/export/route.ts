@@ -61,13 +61,13 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminSupabase = createAdminClient()
+    const supabase = createAdminClient()
     const registrations: SeminarExportRegistration[] = []
     const batchSize = 1000
     let offset = 0
 
     while (true) {
-        const { data, error } = await adminSupabase
+        const { data, error } = await supabase
             .from("seminar_registrations")
             .select(exportColumns)
             .order("group_id", { ascending: true })

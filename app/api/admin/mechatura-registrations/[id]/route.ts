@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { invalidRequest, rateLimited, serverError } from "@/lib/http";
 import { deleteMechaturaRegistration } from "@/lib/mechatura/registration";
 import { rateLimit } from "@/lib/rate-limit";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import { idParamSchema } from "@/lib/validation";
 
 type DeleteParams = Promise<{
@@ -41,9 +41,9 @@ export async function DELETE(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const adminSupabase = createAdminClient();
+    const supabase = await createClient();
     const result = await deleteMechaturaRegistration(
-        adminSupabase,
+        supabase,
         parsed.data.id,
         undefined,
         { allowPaid: true }

@@ -143,7 +143,7 @@ export default function MechaturaListClient({
     if (approvalFilter !== "all") {
         const label = approvalFilter === "pending" ? "Menunggu" : 
                       approvalFilter === "approved" ? "Disetujui" :
-                      approvalFilter === "rejected" ? "Ditolak" :
+                      approvalFilter === "revision" ? "Revisi" :
                       (approvalFilter as string).charAt(0).toUpperCase() + (approvalFilter as string).slice(1);
         activeFilterPills.push({
             key: "approval",
@@ -297,7 +297,7 @@ export default function MechaturaListClient({
                                         {approvalFilter === "all" ? "Semua Approval" : 
                                          approvalFilter === "pending" ? "Menunggu" : 
                                          approvalFilter === "approved" ? "Disetujui" :
-                                         approvalFilter === "rejected" ? "Ditolak" :
+                                         approvalFilter === "revision" ? "Revisi" :
                                          (approvalFilter as string).charAt(0).toUpperCase() + (approvalFilter as string).slice(1)}
                                     </span>
                                     <ChevronDown className="h-3 w-3 opacity-50" />
@@ -310,7 +310,7 @@ export default function MechaturaListClient({
                                         {status === "all" ? "Semua Approval" : 
                                          status === "pending" ? "Menunggu" : 
                                          status === "approved" ? "Disetujui" :
-                                         status === "rejected" ? "Ditolak" :
+                                         status === "revision" ? "Revisi" :
                                          (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
                                     </DropdownMenuItem>
                                 ))}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -25,7 +25,7 @@ import {
     type PaymentStatus,
 } from "@/lib/payment";
 import { formatMechaturaDateTime } from "@/lib/mechatura/format";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import { TeamDetailActions } from "./team-detail-actions";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +45,7 @@ const detailColumns = [
     "created_at",
     "submission_status",
     "admin_approval_status",
+    "admin_rejection_reason"
 ].join(",");
 
 type MechaturaDetailRegistration = {
@@ -56,8 +57,9 @@ type MechaturaDetailRegistration = {
     payment_proof_link: string | null;
     robot_document_link: string | null;
     created_at: string | null;
-    submission_status: "draft" | "submitted";
-    admin_approval_status: "pending" | "approved" | "rejected";
+    submission_status: "draft" | "submitted" | "revision";
+    admin_approval_status: "pending" | "approved" | "revision";
+    admin_rejection_reason: string | null;
 };
 
 type MechaturaDetailMember = {
@@ -94,7 +96,7 @@ const getPaymentStatus = (status: string | null): PaymentStatus =>
     status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
 
 const getDocumentLink = async (
-    adminSupabase: ReturnType<typeof createAdminClient>,
+    supabase: Awaited<ReturnType<typeof createClient>>,
     label: string,
     path: string | null
 ): Promise<DocumentLink> => {
@@ -102,7 +104,7 @@ const getDocumentLink = async (
         return { label, href: null };
     }
 
-    const { data, error } = await adminSupabase.storage
+    const { data, error } = await supabase.storage
         .from(MECHATURA_DOCUMENT_BUCKET)
         .createSignedUrl(path, DOCUMENT_URL_EXPIRES_IN_SECONDS);
 
@@ -205,12 +207,12 @@ const AdminSidebarContent = ({
                     <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
                         registrationData.admin_approval_status === 'approved' 
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' :
-                        registrationData.admin_approval_status === 'rejected' 
+                        registrationData.admin_approval_status === "revision" 
                         ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30' :
                         'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30'
                     }`}>
                         {registrationData.admin_approval_status === 'approved' ? "Disetujui" :
-                         registrationData.admin_approval_status === 'rejected' ? "Ditolak" : "Pending"}
+                         registrationData.admin_approval_status === "revision" ? "Revisi" : "Pending"}
                     </span>
                 } />
                 <DetailItem
@@ -264,8 +266,8 @@ export default async function MechaturaRegistrationDetails({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    const adminSupabase = createAdminClient();
-    const { data: registrationData, error } = await adminSupabase
+    const supabase = await createClient();
+    const { data: registrationData, error } = await supabase
         .from("mechatura_teams")
         .select(detailColumns)
         .eq("id", id)
@@ -275,7 +277,7 @@ export default async function MechaturaRegistrationDetails({
         notFound();
     }
 
-    const { data: members, error: membersError } = await adminSupabase
+    const { data: members, error: membersError } = await supabase
         .from("mechatura_members")
         .select("id,user_id,full_name,phone_number,institution,city,instagram_username,student_id_link,is_leader")
         .eq("team_id", registrationData.id)
@@ -292,7 +294,7 @@ export default async function MechaturaRegistrationDetails({
             let fallback_name = null;
             if (m.user_id) {
                 try {
-                    const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
+                    const { data: userData } = await supabase.auth.admin.getUserById(m.user_id);
                     if (userData?.user) {
                         const meta = userData.user.user_metadata || {};
                         fallback_name = meta.display_name || meta.username || userData.user.email || null;
@@ -353,9 +355,27 @@ export default async function MechaturaRegistrationDetails({
                             </div>
                         </SheetContent>
                     </Sheet>
-                    <TeamDetailActions teamId={registrationData.id} approvalStatus={registrationData.admin_approval_status} submissionStatus={registrationData.submission_status} />
+                    <TeamDetailActions 
+                        teamId={registrationData.id} 
+                        teamName={registrationData.name}
+                        category={registrationData.category}
+                        approvalStatus={registrationData.admin_approval_status} 
+                        submissionStatus={registrationData.submission_status} 
+                    />
                 </div>
             </div>
+
+            {registrationData.admin_rejection_reason && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 mb-8 shadow-sm">
+                    <h3 className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        Catatan Revisi Sebelumnya
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed opacity-90">
+                        {registrationData.admin_rejection_reason}
+                    </p>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Left Column (Main Information) */}

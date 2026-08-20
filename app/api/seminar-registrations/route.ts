@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { isUniqueViolation } from "@/lib/database-errors";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { seminarRegistrationSchema } from "@/lib/validation";
-import { createClient } from "@/utils/supabase/server";
 
 type ExistingRegistration = {
   id: string;
@@ -56,10 +55,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const adminSupabase = createAdminClient();
+  const supabase = await createClient();
 
   // Check duplicate by user_id to prevent multiple registrations per account
-  const existingQuery = adminSupabase
+  const existingQuery = supabase
     .from("seminar_registrations")
     .select("id,user_id,email")
     .eq("user_id", user.id)
@@ -113,7 +112,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const { data: insertedRegistrations, error } = await adminSupabase
+  const { data: insertedRegistrations, error } = await supabase
     .from("seminar_registrations")
     .insert(inserts)
     .select("id, is_main_contact, nama_lengkap, asal_institusi, group_name");

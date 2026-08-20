@@ -142,8 +142,8 @@ export default async function SeminarRegistrationDetails({
     const requestedPage = normalizePositiveInt(firstParam(query.page), 1)
     const pageSize = normalizePageSize(firstParam(query.pageSize))
 
-    const adminSupabase = createAdminClient()
-    const { data: registrationData, error } = await adminSupabase
+    const supabase = createAdminClient()
+    const { data: registrationData, error } = await supabase
         .from("seminar_registrations")
         .select(seminarDetailColumns)
         .eq("id", id)
@@ -162,7 +162,7 @@ export default async function SeminarRegistrationDetails({
     let memberOffset = 0
 
     if (isGroup && registration.group_id) {
-        const { count, error: countError } = await adminSupabase
+        const { count, error: countError } = await supabase
             .from("seminar_registrations")
             .select("id", { count: "exact", head: true })
             .eq("group_id", registration.group_id)
@@ -186,7 +186,7 @@ export default async function SeminarRegistrationDetails({
     memberOffset = Math.max(0, memberStartIndex)
 
     if (isGroup && registration.group_id && membersToFetch > 0) {
-        const { data: memberData, error: memberError } = await adminSupabase
+        const { data: memberData, error: memberError } = await supabase
             .from("seminar_registrations")
             .select(seminarDetailColumns)
             .eq("group_id", registration.group_id)

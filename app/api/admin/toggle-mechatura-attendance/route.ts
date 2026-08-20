@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth";
 import { invalidRequest, readJsonBody, serverError } from "@/lib/http";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 
 const toggleMechaturaAttendanceSchema = z.object({
   registration_id: z.uuid(),
@@ -33,10 +33,10 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const adminSupabase = createAdminClient();
+  const supabase = await createClient();
   const { registration_id, attended } = parsed.data;
 
-  const { data: updatedRegistration, error } = await adminSupabase
+  const { data: updatedRegistration, error } = await supabase
     .from("mechatura_registrations")
     .update({
       attended,

@@ -53,7 +53,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
 
   const isLeader = currentUserMembership?.is_leader;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const isSubmitted = team.submission_status === 'submitted' || team.submission_status === 'approved' || team.submission_status === 'rejected';
+  const isSubmitted = team.submission_status === 'submitted' || team.submission_status === 'approved';
 
   useEffect(() => {
     if (window.innerWidth >= 1024) {
@@ -72,6 +72,15 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
       </MechaturaProfileSidebar>
 
       <section className="flex-1 space-y-6 p-6 sm:p-8 lg:p-10 transition-all duration-300 min-w-0 bg-background/50 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl">
+        {team.admin_approval_status === "revision" && team.admin_rejection_reason && (
+          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-3 shadow-sm">
+            <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-amber-800">Pendaftaran Perlu Direvisi</h4>
+              <p className="text-sm mt-1 leading-relaxed opacity-90">{team.admin_rejection_reason}</p>
+            </div>
+          </div>
+        )}
         <TeamHeaderSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} copyCode={copyCode} copied={copied} isSubmitted={isSubmitted} />
         <IdentitySection currentUserMembership={currentUserMembership} isSubmitted={isSubmitted} />
         <RobotDocumentsSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} />
@@ -85,7 +94,7 @@ function TeamHeaderSection({ team, currentUserMembership, allMembers, copyCode, 
   const adminStatusColors: Record<string, string> = {
     pending: "text-amber-500",
     approved: "text-green-500",
-    rejected: "text-red-500",
+    revision: "text-amber-500",
   };
   const adminStatusColor = adminStatusColors[team.admin_approval_status || "pending"];
 
@@ -94,9 +103,13 @@ function TeamHeaderSection({ team, currentUserMembership, allMembers, copyCode, 
       <div>
         <div className="flex items-center gap-3 mb-1">
           <h2 className="text-2xl font-semibold text-foreground tracking-tight">{team.name}</h2>
-          {isSubmitted ? (
+          {team.admin_approval_status === "revision" ? (
             <span className={`text-[11px] font-semibold tracking-wide uppercase ${adminStatusColor}`}>
-              • {team.admin_approval_status === "approved" ? "DISETUJUI" : team.admin_approval_status === "rejected" ? "DITOLAK" : "PENDING"}
+              • REVISI
+            </span>
+          ) : isSubmitted ? (
+            <span className={`text-[11px] font-semibold tracking-wide uppercase ${adminStatusColor}`}>
+              • {team.admin_approval_status === "approved" ? "DISETUJUI" : "PENDING"}
             </span>
           ) : (
             <span className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">
@@ -152,14 +165,21 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
     pending: "text-amber-500",
     unpaid: "text-muted-foreground",
   };
-  const statusColor = statusColors[team.payment_status] || "text-muted-foreground";
+  
+  let statusColor = statusColors[team.payment_status] || "text-muted-foreground";
+  let statusText = team.payment_status === "verified" ? "Terverifikasi" : team.payment_status === "pending" ? "Menunggu Verifikasi" : "Belum Dibayar";
+
+  if (team.admin_approval_status === "revision") {
+    statusColor = "text-amber-500";
+    statusText = "Perlu Direvisi";
+  }
 
   return (
     <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-foreground">Pembayaran Tim</h3>
         <span className={`text-xs font-semibold tracking-wide uppercase ${statusColor}`}>
-          • {team.payment_status === "verified" ? "Terverifikasi" : team.payment_status === "pending" ? "Menunggu Verifikasi" : "Belum Dibayar"}
+          • {statusText}
         </span>
       </div>
 
@@ -319,7 +339,7 @@ function TeamMembersSection({ allMembers }: any) {
               </div>
               <div className="shrink-0 mt-0.5">
                 {isComplete ? (
-                  <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
+                  <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Tersimpan</span>
                 ) : (
                   <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Belum Lengkap</span>
                 )}
@@ -628,7 +648,7 @@ function FinalizeSection({ team, isLeader, isSubmitted, allMembers }: any) {
         </div>
         <div className="w-full sm:w-auto shrink-0 space-y-2">
           <Button size="lg" className="w-full" disabled={!isComplete} onClick={() => setIsDialogOpen(true)}>
-            Submit Pendaftaran
+            {team.admin_approval_status === "revision" ? 'Ajukan Revisi' : 'Submit Pendaftaran'}
           </Button>
           {!isComplete && (
             <p className="text-xs text-amber-500 text-center max-w-[200px]">
@@ -641,9 +661,13 @@ function FinalizeSection({ team, isLeader, isSubmitted, allMembers }: any) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="mechatura-wrapper sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Submit Pendaftaran Tim?</DialogTitle>
+            <DialogTitle>
+              {team.admin_approval_status === "revision" ? 'Ajukan Revisi Tim?' : 'Submit Pendaftaran Tim?'}
+            </DialogTitle>
             <DialogDescription>
-              Anda yakin ingin submit sekarang? Setelah disubmit, Anda <strong>tidak dapat lagi</strong> mengubah biodata anggota, mengganti bukti pembayaran, atau memperbarui dokumen robot.
+              {team.admin_approval_status === "revision" 
+                ? 'Anda yakin ingin mengajukan revisi? Pastikan semua perbaikan sesuai catatan panitia telah dilakukan. Setelah diajukan, Anda tidak dapat mengubah data hingga dicek kembali.' 
+                : 'Anda yakin ingin submit sekarang? Setelah disubmit, Anda tidak dapat lagi mengubah biodata anggota, mengganti bukti pembayaran, atau memperbarui dokumen robot.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 gap-2 sm:gap-0">
@@ -652,7 +676,7 @@ function FinalizeSection({ team, isLeader, isSubmitted, allMembers }: any) {
             </Button>
             <Button onClick={handleFinalize} disabled={isFinalizing}>
               {isFinalizing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Ya, Submit
+              {team.admin_approval_status === "revision" ? 'Ya, Ajukan Revisi' : 'Ya, Submit'}
             </Button>
           </DialogFooter>
         </DialogContent>

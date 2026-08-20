@@ -8,11 +8,11 @@ export type AdminSearchParams = Promise<Record<string, string | string[] | undef
 export type MechaturaCategoryFilter = "all" | MechaturaCompetitionType;
 export type MechaturaPaymentFilter = "all" | PaymentStatus;
 export type MechaturaSubmissionFilter = "all" | "draft" | "submitted";
-export type MechaturaApprovalFilter = "all" | "pending" | "approved" | "rejected";
+export type MechaturaApprovalFilter = "all" | "pending" | "approved" | "revision";
 
 export const categoryFilters: MechaturaCategoryFilter[] = ["all", "sumo", "transporter"];
 export const submissionFilters: MechaturaSubmissionFilter[] = ["all", "draft", "submitted"];
-export const approvalFilters: MechaturaApprovalFilter[] = ["all", "pending", "approved", "rejected"];
+export const approvalFilters: MechaturaApprovalFilter[] = ["all", "pending", "approved", "revision"];
 export const paymentFilters: MechaturaPaymentFilter[] = [
     "all",
     "unpaid",

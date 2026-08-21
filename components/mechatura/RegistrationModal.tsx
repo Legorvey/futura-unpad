@@ -87,24 +87,25 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-white text-slate-900 border-slate-200 shadow-xl">
         <DialogHeader className="mb-2">
-          <DialogTitle className="text-2xl font-semibold tracking-tight">
+          <DialogTitle className="text-2xl font-semibold tracking-tight text-slate-900">
             Registrasi Mechatura 2026
           </DialogTitle>
-          <DialogDescription>
-            Pilih kategori lomba dan bentuk tim Anda untuk melanjutkan.
+          <DialogDescription className="text-slate-500">
+            Pilih kategori kompetisi dan bentuk tim Anda untuk memulai perjalanan di Mechatura.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 pb-2">
+        <div className="space-y-8 py-2">
+          
           {/* STEP 1: CATEGORY */}
           <div className="space-y-3 relative">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-semibold text-xs">
                 1
               </div>
-              <h3 className="text-base font-medium">Pilih Kategori Lomba</h3>
+              <h3 className="text-base font-medium text-slate-900">Pilih Kategori Lomba</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8">
@@ -113,16 +114,16 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                 onClick={() => setCategory("robot_sumo")}
                 className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   category === "robot_sumo"
-                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
-                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
+                    ? "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
+                    : "border-slate-200 hover:border-amber-500/50 hover:bg-slate-50"
                 }`}
               >
-                <div className={`p-2 rounded-md ${category === "robot_sumo" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                <div className={`p-2 rounded-md ${category === "robot_sumo" ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-foreground text-sm">Robot Sumo</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Adu ketangkasan robot di arena</p>
+                  <h4 className="font-medium text-slate-900 text-sm">Robot Sumo</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Adu ketangkasan robot di arena</p>
                 </div>
               </button>
               
@@ -131,16 +132,16 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                 onClick={() => setCategory("robot_transporter")}
                 className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   category === "robot_transporter"
-                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
-                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
+                    ? "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
+                    : "border-slate-200 hover:border-amber-500/50 hover:bg-slate-50"
                 }`}
               >
-                <div className={`p-2 rounded-md ${category === "robot_transporter" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                <div className={`p-2 rounded-md ${category === "robot_transporter" ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
                   <Car className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-foreground text-sm">Robot Transporter</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Selesaikan misi pemindahan objek</p>
+                  <h4 className="font-medium text-slate-900 text-sm">Robot Transporter</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Selesaikan misi pemindahan objek</p>
                 </div>
               </button>
             </div>
@@ -149,10 +150,10 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
           {/* STEP 2: ACTION */}
           <div className={`space-y-3 transition-opacity duration-300 ${!category ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-semibold text-xs">
                 2
               </div>
-              <h3 className="text-base font-medium">Status Tim</h3>
+              <h3 className="text-base font-medium text-slate-900">Status Tim</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8">
@@ -161,16 +162,16 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                 onClick={() => setAction("create")}
                 className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   action === "create"
-                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
-                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
+                    ? "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
+                    : "border-slate-200 hover:border-amber-500/50 hover:bg-slate-50"
                 }`}
               >
-                <div className={`p-2 rounded-md ${action === "create" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                <div className={`p-2 rounded-md ${action === "create" ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-foreground text-sm">Buat Tim Baru</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Jadi ketua & undang anggota</p>
+                  <h4 className="font-medium text-slate-900 text-sm">Buat Tim Baru</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Jadi ketua & undang anggota</p>
                 </div>
               </button>
 
@@ -179,40 +180,28 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                 onClick={() => setAction("join")}
                 className={`flex items-center gap-3 p-4 rounded-md border transition-all text-left ${
                   action === "join"
-                    ? "border-amber-500 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500"
-                    : "border-border hover:border-amber-500/50 hover:bg-muted/50"
+                    ? "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
+                    : "border-slate-200 hover:border-amber-500/50 hover:bg-slate-50"
                 }`}
               >
-                <div className={`p-2 rounded-md ${action === "join" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                <div className={`p-2 rounded-md ${action === "join" ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
                   <Link2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-foreground text-sm">Bergabung</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Gunakan kode dari ketua tim</p>
+                  <h4 className="font-medium text-slate-900 text-sm">Bergabung</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Gunakan kode dari ketua tim</p>
                 </div>
               </button>
-            </div>
-            <div className="pl-8 pt-2">
-              {action === "create" && (
-                <div className="text-xs text-muted-foreground bg-blue-500/10 text-blue-600 dark:text-blue-400 p-3 rounded-lg border border-blue-500/20">
-                  <strong>Ketentuan Tim Baru:</strong> Satu tim terdiri dari 1-3 anggota (1 ketua) dengan pembimbing opsional. Bebas lintas institusi (pelajar, mahasiswa, umum). Satu peserta hanya boleh terdaftar pada satu tim. Pastikan nama tim tidak mengandung unsur SARA atau pornografi.
-                </div>
-              )}
-              {action === "join" && (
-                <div className="text-xs text-muted-foreground bg-amber-500/10 text-amber-600 dark:text-amber-400 p-3 rounded-lg border border-amber-500/20">
-                  <strong>Ketentuan Bergabung:</strong> Anda hanya dapat bergabung ke dalam 1 tim. Pastikan kode undangan (join code) yang Anda masukkan benar dan tim yang dituju belum mencapai batas maksimal (3 anggota).
-                </div>
-              )}
             </div>
           </div>
 
           {/* STEP 3: FORM */}
           <div className={`space-y-3 transition-opacity duration-300 ${!action || !category ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground font-semibold text-xs">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-semibold text-xs">
                 3
               </div>
-              <h3 className="text-base font-medium">Detail {action === "create" ? "Tim" : "Undangan"}</h3>
+              <h3 className="text-base font-medium text-slate-900">Detail {action === "create" ? "Tim" : "Undangan"}</h3>
             </div>
             
             <div className="pl-8">
@@ -222,12 +211,13 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                     <FieldGroup>
                       <FormTextField<CreateTeamValues>
                         name="teamName"
-                        label="Nama Tim Anda"
+                        label={<span className="text-slate-900">Nama Tim Anda</span>}
                         placeholder="Masukkan nama tim..."
                         className="max-w-sm"
+                        inputClassName="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                       />
                     </FieldGroup>
-                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold">
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Bentuk Tim & Lanjut
                     </Button>
@@ -239,12 +229,13 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
                     <FieldGroup>
                       <FormTextField<JoinTeamValues>
                         name="joinCode"
-                        label="Kode Undangan"
+                        label={<span className="text-slate-900">Kode Undangan</span>}
                         placeholder="Masukkan 6 karakter kode..."
                         className="max-w-sm uppercase font-mono tracking-widest"
+                        inputClassName="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                       />
                     </FieldGroup>
-                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                    <Button type="submit" disabled={isSubmitting} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold">
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Gabung Tim
                     </Button>

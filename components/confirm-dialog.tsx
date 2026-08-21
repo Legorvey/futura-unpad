@@ -19,8 +19,9 @@ type ConfirmDialogProps = {
   description: string
   confirmText: string
   cancelText?: string
-  variant?: "default" | "destructive"
+  variant?: "default" | "destructive" | "amber"
   isLoading?: boolean
+  contentClassName?: string
   onConfirm: () => Promise<void> | void
 }
 
@@ -33,6 +34,7 @@ export default function ConfirmDialog({
   cancelText = "Cancel",
   variant = "default",
   isLoading = false,
+  contentClassName,
   onConfirm,
 }: ConfirmDialogProps) {
   const [internalLoading, setInternalLoading] = useState(false)
@@ -68,10 +70,10 @@ export default function ConfirmDialog({
         }
       }}
     >
-      <AlertDialogContent>
+      <AlertDialogContent className={contentClassName}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription className={contentClassName ? "text-slate-500" : undefined}>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 
         {error ? (
@@ -81,10 +83,11 @@ export default function ConfirmDialog({
         ) : null}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading} className={contentClassName ? "text-slate-900 border-slate-300 hover:bg-slate-100 hover:text-slate-900" : undefined}>{cancelText}</AlertDialogCancel>
           <Button
             type="button"
             variant={variant === "destructive" ? "destructive" : "default"}
+            className={variant === "amber" ? "bg-amber-500 hover:bg-amber-600 text-white border-0" : ""}
             disabled={loading}
             onClick={handleConfirm}
           >

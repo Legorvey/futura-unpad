@@ -202,6 +202,7 @@ export function NavbarDemo() {
         confirmText="Keluar"
         cancelText="Batal"
         variant="destructive"
+        contentClassName="bg-white text-slate-900 border-slate-200"
         isLoading={isLoggingOut}
         onConfirm={handleLogout}
       />

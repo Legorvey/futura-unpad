@@ -78,7 +78,6 @@ export default function MechaturaListClient({
 
     const metrics = [
         { label: "Total tim", value: stats.totalTeams },
-        { label: "Tim lunas / verified", value: stats.paidTeams },
         { label: "Robot Sumo", value: stats.sumoTeams },
         { label: "Robot Transporter", value: stats.transporterTeams },
     ];
@@ -232,32 +231,6 @@ export default function MechaturaListClient({
                                     <DropdownMenuItem key={option.value} onSelect={() => updateFilter("category", option.value)}>
                                         <option.icon className="mr-2 h-4 w-4" />
                                         {option.label}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2 text-xs">
-                                        {(() => {
-                                            const ActiveIcon = PaymentIcons[paymentFilter] || CircleDollarSign;
-                                            return <ActiveIcon className="h-3 w-3" />;
-                                        })()}
-                                        {paymentFilter === "all" ? "Semua Bayar" : paymentStatusLabels[paymentFilter as keyof typeof paymentStatusLabels]}
-                                    </span>
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[180px]">
-                                {paymentFilters.map((status) => (
-                                    <DropdownMenuItem key={status} onSelect={() => updateFilter("payment", status)}>
-                                        {(() => {
-                                            const OptionIcon = PaymentIcons[status] || CircleDollarSign;
-                                            return <OptionIcon className="mr-2 h-4 w-4" />;
-                                        })()}
-                                        {status === "all" ? "Semua Pembayaran" : paymentStatusLabels[status as keyof typeof paymentStatusLabels]}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>

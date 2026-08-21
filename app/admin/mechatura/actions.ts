@@ -45,7 +45,9 @@ export async function updateMechaturaRegistrationStatus(
         .select(`
             category,
             mechatura_members (
+                id,
                 user_id,
+                full_name,
                 is_leader
             )
         `)
@@ -98,7 +100,7 @@ export async function updateMechaturaRegistrationStatus(
         const isSumo = teamData.category === "robot_sumo";
         const competitionName = isSumo ? "Lomba Sumo" : "Lomba Transporter";
         const whatsappLink = isSumo 
-            ? "https://chat.whatsapp.com/Ff7vl1HKcDRBVQAilgFfPY" 
+            ? "https://chat.whatsapp.com/Ff7vI1HKcDRBVQAiIgFfPY" 
             : "https://chat.whatsapp.com/KOPAHSahQAh9KnBgR4Ac9c";
 
         const baseHtml = (title: string, bodyContent: string) => `
@@ -202,7 +204,8 @@ export async function updateMechaturaRegistrationStatus(
                  .replace(/</g, "&lt;")
                  .replace(/>/g, "&gt;")
                  .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+                 .replace(/'/g, "&#039;")
+                 .replace(/\n/g, "<br />");
          };
 
         let emailSubject = "";
@@ -232,7 +235,93 @@ export async function updateMechaturaRegistrationStatus(
                  </p>`
             );
         } else if (status === "revision") {
-            const safeRejectionReason = rejectionReason ? escapeHtml(rejectionReason) : "Silakan cek kembali kelengkapan pendaftaran Anda.";
+            let parsedReason = "";
+            let parsedFields: string[] = [];
+            
+            try {
+                const parsed = JSON.parse(rejectionReason || "");
+                if (parsed && typeof parsed === "object") {
+                    parsedReason = parsed.reason || "";
+                    parsedFields = Array.isArray(parsed.fields) ? parsed.fields : [];
+                } else {
+                    parsedReason = rejectionReason || "";
+                }
+            } catch (e) {
+                parsedReason = rejectionReason || "";
+            }
+
+            let fieldsHtml = "";
+            if (parsedFields.length > 0) {
+                const docFields: string[] = [];
+                const memberFields: Record<string, { name: string, fields: string[] }> = {};
+
+                const labelMap: Record<string, string> = {
+                    full_name: "Nama Lengkap",
+                    institution_category: "Kategori Institusi",
+                    institution: "Asal Sekolah / Institusi",
+                    city: "Kota",
+                    phone_number: "Nomor WhatsApp",
+                    instagram_username: "Twibbon (Link)",
+                    student_id_link: "Identitas/KTM (Link)"
+                };
+
+                parsedFields.forEach((f: string) => {
+                    if (f === "payment_proof") docFields.push("Bukti Pembayaran");
+                    else if (f === "robot_document") docFields.push("Dokumen Robot");
+                    else if (f.startsWith("member_")) {
+                        const parts = f.split("_");
+                        if (parts.length >= 3) {
+                            const mId = parts[1];
+                            const fieldName = parts.slice(2).join("_");
+                            if (!memberFields[mId]) {
+                                const m = teamData.mechatura_members?.find((mem: any) => mem.id === mId) as any;
+                                memberFields[mId] = { 
+                                    name: m?.full_name || m?.fallback_name || "Anggota",
+                                    fields: []
+                                };
+                            }
+                            memberFields[mId].fields.push(labelMap[fieldName] || fieldName);
+                        }
+                    }
+                });
+                
+                fieldsHtml += `<div style="margin-bottom: 24px; background: #fff8f8; border: 1px solid #fee2e2; border-radius: 12px; padding: 20px;">`;
+                fieldsHtml += `<p style="font-weight: 700; color: #991b1b; margin: 0 0 16px 0; font-size: 15px;">Bagian yang diminta untuk direvisi:</p>`;
+                
+                if (docFields.length > 0) {
+                    fieldsHtml += `<div style="margin-bottom: ${Object.keys(memberFields).length > 0 ? '16px' : '0'};">
+                        <p style="font-weight: 600; margin: 0 0 8px 0; font-size: 14px; color: #7f1d1d; border-bottom: 1px solid #fecaca; padding-bottom: 4px;">Pembayaran & Dokumen Tim</p>
+                        <ul style="margin: 0; padding-left: 20px; color: #991b1b; font-size: 14px; line-height: 1.6;">
+                            ${docFields.map(df => `<li>${escapeHtml(df)}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                const memberKeys = Object.keys(memberFields);
+                memberKeys.forEach((mId, index) => {
+                    const mf = memberFields[mId];
+                    const isLast = index === memberKeys.length - 1;
+                    fieldsHtml += `<div style="margin-bottom: ${isLast ? '0' : '16px'};">
+                        <p style="font-weight: 600; margin: 0 0 8px 0; font-size: 14px; color: #7f1d1d; border-bottom: 1px solid #fecaca; padding-bottom: 4px;">${escapeHtml(mf.name)}</p>
+                        <ul style="margin: 0; padding-left: 20px; color: #991b1b; font-size: 14px; line-height: 1.6;">
+                            ${mf.fields.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                });
+                
+                fieldsHtml += `</div>`;
+            }
+
+            const safeRejectionReason = parsedReason ? escapeHtml(parsedReason) : (parsedFields.length === 0 ? "Silakan cek kembali kelengkapan pendaftaran Anda." : "");
+            
+            let reasonHtml = "";
+            if (safeRejectionReason) {
+                reasonHtml = `<div class="warning-box">
+                    <p class="warning-text" style="font-weight: 600; margin-bottom: 8px;">Catatan Tambahan:</p>
+                    <p class="warning-text" style="margin-top: 0;">${safeRejectionReason}</p>
+                 </div>`;
+            }
+
             emailSubject = `Revisi Pendaftaran ${competitionName}`;
             emailHtml = baseHtml(
                 `Revisi Data Pendaftaran`,
@@ -242,14 +331,13 @@ export async function updateMechaturaRegistrationStatus(
                  <p class="content-text">
                     Saat ini, pendaftaran kamu belum dapat disetujui karena ada beberapa data atau dokumen yang perlu direvisi terlebih dahulu.
                  </p>
-                 <p class="content-text" style="margin-bottom: 16px;">
+                 <p class="content-text" style="margin-bottom: 24px;">
                     Berikut adalah catatan revisi dari tim panitia:
                  </p>
-                 <div class="warning-box">
-                    <p class="warning-text">${safeRejectionReason}</p>
-                 </div>
-                 <p class="content-text">
-                    Yuk, segera perbaiki dan kirimkan ulang pendaftaran kamu sesuai dengan catatan di atas agar bisa segera kami proses kembali. Jika ada kebingungan atau kendala saat merevisi, jangan ragu untuk bertanya, ya!
+                 ${fieldsHtml}
+                 ${reasonHtml}
+                 <p class="content-text" style="margin-top: 24px;">
+                    Yuk, segera perbaiki dan kirimkan ulang pendaftaran kamu sesuai dengan catatan di atas melalui dashboard peserta agar bisa segera kami proses kembali! Jika ada kebingungan atau kendala saat merevisi, jangan ragu untuk bertanya, ya!
                  </p>`
             );
         }

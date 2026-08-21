@@ -35,6 +35,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
     isMechaturaCompetitionType,
     mechaturaCompetitionLabels,
     paymentStatusLabels,
@@ -103,7 +109,8 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [approveOpen, setApproveOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionReasonText, setRejectionReasonText] = useState("");
+    const [revisionFields, setRevisionFields] = useState<string[]>([]);
     const [internalRejectLoading, setInternalRejectLoading] = useState(false);
     const [isPending, startTransition] = useTransition();
     
@@ -118,6 +125,37 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
         toast.success(`Membuka ${label}`);
     };
 
+    const docFieldsPreview: string[] = [];
+    const memberFieldsPreview: Record<string, { name: string, fields: string[] }> = {};
+    const labelMap: Record<string, string> = {
+        full_name: "Nama Lengkap",
+        institution_category: "Kategori Institusi",
+        institution: "Asal Sekolah / Institusi",
+        city: "Kota",
+        phone_number: "Nomor WhatsApp",
+        instagram_username: "Twibbon (Link)",
+        student_id_link: "Identitas/KTM (Link)"
+    };
+    revisionFields.forEach((f: string) => {
+        if (f === "payment_proof") docFieldsPreview.push("Bukti Pembayaran");
+        else if (f === "robot_document") docFieldsPreview.push("Dokumen Robot");
+        else if (f.startsWith("member_")) {
+            const parts = f.split("_");
+            if (parts.length >= 3) {
+                const mId = parts[1];
+                const fieldName = parts.slice(2).join("_");
+                if (!memberFieldsPreview[mId]) {
+                    const m = team.mechatura_members?.find((mem: any) => mem.id === mId);
+                    memberFieldsPreview[mId] = { 
+                        name: m?.full_name || m?.fallback_name || "Anggota",
+                        fields: []
+                    };
+                }
+                memberFieldsPreview[mId].fields.push(labelMap[fieldName] || fieldName);
+            }
+        }
+    });
+
     const handleStatusUpdate = async (status: "approved" | "revision", reason?: string) => {
         try {
             if (status === "revision") setInternalRejectLoading(true);
@@ -125,16 +163,24 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
             
             if (result?.error) {
                 toast.error(result.error);
+                if (status === "revision") setInternalRejectLoading(false);
                 return;
             }
             
             toast.success(status === "approved" ? "Pendaftaran berhasil disetujui" : "Pendaftaran berhasil ditolak");
-            if (status === "revision") setRejectOpen(false);
-            if (status === "approved") setApproveOpen(false);
-            router.refresh();
+            
+            startTransition(() => {
+                router.refresh();
+                if (status === "revision") {
+                    setRejectOpen(false);
+                    setInternalRejectLoading(false);
+                }
+                if (status === "approved") {
+                    setApproveOpen(false);
+                }
+            });
         } catch (error) {
             toast.error(`Gagal memperbarui status pendaftaran`);
-        } finally {
             if (status === "revision") setInternalRejectLoading(false);
         }
     };
@@ -329,33 +375,92 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
             </Dialog>
 
             <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-                <DialogContent className="sm:max-w-xl w-[95vw] overflow-hidden">
-                    <DialogHeader>
+                <DialogContent className="sm:max-w-3xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>Minta Revisi Tim?</DialogTitle>
                         <DialogDescription>
-                            Tindakan ini akan menandai pendaftaran tim {team.name} sebagai ditolak. Berikan catatan revisi untuk dikirimkan ke email ketua tim.
+                            Tindakan ini akan menandai pendaftaran tim {team.name} sebagai ditolak. Pilih data yang perlu direvisi dan berikan catatan.
                         </DialogDescription>
                     </DialogHeader>
-                    <Tabs defaultValue="action" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
+                    <Tabs defaultValue="action" className="w-full flex-1 flex flex-col min-h-0">
+                        <TabsList className="grid w-full grid-cols-2 shrink-0">
                             <TabsTrigger value="action">Tindakan</TabsTrigger>
                             <TabsTrigger value="preview">Preview Email</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="action" className="py-4 space-y-4">
+                        <TabsContent value="action" className="flex-1 overflow-y-auto py-4 space-y-6 pr-2">
+                            <div className="flex flex-col gap-3">
+                                <Label className="text-base">Pilih Bagian yang Perlu Direvisi</Label>
+                                <Accordion type="multiple" className="w-full space-y-3">
+                                    <AccordionItem value="team-docs" className="border rounded-lg px-4 bg-card shadow-sm data-[state=open]:pb-3 data-[state=closed]:pb-0">
+                                        <AccordionTrigger className="hover:no-underline font-medium py-3">
+                                            Pembayaran & Dokumen Tim
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 pl-1">
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox id={`rev-payment-${team.id}`} checked={revisionFields.includes("payment_proof")} onCheckedChange={(c) => c ? setRevisionFields([...revisionFields, "payment_proof"]) : setRevisionFields(revisionFields.filter(f => f !== "payment_proof"))} />
+                                                    <label htmlFor={`rev-payment-${team.id}`} className="text-sm cursor-pointer leading-none">Bukti Pembayaran</label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox id={`rev-robot-${team.id}`} checked={revisionFields.includes("robot_document")} onCheckedChange={(c) => c ? setRevisionFields([...revisionFields, "robot_document"]) : setRevisionFields(revisionFields.filter(f => f !== "robot_document"))} />
+                                                    <label htmlFor={`rev-robot-${team.id}`} className="text-sm cursor-pointer leading-none">Dokumen Robot</label>
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    {(team.mechatura_members || []).map((m: any) => (
+                                        <AccordionItem key={m.id} value={`member-${m.id}`} className="border rounded-lg px-4 bg-card shadow-sm data-[state=open]:pb-3 data-[state=closed]:pb-0">
+                                            <AccordionTrigger className="hover:no-underline font-medium py-3 text-left">
+                                                <div className="flex items-center gap-2">
+                                                    {m.full_name || m.fallback_name || "Anggota"} 
+                                                    {m.is_leader && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Ketua</span>}
+                                                </div>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1 pl-1">
+                                                    {[
+                                                        { id: "full_name", label: "Nama Lengkap" },
+                                                        { id: "institution_category", label: "Kategori Institusi" },
+                                                        { id: "institution", label: "Asal Sekolah / Institusi" },
+                                                        { id: "city", label: "Kota" },
+                                                        { id: "phone_number", label: "Nomor WhatsApp" },
+                                                        { id: "instagram_username", label: "Twibbon (Link)" },
+                                                        { id: "student_id_link", label: "Identitas/KTM (Link)" }
+                                                    ].map(field => {
+                                                        const fieldKey = `member_${m.id}_${field.id}`;
+                                                        return (
+                                                            <div key={fieldKey} className="flex items-center space-x-2">
+                                                                <Checkbox 
+                                                                    id={`rev-${fieldKey}`} 
+                                                                    checked={revisionFields.includes(fieldKey)} 
+                                                                    onCheckedChange={(c) => c ? setRevisionFields([...revisionFields, fieldKey]) : setRevisionFields(revisionFields.filter(f => f !== fieldKey))} 
+                                                                />
+                                                                <label htmlFor={`rev-${fieldKey}`} className="text-sm cursor-pointer leading-none truncate" title={field.label}>{field.label}</label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
+                            </div>
+                            
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor={`reason-${team.id}`}>Catatan Revisi</Label>
+                                <Label htmlFor={`reason-${team.id}`} className="text-base">Catatan Revisi Tambahan</Label>
                                 <Textarea 
                                     id={`reason-${team.id}`}
-                                    placeholder="Tuliskan data atau dokumen yang perlu direvisi..." 
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    rows={5}
+                                    placeholder="Berikan penjelasan detail (opsional jika sudah memilih centang di atas)..." 
+                                    value={rejectionReasonText}
+                                    onChange={(e) => setRejectionReasonText(e.target.value)}
+                                    rows={4}
                                     className="resize-none"
                                 />
                             </div>
                         </TabsContent>
-                        <TabsContent value="preview" className="py-2">
-                            <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col max-h-[50vh] sm:max-h-[60vh] w-full">
+                        <TabsContent value="preview" className="py-2 flex-1 overflow-y-auto">
+                            <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col w-full h-full min-h-[300px]">
                                 <div className="bg-gray-100/80 px-4 py-3 border-b border-gray-200 text-xs sm:text-sm space-y-1 cursor-default select-none">
                                     <div className="grid grid-cols-[50px_1fr] sm:grid-cols-[60px_1fr] gap-2 items-start">
                                         <span className="font-semibold text-gray-500">Dari:</span>
@@ -377,12 +482,39 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                                         <p className="leading-relaxed text-gray-700">Halo! Terima kasih atas antusiasme kamu mendaftar di perlombaan kami. ✨</p>
                                         <p className="leading-relaxed text-gray-700 mt-4">Saat ini, pendaftaran kamu belum dapat disetujui karena ada beberapa data atau dokumen yang perlu direvisi terlebih dahulu.</p>
                                         <p className="leading-relaxed text-gray-700 mt-4 mb-6">Berikut adalah catatan revisi dari tim panitia:</p>
-                                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8">
-                                            <p className="italic whitespace-pre-wrap font-sans text-sm text-slate-700 m-0 leading-relaxed">
-                                                {rejectionReason || "Silakan cek kembali kelengkapan pendaftaran Anda."}
-                                            </p>
-                                        </div>
-                                        <p className="leading-relaxed text-gray-700">Yuk, segera perbaiki dan kirimkan ulang pendaftaran kamu sesuai dengan catatan di atas agar bisa segera kami proses kembali. Jika ada kebingungan atau kendala saat merevisi, jangan ragu untuk bertanya, ya!</p>
+                                        {revisionFields.length > 0 && (
+                                            <div className="bg-[#fff8f8] border border-[#fee2e2] rounded-xl p-5 mb-6">
+                                                <p className="font-bold text-[#991b1b] mb-4 text-[15px]">Bagian yang diminta untuk direvisi:</p>
+                                                
+                                                {docFieldsPreview.length > 0 && (
+                                                    <div className={Object.keys(memberFieldsPreview).length > 0 ? "mb-4" : ""}>
+                                                        <p className="font-semibold text-[#7f1d1d] mb-2 text-sm border-b border-[#fecaca] pb-1">Pembayaran & Dokumen Tim</p>
+                                                        <ul className="list-disc list-inside text-[#991b1b] text-sm space-y-1 ml-1 leading-relaxed">
+                                                            {docFieldsPreview.map(df => <li key={df}>{df}</li>)}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                                
+                                                {Object.values(memberFieldsPreview).map((mf, i, arr) => (
+                                                    <div key={i} className={i === arr.length - 1 ? "" : "mb-4"}>
+                                                        <p className="font-semibold text-[#7f1d1d] mb-2 text-sm border-b border-[#fecaca] pb-1">{mf.name}</p>
+                                                        <ul className="list-disc list-inside text-[#991b1b] text-sm space-y-1 ml-1 leading-relaxed">
+                                                            {mf.fields.map(f => <li key={f}>{f}</li>)}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {(rejectionReasonText || revisionFields.length === 0) && (
+                                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
+                                                <p className="font-semibold text-slate-800 mb-2 text-sm">Catatan Tambahan:</p>
+                                                <p className="whitespace-pre-wrap font-sans text-sm text-slate-700 m-0 leading-relaxed">
+                                                    {rejectionReasonText || "Silakan cek kembali kelengkapan pendaftaran Anda."}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <p className="leading-relaxed text-gray-700">Yuk, segera perbaiki bagian yang ditandai revisi di dashboard peserta dan kirimkan ulang pendaftaran kamu agar bisa segera kami proses kembali.</p>
                                         <div className="mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
                                             &copy; {new Date().getFullYear()} Futura Unpad. All rights reserved.
                                         </div>
@@ -391,14 +523,17 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                             </div>
                         </TabsContent>
                     </Tabs>
-                    <DialogFooter>
+                    <DialogFooter className="shrink-0 mt-4">
                         <Button variant="outline" onClick={() => setRejectOpen(false)} disabled={internalRejectLoading}>
                             Batal
                         </Button>
                         <Button 
                             variant="destructive" 
-                            onClick={() => handleStatusUpdate("revision", rejectionReason)}
-                            disabled={!rejectionReason.trim() || internalRejectLoading}
+                            onClick={() => {
+                                const payload = JSON.stringify({ reason: rejectionReasonText, fields: revisionFields });
+                                handleStatusUpdate("revision", payload);
+                            }}
+                            disabled={(revisionFields.length === 0 && !rejectionReasonText.trim()) || internalRejectLoading}
                         >
                             {internalRejectLoading ? "Menyimpan..." : "Minta Revisi"}
                         </Button>
@@ -497,33 +632,31 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
         },
     },
     {
-        id: "status",
+        id: "form",
         header: "Status",
         cell: ({ row }) => {
-            const team = row.original;
-            const paymentStatus = getStatus(team.payment_status);
-            const submitStatus = team.submission_status;
-            const approval = team.admin_approval_status;
+            const submitStatus = row.original.submission_status;
             
-            return (
-                <div className="flex flex-col gap-1.5 items-start">
-                    {submitStatus === 'draft' ? (
-                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30">Submit: Draft</span>
-                    ) : (
-                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30">Submit: Done</span>
-                    )}
-                    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClassName[paymentStatus]}`}>
-                        Bayar: {paymentStatusLabels[paymentStatus]}
-                    </span>
-                    {approval === 'approved' ? (
-                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">Admin: Disetujui</span>
-                    ) : approval === "revision" ? (
-                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30">Admin: Ditolak</span>
-                    ) : (
-                        <span className="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30">Admin: Menunggu</span>
-                    )}
-                </div>
+            return submitStatus === 'draft' ? (
+                <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">Draft</span>
+            ) : (
+                <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-800/50">Submitted</span>
             );
+        },
+    },
+    {
+        id: "approval",
+        header: "Persetujuan",
+        cell: ({ row }) => {
+            const approval = row.original.admin_approval_status;
+            
+            if (approval === 'approved') {
+                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800/50">Disetujui</span>;
+            } else if (approval === "revision") {
+                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800/50">Revisi</span>;
+            } else {
+                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50">Menunggu</span>;
+            }
         },
     },
     {

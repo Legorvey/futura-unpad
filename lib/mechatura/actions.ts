@@ -169,16 +169,23 @@ const parsedData = IdentityDataSchema.safeParse(data);
     throw new Error("Invalid input data: " + parsedData.error.message);
   }
 
-  // We should verify that the current user owns this member record
-  // (Alternatively, use RLS in Supabase)
   const { data: memberCheck } = await supabaseAdmin
     .from("mechatura_members")
-    .select("user_id")
+    .select("user_id, team_id, mechatura_teams(submission_status)")
     .eq("id", memberId)
     .single();
 
-  if (memberCheck?.user_id !== user.id) {
+  if (!memberCheck) {
+    throw new Error("Anggota tidak ditemukan.");
+  }
+
+  if (memberCheck.user_id !== user.id) {
     throw new Error("You can only update your own details.");
+  }
+
+  const team: any = memberCheck.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data anggota lagi.");
   }
 
   const { error } = await supabaseAdmin
@@ -216,15 +223,19 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
     throw new Error("Only the team leader can submit payment proof.");
   }
 
-  // Check if already verified
+  // Check if already verified or submitted
   const { data: team } = await supabaseAdmin
     .from("mechatura_teams")
-    .select("payment_status")
+    .select("payment_status, submission_status")
     .eq("id", teamId)
     .single();
 
   if (team?.payment_status === "verified") {
     throw new Error("Payment is already verified and cannot be modified.");
+  }
+
+  if (team?.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah bukti pembayaran lagi.");
   }
   
   const parsedLink = z.string().url().safeParse(paymentProofLink);
@@ -268,6 +279,16 @@ export async function updateRobotDocuments(teamId: string, robotDocumentLink: st
     throw new Error("Only the team leader can submit robot documents.");
   }
   
+  const { data: team } = await supabaseAdmin
+    .from("mechatura_teams")
+    .select("submission_status")
+    .eq("id", teamId)
+    .single();
+    
+  if (team?.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah dokumen robot lagi.");
+  }
+
   const parsedLink = z.string().url().safeParse(robotDocumentLink);
   if (!parsedLink.success) throw new Error("Invalid URL for robot document");
 
@@ -309,6 +330,16 @@ const { data: membership } = await supabaseAdmin
 
   if (membership.is_leader) {
     throw new Error("Leader tidak dapat keluar dari tim. Silakan transfer kepemimpinan atau hapus tim.");
+  }
+
+  const { data: team } = await supabaseAdmin
+    .from("mechatura_teams")
+    .select("submission_status")
+    .eq("id", teamId)
+    .single();
+
+  if (team?.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anggota tidak dapat keluar dari tim. Silakan hubungi panitia.");
   }
 
   const { error } = await supabaseAdmin
@@ -355,6 +386,16 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
 
   if (!newLeaderMembership) {
     throw new Error("Anggota baru tidak ditemukan dalam tim ini.");
+  }
+
+  const { data: team } = await supabaseAdmin
+    .from("mechatura_teams")
+    .select("submission_status")
+    .eq("id", teamId)
+    .single();
+
+  if (team?.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Tidak dapat mentransfer kepemimpinan.");
   }
 
 // Update current leader to false
@@ -407,6 +448,16 @@ export async function initiateTeamDeletion(teamId: string) {
 
   if (!membership?.is_leader) {
     throw new Error("Hanya leader yang dapat menghapus tim.");
+  }
+
+  const { data: team } = await supabaseAdmin
+    .from("mechatura_teams")
+    .select("submission_status")
+    .eq("id", teamId)
+    .single();
+
+  if (team?.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Tim tidak dapat dihapus lagi. Silakan hubungi panitia.");
   }
 
   // Delete team using admin client to bypass RLS recursion error 

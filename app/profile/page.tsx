@@ -266,10 +266,6 @@ export default async function ProfilePage() {
                     'Draft'
                   )}
                 </span>
-                <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${mechaturaTeam.payment_status === 'verified' ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500 border-red-600 text-white'}`}>
-                  {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {mechaturaTeam.payment_status.charAt(0).toUpperCase() + mechaturaTeam.payment_status.slice(1).replace('_', ' ')}
-                </span>
               </div>
             )}
           </div>

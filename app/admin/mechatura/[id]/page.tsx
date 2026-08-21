@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2, AlertTriangle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -234,25 +234,6 @@ const AdminSidebarContent = ({
             </dl>
         </section>
 
-        {/* Payment Info */}
-        <section className="rounded-xl border border-border bg-card p-5 flex flex-col">
-            <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold tracking-tight text-sm">Pembayaran</h3>
-            </div>
-            <dl className="flex-1 divide-y divide-border/50">
-                <DetailItem
-                    label="Status"
-                    value={
-                        <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${statusClassName[paymentStatus]}`}
-                        >
-                            {paymentStatusLabels[paymentStatus]}
-                        </span>
-                    }
-                />
-            </dl>
-        </section>
     </div>
 );
 
@@ -360,20 +341,110 @@ export default async function MechaturaRegistrationDetails({
                         teamName={registrationData.name}
                         category={registrationData.category}
                         approvalStatus={registrationData.admin_approval_status} 
-                        submissionStatus={registrationData.submission_status} 
+                        submissionStatus={registrationData.submission_status}
+                        members={enrichedMembers}
                     />
                 </div>
             </div>
 
             {registrationData.admin_rejection_reason && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 mb-8 shadow-sm">
-                    <h3 className="text-sm font-semibold text-amber-800 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" />
+                <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:bg-red-950/30 dark:border-red-900/50 mb-8 shadow-sm">
+                    <h3 className="text-sm font-bold text-red-800 dark:text-red-400 flex items-center gap-2 mb-4">
+                        <AlertTriangle className="h-5 w-5" />
                         Catatan Revisi Sebelumnya
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed opacity-90">
-                        {registrationData.admin_rejection_reason}
-                    </p>
+                    <div className="text-sm leading-relaxed text-red-900 dark:text-red-200">
+                        {(() => {
+                            try {
+                                const parsed = JSON.parse(registrationData.admin_rejection_reason);
+                                if (typeof parsed !== "object" || parsed === null) throw new Error();
+
+                                const fields = Array.isArray(parsed.fields) ? parsed.fields : [];
+                                const reason = parsed.reason || "";
+                                
+                                const docFields: string[] = [];
+                                const memberFields: Record<string, { name: string, fields: string[] }> = {};
+
+                                const labelMap: Record<string, string> = {
+                                    full_name: "Nama Lengkap",
+                                    institution_category: "Kategori Institusi",
+                                    institution: "Asal Sekolah / Institusi",
+                                    city: "Kota",
+                                    phone_number: "Nomor WhatsApp",
+                                    instagram_username: "Twibbon (Link)",
+                                    student_id_link: "Identitas/KTM (Link)"
+                                };
+
+                                fields.forEach((f: string) => {
+                                    if (f === "payment_proof") docFields.push("Bukti Pembayaran");
+                                    else if (f === "robot_document") docFields.push("Dokumen Robot");
+                                    else if (f.startsWith("member_")) {
+                                        const parts = f.split("_");
+                                        if (parts.length >= 3) {
+                                            const mId = parts[1];
+                                            const fieldName = parts.slice(2).join("_");
+                                            if (!memberFields[mId]) {
+                                                const m = enrichedMembers?.find(mem => mem.id === mId);
+                                                memberFields[mId] = { 
+                                                    name: m?.full_name || m?.fallback_name || "Anggota",
+                                                    fields: []
+                                                };
+                                            }
+                                            memberFields[mId].fields.push(labelMap[fieldName] || fieldName);
+                                        }
+                                    }
+                                });
+
+                                return (
+                                    <div className="space-y-5">
+                                        {fields.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="font-semibold text-red-950 dark:text-red-300">Bagian yang diminta untuk direvisi:</div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {docFields.length > 0 && (
+                                                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-red-100 dark:border-red-900/40">
+                                                            <div className="font-semibold text-red-950 dark:text-red-300 mb-2 border-b border-red-200 dark:border-red-900/50 pb-2">Pembayaran & Dokumen Tim</div>
+                                                            <ul className="list-disc list-inside space-y-1 text-red-800 dark:text-red-200/90 ml-1">
+                                                                {docFields.map(df => <li key={df}>{df}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {Object.values(memberFields).map((mf, i) => (
+                                                        <div key={i} className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-red-100 dark:border-red-900/40">
+                                                            <div className="font-semibold text-red-950 dark:text-red-300 mb-2 border-b border-red-200 dark:border-red-900/50 pb-2 flex items-center gap-2">
+                                                                <User className="w-4 h-4 text-red-700/70 dark:text-red-400/70" />
+                                                                {mf.name}
+                                                            </div>
+                                                            <ul className="list-disc list-inside space-y-1 text-red-800 dark:text-red-200/90 ml-1">
+                                                                {mf.fields.map(f => <li key={f}>{f}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {reason && (
+                                            <div className="space-y-2 pt-2 border-t border-red-200/60 dark:border-red-900/40">
+                                                <div className="font-semibold text-red-950 dark:text-red-300">Catatan Tambahan:</div>
+                                                <div className="whitespace-pre-wrap text-red-800 dark:text-red-200 bg-white/60 dark:bg-black/30 p-4 rounded-lg border border-red-200/60 dark:border-red-900/40">
+                                                    {reason}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {fields.length === 0 && !reason && (
+                                            <span className="italic text-red-800 dark:text-red-400">Tidak ada catatan spesifik.</span>
+                                        )}
+                                    </div>
+                                );
+                            } catch {
+                                return <div className="whitespace-pre-wrap font-mono text-xs opacity-70">{registrationData.admin_rejection_reason}</div>;
+                            }
+                        })()}
+                    </div>
                 </div>
             )}
 

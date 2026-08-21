@@ -78,6 +78,22 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isSubmitted = team.submission_status === 'submitted' || team.submission_status === 'approved';
 
+  let revisionNotes = "";
+  let revisionFields: string[] = [];
+  if (team.admin_approval_status === "revision" && team.admin_rejection_reason) {
+    try {
+      const parsed = JSON.parse(team.admin_rejection_reason);
+      if (parsed && typeof parsed === 'object') {
+        revisionNotes = parsed.reason || "";
+        revisionFields = parsed.fields || [];
+      } else {
+        revisionNotes = team.admin_rejection_reason;
+      }
+    } catch (e) {
+      revisionNotes = team.admin_rejection_reason;
+    }
+  }
+
   useEffect(() => {
     if (window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
@@ -90,23 +106,24 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        <TeamMembersSection allMembers={allMembers} isSubmitted={isSubmitted} team={team} />
-        <PaymentSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} />
+        <TeamMembersSection allMembers={allMembers} isSubmitted={isSubmitted} team={team} revisionFields={revisionFields} />
+        <PaymentSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
       </MechaturaProfileSidebar>
 
       <section className="flex-1 space-y-6 p-6 sm:p-8 lg:p-10 transition-all duration-300 min-w-0 bg-background/50 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl">
-        {team.admin_approval_status === "revision" && team.admin_rejection_reason && (
+        {team.admin_approval_status === "revision" && (
           <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-3 shadow-sm">
             <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
             <div>
               <h4 className="font-semibold text-amber-800">Pendaftaran Perlu Direvisi</h4>
-              <p className="text-sm mt-1 leading-relaxed opacity-90">{team.admin_rejection_reason}</p>
+              {revisionFields.length > 0 && <p className="text-sm font-medium mt-1">Ada beberapa data yang perlu diperbaiki. Periksa indikator <span className="inline-flex items-center justify-center bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-[10px] font-bold mx-1">REVISI</span> pada kolom isian di bawah.</p>}
+              {revisionNotes && <p className="text-sm mt-1 leading-relaxed opacity-90">{revisionNotes}</p>}
             </div>
           </div>
         )}
         <TeamHeaderSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} copyCode={copyCode} copied={copied} isSubmitted={isSubmitted} />
-        <IdentitySection currentUserMembership={currentUserMembership} isSubmitted={isSubmitted} />
-        <RobotDocumentsSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} />
+        <IdentitySection currentUserMembership={currentUserMembership} isSubmitted={isSubmitted} revisionFields={revisionFields} />
+        <RobotDocumentsSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
         <FinalizeSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} allMembers={allMembers} />
       </section>
     </div>
@@ -163,8 +180,9 @@ function TeamHeaderSection({ team, currentUserMembership, allMembers, copyCode, 
   );
 }
 
-function PaymentSection({ team, isLeader, isSubmitted }: any) {
+function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: any) {
   const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const needsRevision = revisionFields.includes("payment_proof");
 
   const paymentForm = useForm<PaymentValues>({
     resolver: zodResolver(paymentSchema),
@@ -183,27 +201,13 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
     }
   };
 
-  const statusColors: Record<string, string> = {
-    verified: "text-green-500",
-    pending: "text-amber-500",
-    unpaid: "text-muted-foreground",
-  };
-  
-  let statusColor = statusColors[team.payment_status] || "text-muted-foreground";
-  let statusText = team.payment_status === "verified" ? "Terverifikasi" : team.payment_status === "pending" ? "Menunggu Verifikasi" : "Belum Dibayar";
-
-  if (team.admin_approval_status === "revision") {
-    statusColor = "text-amber-500";
-    statusText = "Perlu Direvisi";
-  }
-
   return (
-    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-5">
+    <div className={`p-5 md:p-6 rounded-2xl bg-card border ${needsRevision ? 'border-red-300 bg-red-50/30' : 'border-border'} space-y-5`}>
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-foreground">Pembayaran Tim</h3>
-        <span className={`text-xs font-semibold tracking-wide uppercase ${statusColor}`}>
-          • {statusText}
-        </span>
+        <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+          Pembayaran Tim
+          {needsRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">Revisi</span>}
+        </h3>
       </div>
 
       <div className="flex flex-col items-center justify-center p-6 bg-muted/30 border-2 border-dashed border-border/60 rounded-2xl w-full max-w-[220px] aspect-square mx-auto">
@@ -242,7 +246,7 @@ function PaymentSection({ team, isLeader, isSubmitted }: any) {
   );
 }
 
-function IdentitySection({ currentUserMembership, isSubmitted }: any) {
+function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = [] }: any) {
   const [isSaving, setIsSaving] = useState(false);
   const [institutionType, setInstitutionType] = useState<InstitutionType>("SD");
 
@@ -280,11 +284,28 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
   const institutionError = identityForm.formState.errors.institution;
   const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
 
+  const getLabelWithRevision = (fieldName: string, defaultLabel: string) => {
+    const isRevision = revisionFields.includes(`member_${currentUserMembership.id}_${fieldName}`);
+    return (
+      <span className="flex items-center gap-2">
+        {defaultLabel}
+        {isRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase">Revisi</span>}
+      </span>
+    );
+  };
+
+  const hasAnyRevision = [
+    "full_name", "institution_category", "institution", "city", "phone_number", "instagram_username", "student_id_link"
+  ].some(f => revisionFields.includes(`member_${currentUserMembership.id}_${f}`));
+
   return (
-    <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
+    <div className={`space-y-6 p-5 md:p-6 rounded-2xl bg-card border ${hasAnyRevision ? 'border-red-300 bg-red-50/10' : 'border-border'}`}>
       <div className="space-y-5">
         <div>
-          <h3 className="text-lg font-medium text-foreground">Data Diri</h3>
+          <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+            Data Diri
+            {hasAnyRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">Revisi</span>}
+          </h3>
           <div className="text-sm text-muted-foreground mt-2 space-y-3">
             <p>Lengkapi informasi pribadi Anda untuk keperluan pendaftaran.</p>
             <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
@@ -307,14 +328,14 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="full_name"
-                label="Nama Lengkap"
+                label={getLabelWithRevision("full_name", "Nama Lengkap") as any}
                 disabled={isSubmitted}
               />
 
               {/* Jenjang / Kategori Institusi */}
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium leading-snug">
-                  Jenjang / Kategori Institusi
+                  {getLabelWithRevision("institution_category", "Jenjang / Kategori Institusi")}
                 </label>
                 <Select
                   value={institutionType}
@@ -344,7 +365,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                 htmlFor="institution"
                 className="text-sm font-medium leading-snug"
               >
-                Institusi / Asal Sekolah
+                {getLabelWithRevision("institution", "Institusi / Asal Sekolah")}
               </label>
               {isSearchable ? (
                 <SchoolCombobox
@@ -388,12 +409,12 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="city"
-                label="Kota"
+                label={getLabelWithRevision("city", "Kota") as any}
                 disabled={isSubmitted}
               />
               <FormTextField<IdentityValues>
                 name="phone_number"
-                label="Nomor WhatsApp"
+                label={getLabelWithRevision("phone_number", "Nomor WhatsApp") as any}
                 disabled={isSubmitted}
               />
             </div>
@@ -402,13 +423,13 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormTextField<IdentityValues>
                 name="instagram_username"
-                label="Link Post Instagram (Twibbon)"
+                label={getLabelWithRevision("instagram_username", "Link Post Instagram (Twibbon)") as any}
                 type="url"
                 disabled={isSubmitted}
               />
               <FormTextField<IdentityValues>
                 name="student_id_link"
-                label="Identitas/KTM (Link Google Drive)"
+                label={getLabelWithRevision("student_id_link", "Identitas/KTM (Link Google Drive)") as any}
                 type="url"
                 disabled={isSubmitted}
               />
@@ -427,7 +448,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
   );
 }
 
-function TeamMembersSection({ allMembers }: any) {
+function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
   return (
     <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-4">
       <div>
@@ -435,7 +456,13 @@ function TeamMembersSection({ allMembers }: any) {
       </div>
       <div className="space-y-0.5">
         {allMembers.map((m: any, index: number) => {
-          const isComplete = m.full_name && m.student_id_link;
+          const hasRevision = [
+            "full_name", "institution_category", "institution", "city", "phone_number", "instagram_username", "student_id_link"
+          ].some(f => revisionFields.includes(`member_${m.id}_${f}`));
+
+          const isDataComplete = m.full_name && m.institution && m.city && m.phone_number && m.student_id_link;
+          const isActuallyComplete = isDataComplete && !hasRevision;
+
           return (
             <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
               <div className="min-w-0 flex-1">
@@ -446,11 +473,16 @@ function TeamMembersSection({ allMembers }: any) {
                       Ketua
                     </span>
                   )}
+                  {hasRevision && (
+                    <span className="inline-flex items-center justify-center text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-semibold shrink-0">
+                      Revisi
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="shrink-0 mt-0.5">
-                {isComplete ? (
-                  <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Tersimpan</span>
+                {isActuallyComplete ? (
+                  <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
                 ) : (
                   <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Belum Lengkap</span>
                 )}
@@ -463,8 +495,9 @@ function TeamMembersSection({ allMembers }: any) {
   );
 }
 
-function RobotDocumentsSection({ team, isLeader, isSubmitted }: any) {
+function RobotDocumentsSection({ team, isLeader, isSubmitted, revisionFields = [] }: any) {
   const [isSavingRobot, setIsSavingRobot] = useState(false);
+  const needsRevision = revisionFields.includes("robot_document");
 
   const robotForm = useForm<RobotValues>({
     resolver: zodResolver(robotSchema),
@@ -484,9 +517,12 @@ function RobotDocumentsSection({ team, isLeader, isSubmitted }: any) {
   };
 
   return (
-    <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-5">
+    <div className={`p-5 md:p-6 rounded-2xl bg-card border ${needsRevision ? 'border-red-300 bg-red-50/30' : 'border-border'} space-y-5`}>
       <div>
-        <h3 className="text-lg font-medium text-foreground mb-1">Dokumen & Spesifikasi Robot</h3>
+        <h3 className="text-lg font-medium text-foreground mb-1 flex items-center gap-2">
+          Dokumen & Spesifikasi Robot
+          {needsRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">Revisi</span>}
+        </h3>
         <div className="text-sm text-muted-foreground mt-2 space-y-3">
           <p>Unggah dokumen desain dan spesifikasi teknis robot Anda. <strong className="text-foreground">Robot wajib buatan sendiri (bukan kit pabrikan).</strong></p>
           

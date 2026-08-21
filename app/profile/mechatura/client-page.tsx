@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Select,
   SelectContent,
@@ -37,20 +37,20 @@ import { Input } from "@/components/ui/input";
 
 
 const identitySchema = z.object({
-  full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
-  institution: z.string().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
-  city: z.string().min(2, "Kota minimal 2 karakter"),
-  phone_number: z.string().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
-  instagram_username: z.string().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
-  student_id_link: z.string().url("Link Google Drive tidak valid")
+  full_name: z.string().trim().min(2, "Nama lengkap minimal 2 karakter"),
+  institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
+  city: z.string().trim().min(2, "Kota minimal 2 karakter"),
+  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
+  instagram_username: z.string().trim().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
+  student_id_link: z.string().trim().url("Link Google Drive tidak valid")
 });
 
 const paymentSchema = z.object({
-  paymentLink: z.string().url("Link bukti pembayaran tidak valid")
+  paymentLink: z.string().trim().url("Link bukti pembayaran tidak valid")
 });
 
 const robotSchema = z.object({
-  robotLink: z.string().url("Link dokumen robot tidak valid")
+  robotLink: z.string().trim().url("Link dokumen robot tidak valid")
 });
 
 type IdentityValues = z.infer<typeof identitySchema>;
@@ -59,11 +59,20 @@ type RobotValues = z.infer<typeof robotSchema>;
 
 export function MechaturaProfileClient({ currentUserMembership, team, allMembers }: any) {
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const copyCode = () => {
     navigator.clipboard.writeText(team.join_code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const isLeader = currentUserMembership?.is_leader;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -292,7 +301,7 @@ function IdentitySection({ currentUserMembership, isSubmitted }: any) {
                   onValueChange={(v) => handleTypeChange(v as InstitutionType)}
                   disabled={isSubmitted}
                 >
-                  <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px]">
+                  <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">
                     <SelectValue placeholder="Pilih jenjang..." />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-white dark:text-slate-900">

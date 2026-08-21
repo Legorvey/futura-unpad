@@ -10,6 +10,11 @@ interface ApiResponse {
   hasMore: boolean;
 }
 
+// Simple in-memory rate limiter (best-effort for serverless)
+const rateLimitMap = new Map<string, { count: number; expiresAt: number }>();
+const RATE_LIMIT_MAX = 20; // Max requests per minute
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+
 async function fetchWithTimeout(
   url: string,
   signal: AbortSignal
@@ -18,6 +23,33 @@ async function fetchWithTimeout(
 }
 
 export async function GET(request: NextRequest) {
+  // Rate Limiting Check
+  const ip = request.headers.get("x-forwarded-for") ?? "unknown-ip";
+  const now = Date.now();
+  const limitRecord = rateLimitMap.get(ip);
+
+  if (limitRecord) {
+    if (now > limitRecord.expiresAt) {
+      rateLimitMap.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (limitRecord.count >= RATE_LIMIT_MAX) {
+        return new NextResponse("Too Many Requests", { status: 429 });
+      }
+      limitRecord.count += 1;
+    }
+  } else {
+    rateLimitMap.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
+  }
+
+  // Cleanup old entries to prevent memory leak
+  if (rateLimitMap.size > 1000) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (value.expiresAt < now) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const jenjangRaw = searchParams.get("jenjang")?.toLowerCase() ?? "";

@@ -31,8 +31,8 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const editProfileSchema = z.object({
   username: z.union([usernameSchema, z.literal("")]).optional(),
-  display_name: z.string().trim().min(1, "Nama tampilan wajib diisi.").max(100, "Nama tampilan terlalu panjang."),
-  email: emailSchema,
+  display_name: z.string().trim().max(100, "Nama tampilan terlalu panjang.").optional(),
+  email: z.union([emailSchema, z.literal("")]).optional(),
 });
 export type EditProfileFormValues = z.infer<typeof editProfileSchema>;
 

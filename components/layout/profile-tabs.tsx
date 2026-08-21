@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { ChevronLeft } from "lucide-react"
 
 export function ProfileTabs() {
@@ -21,42 +20,15 @@ export function ProfileTabs() {
         )
     }
 
-    const navItems = [
-        { name: "Pendaftaran Saya", href: "/profile" },
-        { name: "Pengaturan Akun", href: "/profile/account" }
-    ]
-
     return (
-        <div className="mx-auto w-full max-w-5xl px-[18px] sm:px-8">
-            <div className="space-y-3 mb-10">
-                <h1 className="text-4xl sm:text-5xl font-medium tracking-[-0.05em] text-white">
+        <div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8">
+            <div className="space-y-1.5 mb-10 px-2">
+                <h1 className="text-3xl font-semibold text-white">
                     Profil Saya
                 </h1>
-                <p className="max-w-xl text-base font-light tracking-tight text-white/50">
+                <p className="max-w-2xl text-sm text-white/70 sm:text-base">
                     Kelola akun Futura Anda dan pantau status pendaftaran acara.
                 </p>
-            </div>
-            <div className="mb-8">
-                <nav className="flex space-x-2 bg-white/[0.03] backdrop-blur-md border border-white/10 p-1.5 rounded-2xl w-fit" aria-label="Tabs">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                prefetch={false}
-                                className={cn(
-                                    isActive
-                                        ? "bg-white/10 text-white shadow-sm"
-                                        : "text-white/50 hover:text-white hover:bg-white/[0.05]",
-                                    "rounded-xl py-2 px-4 text-sm font-medium tracking-tight transition-all duration-300"
-                                )}
-                            >
-                                {item.name}
-                            </Link>
-                        )
-                    })}
-                </nav>
             </div>
         </div>
     )

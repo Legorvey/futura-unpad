@@ -23,7 +23,22 @@ export async function POST(request: Request) {
     // Always use the explicitly configured application URL to prevent Token Leakage
     // via Open Redirect on the client-side redirect_to payload.
     const appOrigin = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://futuraunpad.com";
-    const magicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent(email_data.redirect_to || '/profile/account')}`;
+    
+    // Safely parse and restrict the redirect_to parameter to the app origin
+    let safeNextPath = '/profile';
+    if (email_data.redirect_to) {
+      try {
+        const parsedUrl = new URL(email_data.redirect_to, appOrigin);
+        // Only allow redirects back to the configured appOrigin
+        if (parsedUrl.origin === appOrigin) {
+          safeNextPath = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
+        }
+      } catch (e) {
+        // Ignore invalid URLs, fallback to default
+      }
+    }
+    
+    const magicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent(safeNextPath)}`;
 
     const emailWrapper = (content: string) => `
       <!DOCTYPE html>
@@ -157,7 +172,7 @@ export async function POST(request: Request) {
         const emailPromises = [];
 
         if (email_data.token_hash) {
-          const oldMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
+          const oldMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile')}`;
           emailPromises.push(
             resend.emails.send({
               from: `Futura Security <security@${EMAIL_DOMAIN}>`,
@@ -177,7 +192,7 @@ export async function POST(request: Request) {
         }
         
         if (email_data.token_hash_new && user.new_email) {
-          const newMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash_new}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile/account')}`;
+          const newMagicLink = `${appOrigin}/auth/callback?token_hash=${email_data.token_hash_new}&type=${email_data.email_action_type}&next=${encodeURIComponent('/profile')}`;
           emailPromises.push(
             resend.emails.send({
               from: `Futura Security <security@${EMAIL_DOMAIN}>`,

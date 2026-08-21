@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 /* eslint-disable */
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight } from "lucide-react"
+import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight, Crown, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   formatCurrency,
@@ -258,7 +258,7 @@ export default async function ProfilePage() {
                       : mechaturaTeam.admin_approval_status === "revision"
                       ? 'bg-gradient-to-r from-red-500/20 to-red-500/10 border-red-500/30 text-red-400'
                       : 'bg-gradient-to-r from-amber-500/20 to-amber-500/10 border-amber-500/30 text-amber-400'
-                    : 'bg-gradient-to-r from-white/10 to-white/5 border-white/20 text-white/70'
+                    : 'bg-transparent border-white/20 text-white/70'
                 }`}>
                   {mechaturaTeam.submission_status === 'submitted' ? (
                     mechaturaTeam.admin_approval_status.charAt(0).toUpperCase() + mechaturaTeam.admin_approval_status.slice(1)
@@ -266,7 +266,7 @@ export default async function ProfilePage() {
                     'Draft'
                   )}
                 </span>
-                <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${mechaturaTeam.payment_status === 'verified' ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400' : 'bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 border-yellow-500/30 text-yellow-400'}`}>
+                <span className={`inline-flex items-center rounded-xl border px-3.5 py-1.5 text-sm font-bold transition-colors shadow-sm ${mechaturaTeam.payment_status === 'verified' ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500 border-red-600 text-white'}`}>
                   {mechaturaTeam.payment_status === 'verified' ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
                   {mechaturaTeam.payment_status.charAt(0).toUpperCase() + mechaturaTeam.payment_status.slice(1).replace('_', ' ')}
                 </span>
@@ -276,56 +276,53 @@ export default async function ProfilePage() {
 
           <div className="relative z-10 px-2">
             {mechaturaTeam ? (
-              <div className="flex flex-col gap-6">
-
-                <div className="flex flex-col sm:flex-row items-start justify-between gap-8">
-                  <div className="flex flex-col h-full justify-between gap-8 py-1">
-                  <div>
-                    <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">Nama Tim</h3>
-                    <p className="text-3xl font-bold text-white tracking-tight drop-shadow-sm">{mechaturaTeam.name}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2.5">Status Keanggotaan</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/20 shadow-inner">
-                        {latestMechaturaMembership?.is_leader ? <span className="text-[11px] leading-none">👑</span> : <span className="text-[11px] leading-none">👤</span>}
-                      </div>
-                      <p className="text-lg font-medium text-white/90">{mechaturaRoleText}</p>
+              <div className="flex flex-col sm:flex-row items-end justify-between gap-8">
+                {/* Left Column (Team Details) */}
+                <div className="flex flex-col gap-6 w-full sm:w-auto flex-1">
+                  <div className="flex flex-wrap gap-x-12 gap-y-6 items-end">
+                    {/* Team Name */}
+                    <div>
+                      <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">Nama Tim</h3>
+                      <p className="text-base font-bold text-white tracking-tight drop-shadow-sm">{mechaturaTeam.name}</p>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex flex-col w-full sm:w-auto sm:min-w-[280px]">
-                  <Button asChild className="relative w-full h-12 px-6 rounded-xl bg-gradient-to-b from-[#307FE2] to-[#2060B2] text-white font-medium transition-all group overflow-hidden shadow-[0_0_20px_rgba(48,127,226,0.3)] hover:shadow-[0_0_30px_rgba(48,127,226,0.5)] border border-[#4d94eb] hover:border-white/50 mb-5">
-                    <Link href="/profile/mechatura" prefetch={true}>
-                      <span className="relative z-10 flex items-center justify-center w-full">
-                        Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1.5" />
-                      </span>
-                    </Link>
-                  </Button>
+                    {/* Role */}
+                    <div>
+                      <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2.5">Peran</h3>
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/20 shadow-inner">
+                          {latestMechaturaMembership?.is_leader ? <Crown className="w-3 h-3 text-yellow-500" /> : <User className="w-3 h-3 text-white/70" />}
+                        </div>
+                        <p className="text-sm font-medium text-white/90">{mechaturaRoleText}</p>
+                      </div>
+                    </div>
 
-                  <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-4.5 shadow-inner backdrop-blur-md relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                    <div className="p-1">
-                      <div className="flex items-center justify-between mb-3.5">
-                        <p className="text-[11px] text-white/50 font-bold uppercase tracking-[0.2em]">Anggota Tim</p>
-                        <div className="flex items-center gap-1.5 bg-white/5 rounded-md px-2 py-0.5 border border-white/10">
+                    {/* Capacity */}
+                    <div className="min-w-[160px] max-w-[200px] flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em]">Kapasitas</h3>
+                        <div className="flex items-center gap-1.5">
                           <span className="text-xs font-bold text-white">{mechaturaMemberCount}</span>
                           <span className="text-xs font-medium text-white/40">/ 3</span>
                         </div>
                       </div>
-                      <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#2060B2] to-[#4d94eb] rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(48,127,226,0.8)] relative"
+                          className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
                           style={{ width: `${(mechaturaMemberCount / 3) * 100}%` }}
-                        >
-                          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] opacity-50" />
-                        </div>
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Right Column (Action) */}
+                <div className="w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                  <Button asChild className="w-full h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all group shadow-sm border border-blue-500/50">
+                    <Link href="/profile/mechatura" prefetch={true}>
+                      Buka Dashboard Tim <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ) : (

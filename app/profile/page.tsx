@@ -255,7 +255,7 @@ export default async function ProfilePage() {
                   mechaturaTeam.submission_status === 'submitted'
                     ? mechaturaTeam.admin_approval_status === 'approved'
                       ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-green-500/30 text-green-400'
-                      : mechaturaTeam.admin_approval_status === 'rejected'
+                      : mechaturaTeam.admin_approval_status === "revision"
                       ? 'bg-gradient-to-r from-red-500/20 to-red-500/10 border-red-500/30 text-red-400'
                       : 'bg-gradient-to-r from-amber-500/20 to-amber-500/10 border-amber-500/30 text-amber-400'
                     : 'bg-gradient-to-r from-white/10 to-white/5 border-white/20 text-white/70'

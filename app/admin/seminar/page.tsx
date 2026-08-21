@@ -55,14 +55,14 @@ async function SeminarListData({
         ? requestedPageSize
         : defaultPageSize
 
-    const adminSupabase = createAdminClient()
+    const supabase = createAdminClient()
     const searchPattern = toSearchPattern(searchFilter)
-    const statsPromise = adminSupabase.rpc("get_seminar_stats");
+    const statsPromise = supabase.rpc("get_seminar_stats");
 
     if (attendanceFilter === "all") {
         const requestedFrom = (requestedPage - 1) * pageSize
         const requestedTo = requestedFrom + pageSize - 1
-        let pageQuery = adminSupabase
+        let pageQuery = supabase
             .from("seminar_registrations")
             .select(seminarListColumns, { count: "exact" })
             .eq("is_main_contact", true)
@@ -110,7 +110,7 @@ async function SeminarListData({
         let pageData = requestedPageData
 
         if (page !== requestedPage) {
-            let clampedPageQuery = adminSupabase
+            let clampedPageQuery = supabase
                 .from("seminar_registrations")
                 .select(seminarListColumns)
                 .eq("is_main_contact", true)
@@ -160,7 +160,7 @@ async function SeminarListData({
             )
         )
         const { data: memberData, error: memberError } = pageGroupIds.length > 0
-            ? await adminSupabase
+            ? await supabase
                 .from("seminar_registrations")
                 .select(seminarListColumns)
                 .in("group_id", pageGroupIds)
@@ -204,7 +204,7 @@ async function SeminarListData({
         )
     }
 
-    let registrationsQuery = adminSupabase
+    let registrationsQuery = supabase
         .from("seminar_registrations")
         .select(seminarCandidateColumns)
         .eq("is_main_contact", true)
@@ -260,7 +260,7 @@ async function SeminarListData({
     )
 
     const { data: attendanceMemberData, error: attendanceMemberError } = candidateGroupIds.length > 0
-        ? await adminSupabase
+        ? await supabase
             .from("seminar_registrations")
             .select(seminarAttendanceColumns)
             .in("group_id", candidateGroupIds)
@@ -312,7 +312,7 @@ async function SeminarListData({
     const currentPageCandidates = filteredParticipants.slice(from, to)
     const pageRegistrationIds = currentPageCandidates.map((participant) => participant.id)
     const { data: pageRegistrationData, error: pageRegistrationError } = pageRegistrationIds.length > 0
-        ? await adminSupabase
+        ? await supabase
             .from("seminar_registrations")
             .select(seminarListColumns)
             .in("id", pageRegistrationIds)
@@ -344,7 +344,7 @@ async function SeminarListData({
         )
     )
     const { data: memberData, error: memberError } = pageGroupIds.length > 0
-        ? await adminSupabase
+        ? await supabase
             .from("seminar_registrations")
             .select(seminarListColumns)
             .in("group_id", pageGroupIds)

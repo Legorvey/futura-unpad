@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import { isCompletedPaymentStatus } from "@/lib/payment";
 import { requireAdminOrRedirect } from "@/lib/auth";
 import MechaturaListClient from "./mechatura-list-client";
@@ -50,10 +50,10 @@ async function MechaturaAdminData({
     const pageSize = normalizePageSize(pageSizeParam);
     const requestedFrom = (requestedPage - 1) * pageSize;
     const requestedTo = requestedFrom + pageSize - 1;
-    const adminSupabase = createAdminClient();
+    const supabase = await createClient();
 
     const { data: memberSearchMatches, error: memberSearchError } = searchPattern
-        ? await adminSupabase
+        ? await supabase
             .from("mechatura_members")
             .select("team_id")
             .or(
@@ -83,7 +83,7 @@ async function MechaturaAdminData({
         options?: { count?: "exact"; head?: boolean }
     ) =>
         applyMechaturaFilters(
-            adminSupabase.from("mechatura_teams").select(select, options),
+            supabase.from("mechatura_teams").select(select, options),
             filterOptions
         );
 
@@ -99,10 +99,10 @@ async function MechaturaAdminData({
             .order("name", { ascending: true })
             .range(requestedFrom, requestedTo)
             .returns<AdminMechaturaTeam[]>(),
-        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }),
-        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).in("payment_status", ["paid", "settled", "verified"]),
-        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_sumo"),
-        adminSupabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_transporter"),
+        supabase.from("mechatura_teams").select("*", { count: 'exact', head: true }),
+        supabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).in("payment_status", ["paid", "settled", "verified"]),
+        supabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_sumo"),
+        supabase.from("mechatura_teams").select("*", { count: 'exact', head: true }).eq("category", "robot_transporter"),
     ]);
 
     if (pageError) {
@@ -138,7 +138,7 @@ async function MechaturaAdminData({
                     let fallback_name = null;
                     if (m.user_id) {
                         try {
-                            const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
+                            const { data: userData } = await supabase.auth.admin.getUserById(m.user_id);
                             if (userData?.user) {
                                 const meta = userData.user.user_metadata || {};
                                 fallback_name = meta.display_name || meta.username || userData.user.email || null;

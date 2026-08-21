@@ -42,9 +42,9 @@ export async function POST(request: Request) {
         return invalidRequest()
     }
 
-    const adminSupabase = createAdminClient()
+    const supabase = createAdminClient()
 
-    const { data: updatedRegistration, error: updateError } = await adminSupabase
+    const { data: updatedRegistration, error: updateError } = await supabase
         .from("seminar_registrations")
         .update({
             attended: true,
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true, participant: { nama_lengkap: updatedRegistration.nama_lengkap } })
     }
 
-    const { data: registration, error: fetchError } = await adminSupabase
+    const { data: registration, error: fetchError } = await supabase
         .from("seminar_registrations")
         .select("attended")
         .eq("id", parsed.data.registration_id)

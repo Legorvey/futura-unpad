@@ -22,7 +22,7 @@ import {
   isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
 import { getCachedAuth } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import PaymentActions from "./payment-actions";
 import MechaturaPaymentLayout from "./mechatura-payment-layout";
 
@@ -49,7 +49,7 @@ type PaymentOrder = {
 
 
 const findMechaturaOrder = async (
-  supabase: ReturnType<typeof createAdminClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   orderId: string
 ): Promise<PaymentOrder | null> => {
   const order = await findMechaturaPaymentOrder(supabase, orderId);
@@ -113,7 +113,7 @@ export default async function PaymentPage({
     );
   }
 
-  const supabase = createAdminClient();
+  const supabase = await createClient();
   let order = await findOrder(supabase, orderId).catch((error) => {
     console.error("Payment order lookup failed", error.message);
     return null;

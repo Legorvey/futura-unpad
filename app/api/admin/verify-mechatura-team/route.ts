@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import { isCompletedPaymentStatus } from "@/lib/payment";
 import { rateLimit } from "@/lib/rate-limit";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 
 const verifyMechaturaTeamSchema = z.object({
   registration_id: z.uuid(),
@@ -51,8 +51,8 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const adminSupabase = createAdminClient();
-  const { data: registration, error: fetchError } = await adminSupabase
+  const supabase = await createClient();
+  const { data: registration, error: fetchError } = await supabase
     .from("mechatura_registrations")
     .select("id,team_name,payment_status,attended")
     .eq("id", parsed.data.registration_id)
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   }
 
   const checkInTime = new Date().toISOString();
-  const { data: updatedRegistration, error: updateError } = await adminSupabase
+  const { data: updatedRegistration, error: updateError } = await supabase
     .from("mechatura_registrations")
     .update({
       attended: true,
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { count, error: countError } = await adminSupabase
+  const { count, error: countError } = await supabase
     .from("mechatura_members")
     .select("id", { count: "exact", head: true })
     .eq("registration_id", registration.id);

@@ -468,10 +468,13 @@ export async function finalizeSubmission(teamId: string) {
     throw new Error("Data belum lengkap. Pastikan seluruh anggota telah mengisi profil (KTM, Twibbon), dan Anda telah mengunggah bukti pembayaran serta dokumen robot.");
   }
 
-  // Update submission_status
+  // Update submission_status and reset admin_approval_status
   const { error: updateError } = await supabaseAdmin
     .from("mechatura_teams")
-    .update({ submission_status: "submitted" })
+    .update({ 
+      submission_status: "submitted",
+      admin_approval_status: "pending"
+    })
     .eq("id", teamId);
   
   if (updateError) throw new Error(updateError.message);

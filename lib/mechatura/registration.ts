@@ -1,9 +1,9 @@
 import "server-only";
 
 import { isCompletedPaymentStatus } from "@/lib/payment";
-import type { createAdminClient } from "@/lib/supabase-admin";
+import { SupabaseClient } from "@supabase/supabase-js";
 
-type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
+type DbClient = SupabaseClient<any>;
 
 const MECHATURA_DOCUMENT_BUCKET = "mechatura-documents";
 const MECHATURA_PAYMENT_DUE_HOURS = 24;
@@ -41,7 +41,7 @@ const expiredPaymentStatuses = new Set(["expired", "failed", "cancelled"]);
 export { MECHATURA_PAYMENT_DUE_HOURS };
 
 export async function findLatestMechaturaRegistrationForUser(
-  supabase: SupabaseAdminClient,
+  supabase: DbClient,
   userId: string
 ): Promise<LatestMechaturaRegistration | null> {
   const { data, error } = await supabase
@@ -139,67 +139,53 @@ export type DeleteMechaturaResult =
   | { success: false; reason: "not_found" | "is_paid" };
 
 export async function deleteMechaturaRegistration(
-  supabase: SupabaseAdminClient,
+  supabase: DbClient,
   registrationId: string,
   userId?: string,
   options: { allowPaid?: boolean } = {}
 ): Promise<DeleteMechaturaResult> {
   let query = supabase
-    .from("mechatura_registrations")
-    .select("id,user_id,payment_status,member_document_path,robot_document_path")
+    .from("mechatura_teams")
+    .select("id, payment_status, leader_id")
     .eq("id", registrationId);
 
-  if (userId) {
-    query = query.eq("user_id", userId);
-  }
-
-  const { data: registration, error: lookupError } =
-    await query.maybeSingle<MechaturaDeleteTarget>();
+  const { data: team, error: lookupError } = await query.maybeSingle();
 
   if (lookupError) {
     throw lookupError;
   }
 
-  if (!registration) {
+  if (!team) {
     return { success: false, reason: "not_found" };
   }
 
   // Security guard: Never delete completed paid registrations unless explicitly authorized (e.g. by admin)
-  if (!options.allowPaid && isCompletedPaymentStatus(registration.payment_status)) {
+  if (!options.allowPaid && isCompletedPaymentStatus(team.payment_status)) {
     return { success: false, reason: "is_paid" };
   }
 
+  // If a specific userId is requested, ensure they are the leader of the team
+  if (userId && team.leader_id !== userId) {
+      return { success: false, reason: "not_found" };
+  }
+
+  // Delete members first to avoid foreign key constraints (if no ON DELETE CASCADE)
   const { error: membersError } = await supabase
     .from("mechatura_members")
     .delete()
-    .eq("registration_id", registrationId);
+    .eq("team_id", registrationId);
 
   if (membersError) {
     throw membersError;
   }
 
-  const { error: registrationError } = await supabase
-    .from("mechatura_registrations")
+  const { error: teamError } = await supabase
+    .from("mechatura_teams")
     .delete()
     .eq("id", registrationId);
 
-  if (registrationError) {
-    throw registrationError;
-  }
-
-  const documentPaths = [
-    registration.member_document_path,
-    registration.robot_document_path,
-  ].filter((path): path is string => Boolean(path));
-
-  if (documentPaths.length) {
-    const { error: storageError } = await supabase.storage
-      .from(MECHATURA_DOCUMENT_BUCKET)
-      .remove(documentPaths);
-
-    if (storageError) {
-      console.error("Mechatura document cleanup failed", storageError.message);
-    }
+  if (teamError) {
+    throw teamError;
   }
 
   return { success: true };

@@ -21,7 +21,7 @@ import {
   isMechaturaPaymentExpired,
 } from "@/lib/mechatura/registration";
 import { getCachedAuth } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import MechaturaPaymentLayout from "../mechatura-payment-layout";
 import PaymentErrorState from "@/components/registration/payment-error-state";
 
@@ -51,7 +51,7 @@ type VerificationOrder = {
 };
 
 const findMechaturaOrder = async (
-  supabase: ReturnType<typeof createAdminClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   orderId: string
 ): Promise<VerificationOrder | null> => {
   const order = await findMechaturaPaymentOrder(supabase, orderId);
@@ -81,7 +81,7 @@ const findMechaturaOrder = async (
 const findOrder = findMechaturaOrder;
 
 async function verifyPayment(orderId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createClient();
   let order = await findOrder(supabase, orderId);
 
   const { user } = await getCachedAuth();

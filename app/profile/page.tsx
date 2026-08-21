@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 /* eslint-disable */
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight } from "lucide-react"
+import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight, Crown, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   formatCurrency,
@@ -291,7 +291,7 @@ export default async function ProfilePage() {
                       <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2.5">Peran</h3>
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/20 shadow-inner">
-                          {latestMechaturaMembership?.is_leader ? <span className="text-[10px] leading-none">👑</span> : <span className="text-[10px] leading-none">👤</span>}
+                          {latestMechaturaMembership?.is_leader ? <Crown className="w-3 h-3 text-yellow-500" /> : <User className="w-3 h-3 text-white/70" />}
                         </div>
                         <p className="text-sm font-medium text-white/90">{mechaturaRoleText}</p>
                       </div>

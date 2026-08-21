@@ -95,6 +95,7 @@ export function SchoolCombobox({
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(false);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const jenjang = institutionType.toLowerCase();
@@ -104,33 +105,45 @@ export function SchoolCombobox({
     setResults([]);
     setPage(1);
     setHasMore(false);
+    setSelectedIndex(-1);
   }, [query, institutionType]);
 
   // Debounced search — page 1
   React.useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
     if (query.trim().length < 3) {
       setResults([]);
       setHasMore(false);
+      setSelectedIndex(-1);
       return;
     }
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const url = `/api/schools/search?q=${encodeURIComponent(query)}&jenjang=${jenjang}&page=1&perPage=10`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
         if (res.ok) {
           const body = await res.json();
-          setResults(parseItems(body?.data ?? []));
-          setHasMore(body?.hasMore ?? false);
-          setPage(1);
+          if (active) {
+            setResults(parseItems(body?.data ?? []));
+            setHasMore(body?.hasMore ?? false);
+            setPage(1);
+            setSelectedIndex(-1);
+          }
         }
-      } catch {
-        setResults([]);
+      } catch (err: any) {
+        if (active && err.name !== 'AbortError') setResults([]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }, 400);
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      controller.abort();
+      clearTimeout(timer);
+    };
   }, [query, jenjang]);
 
   // Load more pages
@@ -163,6 +176,7 @@ export function SchoolCombobox({
       setResults([]);
       setHasMore(false);
       setPage(1);
+      setSelectedIndex(-1);
     }
   }, [open]);
 
@@ -200,7 +214,7 @@ export function SchoolCombobox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0 gap-0 shadow-lg bg-white dark:bg-white dark:text-slate-900"
+        className="w-[var(--radix-popover-trigger-width)] p-0 gap-0 shadow-lg bg-white dark:bg-white dark:text-slate-900 z-50"
         align="start"
         sideOffset={4}
       >
@@ -213,6 +227,19 @@ export function SchoolCombobox({
             placeholder="Ketik nama sekolah..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
+              } else if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < results.length) {
+                e.preventDefault();
+                onChange(results[selectedIndex].label);
+                setOpen(false);
+              }
+            }}
           />
           {loading && (
             <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
@@ -253,7 +280,7 @@ export function SchoolCombobox({
           )}
           {showResults && (
             <ul role="listbox" className="p-1">
-              {results.map((item) => (
+              {results.map((item, index) => (
                 <li
                   key={item.id}
                   role="option"
@@ -267,7 +294,8 @@ export function SchoolCombobox({
                     }}
                     className={cn(
                       "flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black",
-                      value === item.label && "bg-yellow-500 text-black"
+                      value === item.label && "bg-yellow-500 text-black",
+                      selectedIndex === index && "bg-yellow-500/30 dark:bg-yellow-500/50"
                     )}
                   >
                     <span className="font-medium leading-snug">

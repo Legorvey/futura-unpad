@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -232,8 +233,18 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
         </h3>
       </div>
 
-      <div className="flex flex-col items-center justify-center p-6 bg-muted/30 border-2 border-dashed border-border/60 rounded-2xl w-full max-w-[220px] aspect-square mx-auto">
-        <p className="text-xs text-muted-foreground text-center font-medium">Gambar QRIS / Panduan Pembayaran<br/><span className="text-[10px] font-normal opacity-70 mt-1 block">(Placeholder)</span></p>
+      <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-2">
+        <Image
+          src="/images/mechatura-qris.png"
+          alt="QRIS Pembayaran Mechatura"
+          width={240}
+          height={240}
+          className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+          priority
+        />
+        <p className="text-xs text-muted-foreground text-center font-medium mt-3">
+          Scan QRIS di atas untuk melakukan pembayaran
+        </p>
       </div>
 
       {isLeader ? (

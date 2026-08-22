@@ -74,6 +74,8 @@ export type AdminMechaturaTeam = {
     submission_status: "draft" | "submitted";
     admin_approval_status: "pending" | "approved" | "revision";
     created_at: string | null;
+    pembina_name: string | null;
+    pembina_phone: string | null;
     mechatura_members: AdminMechaturaMember[];
 };
 
@@ -582,6 +584,31 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
             return (
                 <div>
                     <p className="font-medium">{categoryLabel}</p>
+                </div>
+            );
+        },
+    },
+    {
+        id: "pembina",
+        header: "Pembina",
+        cell: ({ row }) => {
+            const team = row.original;
+            const hasPembina = !!team.pembina_name;
+            
+            const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
+            const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
+            const nameMatches = isMatch(team.pembina_name);
+
+            if (!hasPembina) {
+                return <span className="text-muted-foreground italic text-sm">-</span>;
+            }
+
+            return (
+                <div className="flex flex-col gap-1">
+                    <span className={`font-medium text-sm ${nameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm' : ''}`}>{team.pembina_name}</span>
+                    {team.pembina_phone && (
+                        <span className="text-xs text-muted-foreground">{team.pembina_phone}</span>
+                    )}
                 </div>
             );
         },

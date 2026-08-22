@@ -605,6 +605,25 @@ const PembinaDataSchema = z.object({
 
 export type PembinaData = z.infer<typeof PembinaDataSchema>;
 
+async function verifyLeaderAndDraftStatus(supabase: any, teamId: string, userId: string, actionName: string = "mengubah data pembina") {
+  const { data: leaderCheck, error: leaderError } = await supabase
+    .from("mechatura_members")
+    .select("id, mechatura_teams(submission_status)")
+    .eq("team_id", teamId)
+    .eq("user_id", userId)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error(`Hanya ketua tim yang dapat ${actionName}.`);
+  }
+
+  const team = leaderCheck.mechatura_teams as unknown as { submission_status: string };
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
+  }
+}
+
 /**
  * Update the Pembina (advisor/parent) data for a team.
  */
@@ -616,35 +635,24 @@ export async function updatePembinaData(teamId: string, data: PembinaData) {
     throw new Error("Unauthorized");
   }
 
-  const supabaseAdmin = createAdminClient();
+  if (!teamId || typeof teamId !== 'string') {
+    throw new Error("Invalid team ID");
+  }
+
   const parsedData = PembinaDataSchema.safeParse(data);
   
   if (!parsedData.success) {
     throw new Error("Invalid input data: " + parsedData.error.message);
   }
 
-  // Check if current user is the leader of that team
-  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
-    .from("mechatura_members")
-    .select("id, mechatura_teams(submission_status)")
-    .eq("team_id", teamId)
-    .eq("user_id", user.id)
-    .eq("is_leader", true)
-    .single();
+  await verifyLeaderAndDraftStatus(supabase, teamId, user.id, "mengubah data pembina");
 
-  if (leaderError || !leaderCheck) {
-    throw new Error("Hanya ketua tim yang dapat mengubah data pembina.");
-  }
-
-  const team: any = leaderCheck.mechatura_teams;
-  if (team && team.submission_status !== "draft") {
-    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
-  }
-
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from("mechatura_teams")
     .update(parsedData.data)
-    .eq("id", teamId);
+    .eq("id", teamId)
+    .select()
+    .single();
 
   if (error) {
     throw new Error(error.message);
@@ -665,27 +673,13 @@ export async function clearPembinaData(teamId: string) {
     throw new Error("Unauthorized");
   }
 
-  const supabaseAdmin = createAdminClient();
-
-  // Check if current user is the leader of that team
-  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
-    .from("mechatura_members")
-    .select("id, mechatura_teams(submission_status)")
-    .eq("team_id", teamId)
-    .eq("user_id", user.id)
-    .eq("is_leader", true)
-    .single();
-
-  if (leaderError || !leaderCheck) {
-    throw new Error("Hanya ketua tim yang dapat menghapus data pembina.");
+  if (!teamId || typeof teamId !== 'string') {
+    throw new Error("Invalid team ID");
   }
 
-  const team: any = leaderCheck.mechatura_teams;
-  if (team && team.submission_status !== "draft") {
-    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
-  }
+  await verifyLeaderAndDraftStatus(supabase, teamId, user.id, "menghapus data pembina");
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from("mechatura_teams")
     .update({
       pembina_name: null,
@@ -693,10 +687,11 @@ export async function clearPembinaData(teamId: string) {
       pembina_city: null,
       pembina_phone: null,
       pembina_id_link: null,
-      pembina_relationship: null,
-      pembina_institution_category: null
+      pembina_relationship: null
     })
-    .eq("id", teamId);
+    .eq("id", teamId)
+    .select()
+    .single();
 
   if (error) {
     throw new Error(error.message);

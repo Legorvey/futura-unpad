@@ -18,6 +18,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { getSafeUrl } from "../_lib/mechatura-utils";
 import {
     isMechaturaCompetitionType,
     mechaturaCompetitionLabels,
@@ -45,7 +46,13 @@ const detailColumns = [
     "created_at",
     "submission_status",
     "admin_approval_status",
-    "admin_rejection_reason"
+    "admin_rejection_reason",
+    "pembina_name",
+    "pembina_institution",
+    "pembina_city",
+    "pembina_phone",
+    "pembina_id_link",
+    "pembina_relationship"
 ].join(",");
 
 type MechaturaDetailRegistration = {
@@ -60,6 +67,12 @@ type MechaturaDetailRegistration = {
     submission_status: "draft" | "submitted" | "revision";
     admin_approval_status: "pending" | "approved" | "revision";
     admin_rejection_reason: string | null;
+    pembina_name: string | null;
+    pembina_institution: string | null;
+    pembina_city: string | null;
+    pembina_phone: string | null;
+    pembina_id_link: string | null;
+    pembina_relationship: string | null;
 };
 
 type MechaturaDetailMember = {
@@ -173,7 +186,7 @@ const AdminSidebarContent = ({
                     <div className="shrink-0 self-start sm:self-auto">
                         {document.href ? (
                             <Button variant="secondary" size="sm" className="rounded-full shadow-sm h-8 w-full sm:w-auto" asChild>
-                                <a href={document.href} target="_blank" rel="noreferrer">
+                                <a href={getSafeUrl(document.href) ?? "#"} target="_blank" rel="noreferrer">
                                     Buka
                                     <ExternalLink className="ml-1.5 h-3 w-3" />
                                 </a>
@@ -513,7 +526,7 @@ export default async function MechaturaRegistrationDetails({
                                                 <div className="flex flex-col items-end gap-2">
                                                     {member.student_id_link ? (
                                                         <a
-                                                            href={member.student_id_link}
+                                                            href={getSafeUrl(member.student_id_link) ?? "#"}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center text-blue-600 hover:underline text-sm font-medium"
@@ -551,6 +564,59 @@ export default async function MechaturaRegistrationDetails({
                                 )}
                             </TableBody>
                         </Table>
+                    </section>
+
+                    {/* Pembina Tim */}
+                    <section className="overflow-hidden rounded-xl border border-border bg-card/90">
+                        <div className="border-b border-border bg-card p-6">
+                            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                                Pembina Tim
+                            </h3>
+                        </div>
+                        <div className="p-6 overflow-hidden">
+                            {registrationData.pembina_name ? (
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Nama Pembina</dt>
+                                        <dd className="text-sm font-medium truncate" title={registrationData.pembina_name || undefined}>{registrationData.pembina_name}</dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Telepon</dt>
+                                        <dd className="text-sm font-medium truncate" title={registrationData.pembina_phone || undefined}>{registrationData.pembina_phone ?? "-"}</dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Hubungan</dt>
+                                        <dd className="text-sm font-medium capitalize truncate" title={registrationData.pembina_relationship || undefined}>{registrationData.pembina_relationship ?? "-"}</dd>
+                                    </div>
+                                    <div className="min-w-0 lg:col-span-2 xl:col-span-1">
+                                        <dt className="text-sm text-muted-foreground mb-1">Institusi & Kota</dt>
+                                        <dd className="text-sm font-medium flex flex-col gap-0.5">
+                                            <span className="truncate" title={registrationData.pembina_institution || undefined}>
+                                                {registrationData.pembina_institution ?? "-"}
+                                            </span>
+                                            {registrationData.pembina_city && (
+                                                <span className="truncate text-muted-foreground" title={registrationData.pembina_city}>
+                                                    {registrationData.pembina_city}
+                                                </span>
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Identitas</dt>
+                                        <dd className="text-sm font-medium truncate">
+                                            {registrationData.pembina_id_link ? (
+                                                <a href={getSafeUrl(registrationData.pembina_id_link) ?? "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center">
+                                                    <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                                                    Lihat Dokumen
+                                                </a>
+                                            ) : "-"}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            ) : (
+                                <p className="text-muted-foreground text-sm text-center py-4">Tim ini tidak menambahkan pembina.</p>
+                            )}
+                        </div>
                     </section>
                 </div>
 

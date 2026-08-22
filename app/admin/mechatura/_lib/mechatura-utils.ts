@@ -34,6 +34,8 @@ export const mechaturaRegistrationColumns = [
     "submission_status",
     "admin_approval_status",
     "created_at",
+    "pembina_name",
+    "pembina_phone",
     "mechatura_members(id, user_id, is_leader, full_name, phone_number, institution, city, instagram_username, student_id_link, created_at)",
 ].join(",");
 
@@ -58,6 +60,19 @@ export const normalizePageSize = (value: string | undefined) => {
         ? requestedPageSize
         : defaultPageSize;
 };
+
+export function getSafeUrl(url: string | null | undefined): string | undefined {
+    if (!url) return undefined;
+    try {
+        const parsed = new URL(url);
+        if (['http:', 'https:'].includes(parsed.protocol)) {
+            return parsed.toString();
+        }
+    } catch {
+        // Invalid URL
+    }
+    return undefined;
+}
 
 export const toSearchPattern = (value: string) => {
     const sanitized = value.replace(/[,%()]/g, " ").trim();
@@ -117,16 +132,11 @@ export const applyMechaturaFilters = <T,>(
     }
 
     if (searchPattern) {
-        const registrationFilters = [
-            `join_code.ilike.${searchPattern}`,
-            `name.ilike.${searchPattern}`,
-        ];
-
-        if (memberRegistrationIds.length > 0) {
-            registrationFilters.push(`id.in.${toInList(memberRegistrationIds)}`);
-        }
-
-        filteredQuery = filteredQuery.or(registrationFilters.join(","));
+        filteredQuery = filteredQuery.or(
+            `name.ilike.${searchPattern},join_code.ilike.${searchPattern},pembina_name.ilike.${searchPattern}${
+                memberRegistrationIds.length > 0 ? `,id.in.${toInList(memberRegistrationIds)}` : ""
+            }`
+        );
     }
 
     return filteredQuery as T;

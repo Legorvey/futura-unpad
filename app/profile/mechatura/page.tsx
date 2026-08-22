@@ -30,6 +30,15 @@ export default async function MechaturaProfilePage() {
     redirect("/mechatura");
   }
 
+  // Supabase sometimes returns many-to-one relations as arrays depending on the schema definition
+  const teamObj = Array.isArray(membership.mechatura_teams) 
+    ? membership.mechatura_teams[0] 
+    : membership.mechatura_teams;
+
+  if (!teamObj) {
+    redirect("/mechatura");
+  }
+
   const { data: teamMembers, error: teamMembersError } = await supabase
     .from("mechatura_members")
     .select("*")
@@ -98,7 +107,7 @@ export default async function MechaturaProfilePage() {
               <div className="relative">
                   <MechaturaProfileClient 
                       currentUserMembership={membership}
-                      team={membership.mechatura_teams}
+                      team={teamObj}
                       allMembers={enrichedTeamMembers}
                   />
               </div>

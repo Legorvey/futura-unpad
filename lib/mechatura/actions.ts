@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const IdentityDataSchema = z.object({
-  full_name: z.string().min(3).max(255),
-  institution: z.string().min(8).max(255),
-  city: z.string().min(1).max(255),
-  phone_number: z.string().min(1).max(50),
+  full_name: z.string().min(2).max(255),
+  institution: z.string().min(3).max(255),
+  city: z.string().min(2).max(255),
+  phone_number: z.string().min(10).max(50),
   instagram_username: z.string().url().max(500).optional().or(z.literal("")),
   student_id_link: z.string().url().max(1000),
 });
@@ -529,6 +529,178 @@ export async function finalizeSubmission(teamId: string) {
     .eq("id", teamId);
   
   if (updateError) throw new Error(updateError.message);
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}
+
+/**
+ * Remove (kick) a team member. Only the team leader can perform this action.
+ */
+export async function removeTeamMember(memberId: string) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("You must be logged in.");
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  // Get member details to find the team ID
+  const { data: targetMember, error: targetError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("team_id, is_leader, mechatura_teams(submission_status)")
+    .eq("id", memberId)
+    .single();
+
+  if (targetError || !targetMember) {
+    throw new Error("Anggota tidak ditemukan.");
+  }
+
+  if (targetMember.is_leader) {
+    throw new Error("Tidak dapat mengeluarkan ketua tim.");
+  }
+
+  const team: any = targetMember.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengeluarkan anggota lagi.");
+  }
+
+  // Check if current user is the leader of that team
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("id")
+    .eq("team_id", targetMember.team_id)
+    .eq("user_id", user.id)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error("Hanya ketua tim yang dapat mengeluarkan anggota.");
+  }
+
+  // Delete the member
+  const { error: deleteError } = await supabaseAdmin
+    .from("mechatura_members")
+    .delete()
+    .eq("id", memberId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}
+
+const PembinaDataSchema = z.object({
+  pembina_name: z.string().min(2, "Nama minimal 2 karakter"),
+  pembina_institution: z.string().min(3, "Asal institusi/sekolah minimal 3 karakter"),
+  pembina_city: z.string().min(2, "Kota minimal 2 karakter"),
+  pembina_phone: z.string().min(10, "Nomor WhatsApp minimal 10 karakter"),
+  pembina_id_link: z.string().url("Link dokumen identitas tidak valid"),
+  pembina_relationship: z.string().min(2, "Hubungan dengan tim minimal 2 karakter"),
+});
+
+export type PembinaData = z.infer<typeof PembinaDataSchema>;
+
+/**
+ * Update the Pembina (advisor/parent) data for a team.
+ */
+export async function updatePembinaData(teamId: string, data: PembinaData) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("Unauthorized");
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const parsedData = PembinaDataSchema.safeParse(data);
+  
+  if (!parsedData.success) {
+    throw new Error("Invalid input data: " + parsedData.error.message);
+  }
+
+  // Check if current user is the leader of that team
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("id, mechatura_teams(submission_status)")
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error("Hanya ketua tim yang dapat mengubah data pembina.");
+  }
+
+  const team: any = leaderCheck.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("mechatura_teams")
+    .update(parsedData.data)
+    .eq("id", teamId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}
+
+/**
+ * Clear the Pembina (advisor/parent) data for a team.
+ */
+export async function clearPembinaData(teamId: string) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("Unauthorized");
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  // Check if current user is the leader of that team
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("id, mechatura_teams(submission_status)")
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error("Hanya ketua tim yang dapat menghapus data pembina.");
+  }
+
+  const team: any = leaderCheck.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("mechatura_teams")
+    .update({
+      pembina_name: null,
+      pembina_institution: null,
+      pembina_city: null,
+      pembina_phone: null,
+      pembina_id_link: null,
+      pembina_relationship: null,
+      pembina_institution_category: null
+    })
+    .eq("id", teamId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   revalidatePath("/profile", "layout");
   return { success: true };

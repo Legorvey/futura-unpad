@@ -70,8 +70,9 @@ export async function GET(request: NextRequest) {
     let upstreamUrl: string;
 
     if (isValidJenjang && q.length >= 3) {
-      // Search by name within a specific jenjang
-      upstreamUrl = `https://api-sekolah-indonesia.vercel.app/sekolah/${jenjangRaw}?sekolah=${encodeURIComponent(q)}&page=${page}&perPage=${perPage}`;
+      // The upstream specific jenjang endpoints (e.g. /sekolah/sma?sekolah=X) ignore the sekolah parameter.
+      // So we MUST use the generic search endpoint /sekolah/s and filter locally.
+      upstreamUrl = `https://api-sekolah-indonesia.vercel.app/sekolah/s?sekolah=${encodeURIComponent(q)}&page=${page}&perPage=100`;
     } else if (isValidJenjang) {
       // Browse all schools of this jenjang (paginated, no query filter)
       upstreamUrl = `https://api-sekolah-indonesia.vercel.app/sekolah/${jenjangRaw}?page=${page}&perPage=${perPage}`;
@@ -90,14 +91,29 @@ export async function GET(request: NextRequest) {
 
     const body = await upstream.json();
 
-    // API shape: { dataSekolah: [...] } or bare array
-    const list: Record<string, unknown>[] = Array.isArray(body)
+    let list: Record<string, unknown>[] = Array.isArray(body)
       ? body
       : Array.isArray(body?.dataSekolah)
         ? body.dataSekolah
         : [];
 
-    const hasMore = list.length >= perPage;
+    let hasMore = list.length >= perPage;
+
+    // If we searched by query AND jenjang, we fetched from the generic endpoint
+    // and must filter by jenjang manually since the API doesn't support it.
+    if (isValidJenjang && q.length >= 3) {
+      list = list.filter((item) => {
+        const bentuk = (item.bentuk as string)?.toLowerCase() ?? "";
+        // 'smp' matches 'smp', 'sma' matches 'sma', etc.
+        // The API returns 'SMA', 'SMK', 'SD', 'SMP'
+        return bentuk === jenjangRaw;
+      });
+      // We requested 100 items from upstream, but we'll paginate them manually for the client
+      const startIndex = (page - 1) * perPage;
+      const endIndex = startIndex + perPage;
+      hasMore = list.length > endIndex;
+      list = list.slice(startIndex, endIndex);
+    }
 
     return NextResponse.json({ data: list, hasMore } satisfies ApiResponse);
   } catch {

@@ -16,9 +16,20 @@ import {
   type InstitutionType,
 } from "@/components/school-combobox";
 import { Button } from "@/components/ui/button";
-import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission } from "@/lib/mechatura/actions";
+import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember, updatePembinaData, clearPembinaData } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
-import { Loader2, Copy, Check, AlertTriangle, FileText } from "lucide-react";
+import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,6 +60,15 @@ const paymentSchema = z.object({
   paymentLink: z.string().trim().url("Link bukti pembayaran tidak valid")
 });
 
+const pembinaSchema = z.object({
+  pembina_name: z.string().trim().min(2, "Nama minimal 2 karakter"),
+  pembina_institution: z.string().trim().min(3, "Asal institusi/sekolah minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
+  pembina_city: z.string().trim().min(2, "Kota minimal 2 karakter"),
+  pembina_phone: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
+  pembina_id_link: z.string().trim().url("Link Google Drive tidak valid"),
+  pembina_relationship: z.string().trim().min(2, "Hubungan dengan tim minimal 2 karakter"),
+});
+
 const robotSchema = z.object({
   robotLink: z.string().trim().url("Link dokumen robot tidak valid")
 });
@@ -56,6 +76,7 @@ const robotSchema = z.object({
 type IdentityValues = z.infer<typeof identitySchema>;
 type PaymentValues = z.infer<typeof paymentSchema>;
 type RobotValues = z.infer<typeof robotSchema>;
+type PembinaValues = z.infer<typeof pembinaSchema>;
 
 export function MechaturaProfileClient({ currentUserMembership, team, allMembers }: any) {
   const [copied, setCopied] = useState(false);
@@ -106,7 +127,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        <TeamMembersSection allMembers={allMembers} isSubmitted={isSubmitted} team={team} revisionFields={revisionFields} />
+        <TeamMembersSection allMembers={allMembers} isLeader={isLeader} isSubmitted={isSubmitted} team={team} revisionFields={revisionFields} />
         <PaymentSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
       </MechaturaProfileSidebar>
 
@@ -123,6 +144,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
         )}
         <TeamHeaderSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} copyCode={copyCode} copied={copied} isSubmitted={isSubmitted} />
         <IdentitySection currentUserMembership={currentUserMembership} isSubmitted={isSubmitted} revisionFields={revisionFields} />
+        {isLeader && <PembinaSection team={team} isSubmitted={isSubmitted} revisionFields={revisionFields} />}
         <RobotDocumentsSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
         <FinalizeSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} allMembers={allMembers} />
       </section>
@@ -448,14 +470,288 @@ function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = 
   );
 }
 
-function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
+function PembinaSection({ team, isSubmitted, revisionFields = [] }: any) {
+  const hasPembinaData = team.pembina_name || team.pembina_institution || team.pembina_city || team.pembina_phone || team.pembina_id_link || team.pembina_relationship;
+  const [isExpanded, setIsExpanded] = useState(!!hasPembinaData);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(
+    team.pembina_institution_category || "SD"
+  );
+
+  const pembinaForm = useForm<PembinaValues>({
+    resolver: zodResolver(pembinaSchema),
+    defaultValues: {
+      pembina_name: team.pembina_name || "",
+      pembina_institution: team.pembina_institution || "",
+      pembina_city: team.pembina_city || "",
+      pembina_phone: team.pembina_phone || "",
+      pembina_id_link: team.pembina_id_link || "",
+      pembina_relationship: team.pembina_relationship || "",
+    }
+  });
+
+  const handlePembinaSubmit = async (values: PembinaValues) => {
+    setIsSaving(true);
+    try {
+      await updatePembinaData(team.id, values);
+      toast.success("Data pembina berhasil disimpan!");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan data pembina");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearPembina = async () => {
+    setIsClearing(true);
+    try {
+      await clearPembinaData(team.id);
+      pembinaForm.reset({
+        pembina_name: "",
+        pembina_institution: "",
+        pembina_city: "",
+        pembina_phone: "",
+        pembina_id_link: "",
+        pembina_relationship: "",
+      });
+      setIsExpanded(false);
+      toast.success("Data pembina berhasil dihapus!");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menghapus data pembina");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
+  const handleTypeChange = (type: InstitutionType) => {
+    setInstitutionType(type);
+    pembinaForm.setValue("pembina_institution", "");
+  };
+
+  const institutionValue = pembinaForm.watch("pembina_institution");
+  const institutionError = pembinaForm.formState.errors.pembina_institution;
+  const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
+
+  const getLabelWithRevision = (fieldName: string, defaultLabel: string) => {
+    const isRevision = revisionFields.includes(`pembina_${fieldName}`);
+    return (
+      <span className="flex items-center gap-2">
+        {defaultLabel}
+        {isRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase">Revisi</span>}
+      </span>
+    );
+  };
+
+  const hasAnyRevision = [
+    "name", "institution", "city", "phone", "id_link", "relationship"
+  ].some(f => revisionFields.includes(`pembina_${f}`));
+
+  return (
+    <div className={`space-y-6 p-5 md:p-6 rounded-2xl bg-card border ${hasAnyRevision ? 'border-red-300 bg-red-50/10' : 'border-border'} transition-all duration-300`}>
+      <div className="space-y-5">
+        <div 
+          className="cursor-pointer group flex items-start justify-between select-none"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div>
+            <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+              Data Pembina <span className="text-sm font-normal text-muted-foreground ml-2">(Opsional namun direkomendasikan)</span>
+              {hasAnyRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">Revisi</span>}
+            </h3>
+            {isExpanded && (
+              <div className="text-sm text-muted-foreground mt-2 space-y-3">
+                <p>Khusus ketua tim, silakan lengkapi data pembina jika tim Anda didampingi oleh Guru, Orang Tua, atau Wali.</p>
+                <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
+                  <li>
+                    <span className="font-medium text-foreground">Identitas Penanggung Jawab:</span><br/>
+                    Bagi peserta di bawah 18 tahun, wajib menyertakan identitas Orang Tua/Wali/Guru Pembina.
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+          <div className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 mt-0.5">
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            )}
+          </div>
+        </div>
+
+        {isExpanded && (
+          <FormProvider {...pembinaForm}>
+            <form onSubmit={pembinaForm.handleSubmit(handlePembinaSubmit)} noValidate className="space-y-4 animate-in fade-in duration-300">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormTextField<PembinaValues>
+                  name="pembina_name"
+                  label={getLabelWithRevision("name", "Nama Lengkap Pembina") as any}
+                  disabled={isSubmitted}
+                />
+                <FormTextField<PembinaValues>
+                  name="pembina_relationship"
+                  label={getLabelWithRevision("relationship", "Hubungan dengan Tim") as any}
+                  placeholder="Contoh: Guru Pembina, Orang Tua, dll"
+                  disabled={isSubmitted}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium leading-snug">
+                    {getLabelWithRevision("institution_category", "Jenjang / Kategori Institusi")}
+                  </label>
+                  <Select
+                    value={institutionType}
+                    onValueChange={(v) => handleTypeChange(v as InstitutionType)}
+                    disabled={isSubmitted}
+                  >
+                    <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">
+                      <SelectValue placeholder="Pilih jenjang..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
+                      {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <span className="font-medium">{opt.label}</span>
+                          <span className="ml-1.5 text-muted-foreground text-xs">
+                            — {opt.sublabel}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="pembina_institution" className="text-sm font-medium leading-snug">
+                    {getLabelWithRevision("institution", "Institusi / Asal Sekolah")}
+                  </label>
+                  {isSearchable ? (
+                    <SchoolCombobox
+                      id="pembina_institution"
+                      value={institutionValue}
+                      onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                      institutionType={institutionType}
+                      disabled={isSubmitted}
+                      aria-invalid={!!institutionError}
+                      aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                    />
+                  ) : institutionType === "perguruan_tinggi" ? (
+                    <PlainInstitutionInput
+                      id="pembina_institution"
+                      value={institutionValue}
+                      onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                      disabled={isSubmitted}
+                      placeholder="Tulis nama lengkap universitas"
+                      aria-invalid={!!institutionError}
+                      aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                    />
+                  ) : (
+                    <PlainInstitutionInput
+                      id="pembina_institution"
+                      value={institutionValue}
+                      onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                      disabled={isSubmitted}
+                      placeholder="Nama instansi / komunitas / ketik 'Individu'"
+                      aria-invalid={!!institutionError}
+                      aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                    />
+                  )}
+                  {institutionError && (
+                    <div role="alert" id="pembina-institution-error" className="flex items-start gap-1.5 text-sm font-normal text-destructive">
+                      <span>{String(institutionError.message)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormTextField<PembinaValues>
+                  name="pembina_city"
+                  label={getLabelWithRevision("city", "Kota") as any}
+                  disabled={isSubmitted}
+                />
+                <FormTextField<PembinaValues>
+                  name="pembina_phone"
+                  label={getLabelWithRevision("phone", "Nomor WhatsApp") as any}
+                  disabled={isSubmitted}
+                />
+              </div>
+
+              <div className="grid grid-cols-1">
+                <FormTextField<PembinaValues>
+                  name="pembina_id_link"
+                  label={getLabelWithRevision("id_link", "Identitas KTP/SIM Pembina (Link Google Drive)") as any}
+                  type="url"
+                  disabled={isSubmitted}
+                />
+              </div>
+
+              {!isSubmitted && (
+                <div className="flex items-center gap-3 mt-2">
+                  <Button type="submit" disabled={isSaving || isClearing}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Simpan Data Pembina
+                  </Button>
+                  
+                  {hasPembinaData && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button type="button" variant="outline" disabled={isSaving || isClearing} className="text-destructive hover:bg-destructive/10 border-destructive/20">
+                          {isClearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Hapus Data
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Hapus Data Pembina?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tindakan ini akan menghapus seluruh data pembina tim Anda. Anda yakin?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleClearPembina} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                            Ya, Hapus Data
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              )}
+            </form>
+          </FormProvider>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields = [] }: any) {
+  const [kickingMemberId, setKickingMemberId] = useState<string | null>(null);
+
+  const handleKick = async (memberId: string) => {
+    setKickingMemberId(memberId);
+    try {
+      await removeTeamMember(memberId);
+      toast.success("Anggota berhasil dikeluarkan.");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengeluarkan anggota.");
+    } finally {
+      setKickingMemberId(null);
+    }
+  };
+
   return (
     <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-4">
       <div>
         <h3 className="text-lg font-medium text-foreground">Status Anggota Tim</h3>
       </div>
       <div className="space-y-0.5">
-        {allMembers.map((m: any, index: number) => {
+        {[...allMembers].sort((a, b) => (a.is_leader ? -1 : b.is_leader ? 1 : 0)).map((m: any, index: number) => {
           const hasRevision = [
             "full_name", "institution_category", "institution", "city", "phone_number", "instagram_username", "student_id_link"
           ].some(f => revisionFields.includes(`member_${m.id}_${f}`));
@@ -464,13 +760,17 @@ function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
           const isActuallyComplete = isDataComplete && !hasRevision;
 
           return (
-            <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
+            <div key={m.id} tabIndex={0} className={`group py-3 flex items-start justify-between gap-3 focus:outline-none ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
               <div className="min-w-0 flex-1">
                 <p className="text-foreground font-medium text-sm leading-snug flex items-center gap-1.5 min-w-0">
                   <span className="truncate" title={m.full_name || m.fallback_name || "Anggota Belum Bernama"}>{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
-                  {m.is_leader && (
+                  {m.is_leader ? (
                     <span className="inline-flex items-center justify-center text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold shrink-0">
                       Ketua
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold shrink-0">
+                      Anggota
                     </span>
                   )}
                   {hasRevision && (
@@ -480,11 +780,34 @@ function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
                   )}
                 </p>
               </div>
-              <div className="shrink-0 mt-0.5">
+              <div className="shrink-0 mt-0.5 flex items-center">
                 {isActuallyComplete ? (
                   <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
                 ) : (
                   <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Belum Lengkap</span>
+                )}
+                {isLeader && !isSubmitted && !m.is_leader && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-0 ml-0 px-0 opacity-0 overflow-hidden group-hover:w-6 group-hover:ml-3 group-hover:opacity-100 group-focus:w-6 group-focus:ml-3 group-focus:opacity-100 transition-all duration-300 ease-in-out text-muted-foreground hover:text-destructive hover:bg-destructive/10" disabled={kickingMemberId === m.id}>
+                        {kickingMemberId === m.id ? <Loader2 className="w-3 h-3 animate-spin shrink-0" /> : <UserMinus className="w-3.5 h-3.5 shrink-0" />}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Keluarkan Anggota?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Apakah Anda yakin ingin mengeluarkan <strong>{m.full_name || m.fallback_name || "anggota ini"}</strong> dari tim? Mereka harus bergabung kembali menggunakan kode jika ini adalah sebuah kesalahan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => handleKick(m.id)}>
+                          Ya, Keluarkan
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </div>

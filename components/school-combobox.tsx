@@ -181,8 +181,7 @@ export function SchoolCombobox({
   }, [open]);
 
   const showHint = query.trim().length < 3;
-  const showEmpty =
-    !loading && query.trim().length >= 3 && results.length === 0;
+  const showManualOption = query.trim().length >= 3;
   const showResults = results.length > 0;
   const isFilled = !!value;
 
@@ -234,10 +233,15 @@ export function SchoolCombobox({
               } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
-              } else if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < results.length) {
+              } else if (e.key === "Enter") {
                 e.preventDefault();
-                onChange(results[selectedIndex].label);
-                setOpen(false);
+                if (selectedIndex >= 0 && selectedIndex < results.length) {
+                  onChange(results[selectedIndex].label);
+                  setOpen(false);
+                } else if (query.trim().length >= 3) {
+                  onChange(query.trim());
+                  setOpen(false);
+                }
               }
             }}
           />
@@ -246,7 +250,11 @@ export function SchoolCombobox({
           )}
         </div>
 
-        <div className="max-h-64 overflow-y-auto">
+        <div 
+          className="max-h-64 overflow-y-auto"
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
           {showHint && (
             <p className="px-3 py-4 text-center text-xs text-muted-foreground">
               Ketik minimal 3 karakter untuk mencari
@@ -256,27 +264,6 @@ export function SchoolCombobox({
             <p className="px-3 py-4 text-center text-xs text-muted-foreground">
               Mencari...
             </p>
-          )}
-          {showEmpty && (
-            <div className="space-y-2 p-2">
-              <p className="px-1 text-xs text-muted-foreground">
-                Tidak ditemukan. Masukkan nama secara manual:
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(query.trim());
-                  setOpen(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black"
-              >
-                <PlusCircle className="h-4 w-4 shrink-0 text-primary" />
-                <span>
-                  Gunakan{" "}
-                  <span className="font-semibold">&ldquo;{query}&rdquo;</span>
-                </span>
-              </button>
-            </div>
           )}
           {showResults && (
             <ul role="listbox" className="p-1">
@@ -329,6 +316,27 @@ export function SchoolCombobox({
             </ul>
           )}
         </div>
+        {showManualOption && (
+          <div className="space-y-2 p-2 border-t border-border dark:border-slate-200 bg-slate-50 dark:bg-slate-50/50">
+            <p className="px-1 text-xs text-muted-foreground">
+              {results.length === 0 && !loading ? "Tidak ditemukan." : "Tidak ada di daftar?"} Masukkan nama secara manual:
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                onChange(query.trim());
+                setOpen(false);
+              }}
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black"
+            >
+              <PlusCircle className="h-4 w-4 shrink-0 text-primary" />
+              <span>
+                Gunakan{" "}
+                <span className="font-semibold">&ldquo;{query}&rdquo;</span>
+              </span>
+            </button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

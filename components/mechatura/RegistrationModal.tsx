@@ -49,7 +49,15 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
     setIsSubmitting(true);
     try {
       if (!category) throw new Error("Kategori belum dipilih");
-      await createTeam(category, values.teamName);
+      const res = await createTeam(category, values.teamName);
+      if (res && !res.success) {
+        if (res.error?.includes("logged in")) {
+          toast.info("Silakan login terlebih dahulu untuk mendaftar.");
+          router.push("/login?next=/mechatura");
+          return;
+        }
+        throw new Error(res.error || "Gagal membuat tim.");
+      }
       toast.success("Tim berhasil dibuat!");
       onOpenChange(false);
       router.push("/profile/mechatura");
@@ -64,7 +72,15 @@ export function MechaturaRegistrationModal({ isOpen, onOpenChange }: MechaturaRe
     setIsSubmitting(true);
     try {
       if (!category) throw new Error("Kategori belum dipilih");
-      await joinTeam(values.joinCode, category);
+      const res = await joinTeam(values.joinCode, category);
+      if (res && !res.success) {
+        if (res.error?.includes("logged in")) {
+          toast.info("Silakan login terlebih dahulu untuk bergabung.");
+          router.push("/login?next=/mechatura");
+          return;
+        }
+        throw new Error(res.error || "Gagal bergabung dengan tim.");
+      }
       toast.success("Berhasil bergabung dengan tim!");
       onOpenChange(false);
       router.push("/profile/mechatura");

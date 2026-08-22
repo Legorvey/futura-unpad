@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { getSafeRedirectPath } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import LoginInfoHub from "./login-info-hub";
 
 type LoginSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -77,10 +78,10 @@ function AuthStatusLayout({
         </div>
       </div>
 
-      {/* Right side: Rounded Blue Box */}
+      {/* Right side: Info Hub */}
       <div className="hidden lg:block p-4 lg:p-6 relative">
-        <div className="w-full h-full min-h-[500px] bg-[#00205B] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/20 to-transparent pointer-events-none" />
+        <div className="w-full h-full min-h-[500px] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl relative rounded-[2.5rem]">
+          <LoginInfoHub />
         </div>
       </div>
     </main>
@@ -208,10 +209,10 @@ export default async function LoginPage({
         </div>
       </div>
 
-      {/* Right side: Rounded Blue Box */}
+      {/* Right side: Info Hub */}
       <div className="hidden lg:block p-4 lg:p-6 relative">
-        <div className="w-full h-full min-h-[500px] bg-[#00205B] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/20 to-transparent pointer-events-none" />
+        <div className="w-full h-full min-h-[500px] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl relative rounded-[2.5rem]">
+          <LoginInfoHub />
         </div>
       </div>
     </main>

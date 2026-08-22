@@ -480,7 +480,7 @@ function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields 
         <h3 className="text-lg font-medium text-foreground">Status Anggota Tim</h3>
       </div>
       <div className="space-y-0.5">
-        {allMembers.map((m: any, index: number) => {
+        {[...allMembers].sort((a, b) => (a.is_leader ? -1 : b.is_leader ? 1 : 0)).map((m: any, index: number) => {
           const hasRevision = [
             "full_name", "institution_category", "institution", "city", "phone_number", "instagram_username", "student_id_link"
           ].some(f => revisionFields.includes(`member_${m.id}_${f}`));
@@ -489,7 +489,7 @@ function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields 
           const isActuallyComplete = isDataComplete && !hasRevision;
 
           return (
-            <div key={m.id} className={`py-3 flex items-start justify-between gap-3 ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
+            <div key={m.id} tabIndex={0} className={`group py-3 flex items-start justify-between gap-3 focus:outline-none ${index !== allMembers.length - 1 ? 'border-b border-border/50' : ''}`}>
               <div className="min-w-0 flex-1">
                 <p className="text-foreground font-medium text-sm leading-snug flex items-center gap-1.5 min-w-0">
                   <span className="truncate" title={m.full_name || m.fallback_name || "Anggota Belum Bernama"}>{m.full_name || m.fallback_name || "Anggota Belum Bernama"}</span>
@@ -509,7 +509,7 @@ function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields 
                   )}
                 </p>
               </div>
-              <div className="shrink-0 mt-0.5 flex items-center gap-3">
+              <div className="shrink-0 mt-0.5 flex items-center">
                 {isActuallyComplete ? (
                   <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
                 ) : (
@@ -518,8 +518,8 @@ function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields 
                 {isLeader && !isSubmitted && !m.is_leader && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10" disabled={kickingMemberId === m.id}>
-                        {kickingMemberId === m.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserMinus className="w-3.5 h-3.5" />}
+                      <Button variant="ghost" size="icon" className="h-6 w-0 ml-0 px-0 opacity-0 overflow-hidden group-hover:w-6 group-hover:ml-3 group-hover:opacity-100 group-focus:w-6 group-focus:ml-3 group-focus:opacity-100 transition-all duration-300 ease-in-out text-muted-foreground hover:text-destructive hover:bg-destructive/10" disabled={kickingMemberId === m.id}>
+                        {kickingMemberId === m.id ? <Loader2 className="w-3 h-3 animate-spin shrink-0" /> : <UserMinus className="w-3.5 h-3.5 shrink-0" />}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>

@@ -16,9 +16,9 @@ import {
   type InstitutionType,
 } from "@/components/school-combobox";
 import { Button } from "@/components/ui/button";
-import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember } from "@/lib/mechatura/actions";
+import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember, updatePembinaData } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
-import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus } from "lucide-react";
+import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus, UserCheck } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +60,15 @@ const paymentSchema = z.object({
   paymentLink: z.string().trim().url("Link bukti pembayaran tidak valid")
 });
 
+const pembinaSchema = z.object({
+  pembina_name: z.string().trim().min(2, "Nama minimal 2 karakter"),
+  pembina_institution: z.string().trim().min(3, "Asal institusi/sekolah minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
+  pembina_city: z.string().trim().min(2, "Kota minimal 2 karakter"),
+  pembina_phone: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
+  pembina_id_link: z.string().trim().url("Link Google Drive tidak valid"),
+  pembina_relationship: z.string().trim().min(2, "Hubungan dengan tim minimal 2 karakter"),
+});
+
 const robotSchema = z.object({
   robotLink: z.string().trim().url("Link dokumen robot tidak valid")
 });
@@ -67,6 +76,7 @@ const robotSchema = z.object({
 type IdentityValues = z.infer<typeof identitySchema>;
 type PaymentValues = z.infer<typeof paymentSchema>;
 type RobotValues = z.infer<typeof robotSchema>;
+type PembinaValues = z.infer<typeof pembinaSchema>;
 
 export function MechaturaProfileClient({ currentUserMembership, team, allMembers }: any) {
   const [copied, setCopied] = useState(false);
@@ -134,6 +144,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
         )}
         <TeamHeaderSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} copyCode={copyCode} copied={copied} isSubmitted={isSubmitted} />
         <IdentitySection currentUserMembership={currentUserMembership} isSubmitted={isSubmitted} revisionFields={revisionFields} />
+        {isLeader && <PembinaSection team={team} isSubmitted={isSubmitted} revisionFields={revisionFields} />}
         <RobotDocumentsSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
         <FinalizeSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} allMembers={allMembers} />
       </section>
@@ -450,6 +461,199 @@ function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = 
               <Button type="submit" disabled={isSaving} className="mt-2">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Simpan Data
+              </Button>
+            )}
+          </form>
+        </FormProvider>
+      </div>
+    </div>
+  );
+}
+
+function PembinaSection({ team, isSubmitted, revisionFields = [] }: any) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(
+    team.pembina_institution_category || "SD"
+  );
+
+  const pembinaForm = useForm<PembinaValues>({
+    resolver: zodResolver(pembinaSchema),
+    defaultValues: {
+      pembina_name: team.pembina_name || "",
+      pembina_institution: team.pembina_institution || "",
+      pembina_city: team.pembina_city || "",
+      pembina_phone: team.pembina_phone || "",
+      pembina_id_link: team.pembina_id_link || "",
+      pembina_relationship: team.pembina_relationship || "",
+    }
+  });
+
+  const handlePembinaSubmit = async (values: PembinaValues) => {
+    setIsSaving(true);
+    try {
+      await updatePembinaData(team.id, values);
+      toast.success("Data pembina berhasil disimpan!");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan data pembina");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleTypeChange = (type: InstitutionType) => {
+    setInstitutionType(type);
+    pembinaForm.setValue("pembina_institution", "");
+  };
+
+  const institutionValue = pembinaForm.watch("pembina_institution");
+  const institutionError = pembinaForm.formState.errors.pembina_institution;
+  const isSearchable = SEARCHABLE_TYPES.includes(institutionType);
+
+  const getLabelWithRevision = (fieldName: string, defaultLabel: string) => {
+    const isRevision = revisionFields.includes(`pembina_${fieldName}`);
+    return (
+      <span className="flex items-center gap-2">
+        {defaultLabel}
+        {isRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase">Revisi</span>}
+      </span>
+    );
+  };
+
+  const hasAnyRevision = [
+    "name", "institution", "city", "phone", "id_link", "relationship"
+  ].some(f => revisionFields.includes(`pembina_${f}`));
+
+  return (
+    <div className={`space-y-6 p-5 md:p-6 rounded-2xl bg-card border ${hasAnyRevision ? 'border-red-300 bg-red-50/10' : 'border-border'}`}>
+      <div className="space-y-5">
+        <div>
+          <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+            Data Pembina <span className="text-sm font-normal text-muted-foreground ml-2">(Opsional namun direkomendasikan)</span>
+            {hasAnyRevision && <span className="inline-flex items-center justify-center bg-red-100 text-red-700 border border-red-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">Revisi</span>}
+          </h3>
+          <div className="text-sm text-muted-foreground mt-2 space-y-3">
+            <p>Khusus ketua tim, silakan lengkapi data pembina jika tim Anda didampingi oleh Guru, Orang Tua, atau Wali.</p>
+            <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
+              <li>
+                <span className="font-medium text-foreground">Identitas Penanggung Jawab:</span><br/>
+                Bagi peserta di bawah 18 tahun, wajib menyertakan identitas Orang Tua/Wali/Guru Pembina.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <FormProvider {...pembinaForm}>
+          <form onSubmit={pembinaForm.handleSubmit(handlePembinaSubmit)} noValidate className="space-y-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormTextField<PembinaValues>
+                name="pembina_name"
+                label={getLabelWithRevision("name", "Nama Lengkap Pembina") as any}
+                disabled={isSubmitted}
+              />
+              <FormTextField<PembinaValues>
+                name="pembina_relationship"
+                label={getLabelWithRevision("relationship", "Hubungan dengan Tim") as any}
+                placeholder="Contoh: Guru Pembina, Orang Tua, dll"
+                disabled={isSubmitted}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium leading-snug">
+                  {getLabelWithRevision("institution_category", "Jenjang / Kategori Institusi")}
+                </label>
+                <Select
+                  value={institutionType}
+                  onValueChange={(v) => handleTypeChange(v as InstitutionType)}
+                  disabled={isSubmitted}
+                >
+                  <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">
+                    <SelectValue placeholder="Pilih jenjang..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
+                    {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <span className="font-medium">{opt.label}</span>
+                        <span className="ml-1.5 text-muted-foreground text-xs">
+                          — {opt.sublabel}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="pembina_institution" className="text-sm font-medium leading-snug">
+                  {getLabelWithRevision("institution", "Institusi / Asal Sekolah")}
+                </label>
+                {isSearchable ? (
+                  <SchoolCombobox
+                    id="pembina_institution"
+                    value={institutionValue}
+                    onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                    institutionType={institutionType}
+                    disabled={isSubmitted}
+                    aria-invalid={!!institutionError}
+                    aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                  />
+                ) : institutionType === "perguruan_tinggi" ? (
+                  <PlainInstitutionInput
+                    id="pembina_institution"
+                    value={institutionValue}
+                    onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                    disabled={isSubmitted}
+                    placeholder="Tulis nama lengkap universitas"
+                    aria-invalid={!!institutionError}
+                    aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                  />
+                ) : (
+                  <PlainInstitutionInput
+                    id="pembina_institution"
+                    value={institutionValue}
+                    onChange={(v) => pembinaForm.setValue("pembina_institution", v, { shouldValidate: true })}
+                    disabled={isSubmitted}
+                    placeholder="Nama instansi / komunitas / ketik 'Individu'"
+                    aria-invalid={!!institutionError}
+                    aria-describedby={institutionError ? "pembina-institution-error" : undefined}
+                  />
+                )}
+                {institutionError && (
+                  <div role="alert" id="pembina-institution-error" className="flex items-start gap-1.5 text-sm font-normal text-destructive">
+                    <span>{String(institutionError.message)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormTextField<PembinaValues>
+                name="pembina_city"
+                label={getLabelWithRevision("city", "Kota") as any}
+                disabled={isSubmitted}
+              />
+              <FormTextField<PembinaValues>
+                name="pembina_phone"
+                label={getLabelWithRevision("phone", "Nomor WhatsApp") as any}
+                disabled={isSubmitted}
+              />
+            </div>
+
+            <div className="grid grid-cols-1">
+              <FormTextField<PembinaValues>
+                name="pembina_id_link"
+                label={getLabelWithRevision("id_link", "Identitas KTP/SIM Pembina (Link Google Drive)") as any}
+                type="url"
+                disabled={isSubmitted}
+              />
+            </div>
+
+            {!isSubmitted && (
+              <Button type="submit" disabled={isSaving} className="mt-2">
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan Data Pembina
               </Button>
             )}
           </form>

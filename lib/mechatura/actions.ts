@@ -593,3 +593,63 @@ export async function removeTeamMember(memberId: string) {
   revalidatePath("/profile", "layout");
   return { success: true };
 }
+
+const PembinaDataSchema = z.object({
+  pembina_name: z.string().min(2, "Nama minimal 2 karakter"),
+  pembina_institution: z.string().min(3, "Asal institusi/sekolah minimal 3 karakter"),
+  pembina_city: z.string().min(2, "Kota minimal 2 karakter"),
+  pembina_phone: z.string().min(10, "Nomor WhatsApp minimal 10 karakter"),
+  pembina_id_link: z.string().url("Link dokumen identitas tidak valid"),
+  pembina_relationship: z.string().min(2, "Hubungan dengan tim minimal 2 karakter"),
+});
+
+export type PembinaData = z.infer<typeof PembinaDataSchema>;
+
+/**
+ * Update the Pembina (advisor/parent) data for a team.
+ */
+export async function updatePembinaData(teamId: string, data: PembinaData) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("Unauthorized");
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const parsedData = PembinaDataSchema.safeParse(data);
+  
+  if (!parsedData.success) {
+    throw new Error("Invalid input data: " + parsedData.error.message);
+  }
+
+  // Check if current user is the leader of that team
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("id, mechatura_teams(submission_status)")
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error("Hanya ketua tim yang dapat mengubah data pembina.");
+  }
+
+  const team: any = leaderCheck.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data lagi.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("mechatura_teams")
+    .update(parsedData.data)
+    .eq("id", teamId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}

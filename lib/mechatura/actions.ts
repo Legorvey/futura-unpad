@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const IdentityDataSchema = z.object({
-  full_name: z.string().min(3).max(255),
-  institution: z.string().min(8).max(255),
-  city: z.string().min(1).max(255),
-  phone_number: z.string().min(1).max(50),
+  full_name: z.string().min(2).max(255),
+  institution: z.string().min(3).max(255),
+  city: z.string().min(2).max(255),
+  phone_number: z.string().min(10).max(50),
   instagram_username: z.string().url().max(500).optional().or(z.literal("")),
   student_id_link: z.string().url().max(1000),
 });

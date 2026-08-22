@@ -8,7 +8,9 @@ export type PaymentStatus =
   | "failed"
   | "expired"
   | "cancelled"
-  | "settled";
+  | "settled"
+  | "pending_verification"
+  | "verified";
 export type RegistrationProgram = "seminar" | "mechatura";
 export type MechaturaCompetitionType = "sumo" | "transporter";
 
@@ -99,12 +101,14 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
   expired: "Expired",
   cancelled: "Cancelled",
   settled: "Settled",
+  pending_verification: "Menunggu Persetujuan",
+  verified: "Disetujui",
 };
 
 export const isPaymentStatus = (value: unknown): value is PaymentStatus =>
   typeof value === "string" && value in paymentStatusLabels;
 
-export const completedPaymentStatuses = ["paid", "settled"] as const satisfies readonly PaymentStatus[];
+export const completedPaymentStatuses = ["paid", "settled", "verified"] as const satisfies readonly PaymentStatus[];
 
 const completedPaymentStatusSet = new Set<PaymentStatus>(completedPaymentStatuses);
 

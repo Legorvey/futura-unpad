@@ -12,7 +12,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="relative flex flex-col flex-1 transition-all md:ml-64 min-w-0 z-10">
                 <MobileHeader />
                 
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 animate-fade-up">
+                <main className="flex-1 p-6 pt-10 sm:p-8 sm:pt-12 lg:p-12 lg:pt-16 animate-fade-up">
                     {children}
                 </main>
             </div>

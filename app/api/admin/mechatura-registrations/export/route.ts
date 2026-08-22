@@ -5,7 +5,7 @@ import {
     paymentStatusLabels,
 } from "@/lib/payment";
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
    export const dynamic = "force-dynamic";
 
     type MechaturaExportRegistration = {
@@ -90,13 +90,13 @@ import { createAdminClient } from "@/lib/supabase-admin";
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const adminSupabase = createAdminClient();
+        const supabase = await createClient();
         const registrations: MechaturaExportRegistration[] = [];
         const batchSize = 1000;
         let offset = 0;
 
         while (true) {
-            const { data, error } = await adminSupabase
+            const { data, error } = await supabase
                 .from("mechatura_registrations")
                 .select(registrationColumns)
                 .order("created_at", { ascending: false })
@@ -121,7 +121,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
         const registrationIds = registrations.map((registration) => registration.id);
 
         for (const ids of chunk(registrationIds, batchSize)) {
-            const { data, error } = await adminSupabase
+            const { data, error } = await supabase
                 .from("mechatura_members")
                 .select(memberColumns)
                 .in("registration_id", ids)

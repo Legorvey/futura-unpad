@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client"
 
 import { useState, useRef } from "react"
@@ -125,7 +124,7 @@ export function Sidebar() {
             ) : user ? (
                 <div className="border-t border-white/5 p-4">
                     <Link 
-                        href={adminAccess ? "/admin/profile" : "/profile/account"} 
+                        href={adminAccess ? "/admin/profile" : "/profile"} 
                         prefetch={false}
                         onClick={() => setIsMobileOpen(false)}
                         className="flex items-center gap-3 mb-4 overflow-hidden rounded-lg p-2 transition-all hover:bg-white/5"
@@ -149,15 +148,16 @@ export function Sidebar() {
                     <ConfirmDialog
                         open={logoutOpen}
                         onOpenChange={setLogoutOpen}
-                        title={adminAccess ? "Log out of admin?" : "Log out?"}
+                        title={adminAccess ? "Keluar dari admin?" : "Keluar akun?"}
                         description={
-                            adminAccess
-                                ? "You will need to sign in again to manage registrations and view the admin dashboard."
-                                : "You will need to sign in to your Futura account again."
+                            adminAccess 
+                            ? "Anda harus masuk kembali untuk mengelola pendaftaran dan melihat dashboard admin."
+                            : "Anda harus masuk kembali untuk mengakses akun Futura Anda."
                         }
-                        confirmText="Log out"
-                        cancelText="Stay signed in"
+                        confirmText="Keluar"
+                        cancelText="Batal"
                         variant="destructive"
+                        contentClassName="bg-white text-slate-900 border-slate-200"
                         isLoading={isLoggingOut}
                         onConfirm={handleLogout}
                     />

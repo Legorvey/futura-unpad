@@ -102,6 +102,7 @@ export function ParallaxBackgrounds({
           fill
           sizes="(max-width: 768px) 200px, 400px"
           className="object-contain"
+          priority
         />
       </motion.div>
 
@@ -116,6 +117,7 @@ export function ParallaxBackgrounds({
           fill
           sizes="(max-width: 768px) 220px, 600px"
           className="object-cover drop-shadow-[0_0_40px_rgba(48,127,226,0.2)]"
+          priority
         />
       </motion.div>
 
@@ -129,6 +131,7 @@ export function ParallaxBackgrounds({
           fill
           sizes="(max-width: 768px) 200px, 450px"
           className="object-contain drop-shadow-[0_0_40px_rgba(48,127,226,0.2)]"
+          priority
         />
       </motion.div>
     </div>

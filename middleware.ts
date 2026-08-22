@@ -15,6 +15,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/lomba-esai", request.url));
   }
 
+  // Gracefully handle bookmarked links to the deprecated account page
+  if (path === "/profile/account") {
+    return NextResponse.redirect(new URL("/profile", request.url));
+  }
+
   return updateSession(request);
 }
 

@@ -1,4 +1,5 @@
 import { ButtonV3 } from "@/components/ui/button-v3";
+import { MechaturaRegistrationButton } from "./RegistrationButton";
 
 export function MechaturaCTA() {
   return (
@@ -24,12 +25,7 @@ export function MechaturaCTA() {
           <div className="relative z-10 group">
             {/* Button backdrop shadow for extra pop */}
             <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full scale-150 group-hover:bg-blue-500/40 transition-colors duration-500" />
-            <ButtonV3
-              text="Daftar Sekarang"
-              href="/mechatura/form"
-              requireAuth={true}
-              className="scale-110 md:scale-125 relative z-10"
-            />
+            <MechaturaRegistrationButton className="scale-110 md:scale-125" />
           </div>
 
         </div>

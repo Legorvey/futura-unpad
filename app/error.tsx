@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, startTransition } from "react";
 import { ErrorState } from "@/components/ui/error-state";
 import { ServerCrash } from "lucide-react";
 
@@ -23,7 +23,7 @@ export default function Error({
         icon={ServerCrash}
         title="Terjadi Kesalahan Sistem"
         description="Mohon maaf, terjadi kendala saat memproses permintaan Anda. Tim teknis kami telah mencatat kendala ini."
-        onAction={reset}
+        onAction={() => startTransition(() => reset())}
         actionLabel="Coba Lagi"
         secondaryActionHref="/"
         secondaryActionLabel="Kembali ke Beranda"

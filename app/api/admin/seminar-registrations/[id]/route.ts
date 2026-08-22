@@ -40,16 +40,16 @@ export async function DELETE(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const adminSupabase = createAdminClient()
+    const supabase = createAdminClient()
     
     // First find if this is a group registration to get the group_id
-    const { data: registration } = await adminSupabase
+    const { data: registration } = await supabase
         .from("seminar_registrations")
         .select("group_id, is_main_contact")
         .eq("id", parsed.data.id)
         .single()
 
-    let deleteQuery = adminSupabase.from("seminar_registrations").delete()
+    let deleteQuery = supabase.from("seminar_registrations").delete()
 
     // If it's a main contact with a group, delete the whole group
     if (registration?.group_id && registration.is_main_contact) {

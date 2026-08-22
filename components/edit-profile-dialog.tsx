@@ -82,7 +82,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
         const lowercaseUsername = values.username.toLowerCase();
         const { data: isTaken, error: takenError } = await supabase.rpc('is_username_taken', { p_username: lowercaseUsername });
         if (isTaken || takenError) {
-          setFieldError("username", { message: "This username is already taken." });
+          setFieldError("username", { message: "Username ini sudah digunakan." });
           setIsLoading(false);
           return;
         }
@@ -94,12 +94,12 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
       }
     }
 
-    if (values.display_name !== initialDisplayName) {
+    if (values.display_name !== undefined && values.display_name !== initialDisplayName) {
       if (!updates.data) updates.data = {}
       updates.data.display_name = values.display_name
     }
 
-    const emailChanged = values.email !== initialEmail
+    const emailChanged = values.email !== undefined && values.email !== "" && values.email !== initialEmail
     if (emailChanged) {
       updates.email = values.email
     }
@@ -112,7 +112,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
 
     try {
       const { error: updateError } = await supabase.auth.updateUser(updates, {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile/account`
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile`
       })
 
       if (updateError) {
@@ -120,7 +120,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
       }
 
       if (emailChanged) {
-        setSuccessMessage("A confirmation link has been sent to both your current and new email addresses. Please verify both to finalize the change.")
+        setSuccessMessage("Tautan konfirmasi telah dikirim ke alamat email lama dan baru Anda. Harap verifikasi keduanya untuk menyelesaikan perubahan.")
         // Do not close immediately so they can read the message
       } else {
         router.refresh()
@@ -128,15 +128,15 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
       }
     } catch (err: unknown) {
       let errorMessage =
-        err instanceof Error ? err.message : "Failed to update profile."
+        err instanceof Error ? err.message : "Gagal memperbarui profil."
       if (errorMessage.toLowerCase().includes("invalid email")) {
-        errorMessage = "Please enter a valid email address."
+        errorMessage = "Harap masukkan alamat email yang valid."
       } else if (errorMessage.toLowerCase().includes("already registered") || errorMessage.toLowerCase().includes("already exists")) {
-        errorMessage = "This email address is already in use by another account."
+        errorMessage = "Alamat email ini sudah digunakan oleh akun lain."
       } else if (errorMessage.toLowerCase().includes("same as the old email")) {
-        errorMessage = "You are already using this email address."
+        errorMessage = "Anda sudah menggunakan alamat email ini."
       } else if (errorMessage.toLowerCase().includes("rate limit")) {
-        errorMessage = "Too many attempts. Please try again later."
+        errorMessage = "Terlalu banyak percobaan. Harap coba lagi nanti."
       }
       
       setError(errorMessage)
@@ -150,76 +150,79 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className={className || "absolute top-4 right-4 h-8 gap-2"}>
           <Pencil className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Edit Profile</span>
+          <span className="hidden sm:inline">Edit Profil</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 border-slate-200">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
+          <DialogTitle className="text-slate-900">Edit Profil</DialogTitle>
+          <DialogDescription className="text-slate-500">
+            Lakukan perubahan pada profil Anda di sini. Klik simpan setelah selesai.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="display_name">Display Name</Label>
+              <Label htmlFor="display_name" className="text-slate-900">Nama Tampilan</Label>
               <Input
                 id="display_name"
-                placeholder="e.g. John Doe"
+                placeholder="cth. Budi Santoso"
                 aria-invalid={!!errors.display_name}
+                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("display_name")}
               />
               {errors.display_name && (
-                <p className="text-sm text-destructive">{errors.display_name.message}</p>
+                <p className="text-sm text-red-500">{errors.display_name.message}</p>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-slate-900">Username</Label>
               <Input
                 id="username"
-                placeholder="e.g. johndoe"
+                placeholder="cth. budisantoso"
                 aria-invalid={!!errors.username}
+                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("username")}
               />
               {errors.username && (
-                <p className="text-sm text-destructive">{errors.username.message}</p>
+                <p className="text-sm text-red-500">{errors.username.message}</p>
               )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Your unique username to log in with.
+              <p className="text-xs text-slate-500 mt-1">
+                Username unik Anda untuk masuk ke akun.
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-900">Email</Label>
               <Input
                 id="email"
                 type="email"
                 aria-invalid={!!errors.email}
+                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("email")}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
-              <p className="text-xs text-muted-foreground mt-1">
-                A confirmation link will be sent to your current and new email addresses to verify the change.
+              <p className="text-xs text-slate-500 mt-1">
+                Tautan konfirmasi akan dikirim ke alamat email lama dan baru Anda untuk memverifikasi perubahan ini.
               </p>
             </div>
 
             {error && (
-              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
                 {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+              <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 border border-green-200">
                 {successMessage}
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save changes"}
+            <Button type="submit" disabled={isLoading} className="bg-amber-500 hover:bg-amber-600 text-white border-transparent">
+              {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </DialogFooter>
         </form>

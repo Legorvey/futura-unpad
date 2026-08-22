@@ -5,6 +5,7 @@ import { useInView } from "motion/react"
 import Link from "next/link"
 import { Button } from "../ui/button"
 import { ButtonV3 } from "../ui/button-v3"
+import { MechaturaRegistrationButton } from "./RegistrationButton"
 import FlipCountdown from "@/components/seminar/flip-countdown"
 import { ButtonV2 } from "../ui/button-v2"
 
@@ -94,11 +95,7 @@ export function HeroSection() {
               </div> */}
               
               <div className="mx-auto flex flex-col md:flex-row items-center gap-4">
-                <ButtonV3
-                    text="Daftar Sekarang"
-                    href="/mechatura/form"
-                    requireAuth={true}
-                />
+                <MechaturaRegistrationButton />
 
                 <Button className="rounded-full w-full md:w-fit py-6 md:py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
                     <Link href="https://drive.google.com/file/d/1ZrAl8yhVDBqf2Yo4GCoYwWAz-kv7-Zyo/view?usp=sharing">Lihat Booklet</Link>

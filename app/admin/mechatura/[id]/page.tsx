@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2, AlertTriangle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -18,6 +18,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { getSafeUrl } from "../_lib/mechatura-utils";
 import {
     isMechaturaCompetitionType,
     mechaturaCompetitionLabels,
@@ -25,7 +26,7 @@ import {
     type PaymentStatus,
 } from "@/lib/payment";
 import { formatMechaturaDateTime } from "@/lib/mechatura/format";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import { TeamDetailActions } from "./team-detail-actions";
 
 export const dynamic = "force-dynamic";
@@ -36,46 +37,55 @@ const DOCUMENT_URL_EXPIRES_IN_SECONDS = 10 * 60;
 
 const detailColumns = [
     "id",
-    "team_id",
-    "team_name",
-    "institution",
-    "province",
-    "competition_type",
-    "robot_name",
+    "join_code",
+    "name",
+    "category",
     "payment_status",
-    "payment_type",
-    "member_document_path",
-    "robot_document_path",
+    "payment_proof_link",
+    "robot_document_link",
     "created_at",
-    "paid_at",
-    "check_in_time",
-    "registration_status",
+    "submission_status",
+    "admin_approval_status",
+    "admin_rejection_reason",
+    "pembina_name",
+    "pembina_institution",
+    "pembina_city",
+    "pembina_phone",
+    "pembina_id_link",
+    "pembina_relationship"
 ].join(",");
 
 type MechaturaDetailRegistration = {
     id: string;
-    team_id: string | null;
-    team_name: string | null;
-    institution: string | null;
-    province: string | null;
-    competition_type: unknown;
-    robot_name: string | null;
+    join_code: string;
+    name: string;
+    category: string;
     payment_status: string | null;
-    payment_type: string | null;
-    member_document_path: string | null;
-    robot_document_path: string | null;
+    payment_proof_link: string | null;
+    robot_document_link: string | null;
     created_at: string | null;
-    paid_at: string | null;
-    check_in_time: string | null;
-    registration_status: "approved" | "rejected" | "registered" | "waiting_payment" | null;
+    submission_status: "draft" | "submitted" | "revision";
+    admin_approval_status: "pending" | "approved" | "revision";
+    admin_rejection_reason: string | null;
+    pembina_name: string | null;
+    pembina_institution: string | null;
+    pembina_city: string | null;
+    pembina_phone: string | null;
+    pembina_id_link: string | null;
+    pembina_relationship: string | null;
 };
 
 type MechaturaDetailMember = {
     id: string;
+    user_id: string | null;
     full_name: string | null;
-    email: string | null;
-    phone: string | null;
+    phone_number: string | null;
+    institution: string | null;
+    city: string | null;
+    instagram_username: string | null;
+    student_id_link: string | null;
     is_leader: boolean | null;
+    fallback_name?: string | null;
 };
 
 type DocumentLink = {
@@ -84,20 +94,22 @@ type DocumentLink = {
 };
 
 const statusClassName: Record<PaymentStatus, string> = {
-    unpaid: "bg-zinc-100 text-zinc-700",
-    pending: "bg-amber-100 text-amber-800",
-    paid: "bg-emerald-100 text-emerald-800",
-    failed: "bg-red-100 text-red-800",
-    expired: "bg-slate-100 text-slate-700",
-    cancelled: "bg-neutral-100 text-neutral-700",
-    settled: "bg-blue-100 text-blue-800",
+    unpaid: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+    pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+    paid: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20",
+    failed: "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
+    expired: "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-500/10 dark:text-zinc-400 dark:border-zinc-500/20",
+    cancelled: "bg-neutral-50 text-neutral-700 border-neutral-200 dark:bg-neutral-500/10 dark:text-neutral-400 dark:border-neutral-500/20",
+    settled: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20",
+    pending_verification: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+    verified: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20",
 };
 
 const getPaymentStatus = (status: string | null): PaymentStatus =>
     status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
 
 const getDocumentLink = async (
-    adminSupabase: ReturnType<typeof createAdminClient>,
+    supabase: Awaited<ReturnType<typeof createClient>>,
     label: string,
     path: string | null
 ): Promise<DocumentLink> => {
@@ -105,7 +117,7 @@ const getDocumentLink = async (
         return { label, href: null };
     }
 
-    const { data, error } = await adminSupabase.storage
+    const { data, error } = await supabase.storage
         .from(MECHATURA_DOCUMENT_BUCKET)
         .createSignedUrl(path, DOCUMENT_URL_EXPIRES_IN_SECONDS);
 
@@ -147,14 +159,10 @@ const AdminSidebarContent = ({
     registrationData,
     competition,
     paymentStatus,
-    memberDocument,
-    robotDocument,
 }: {
     registrationData: MechaturaDetailRegistration;
     competition: string;
     paymentStatus: PaymentStatus;
-    memberDocument: DocumentLink;
-    robotDocument: DocumentLink;
 }) => (
     <div className="space-y-6">
         {/* Documents */}
@@ -162,7 +170,10 @@ const AdminSidebarContent = ({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pl-1">
                 Dokumen Lampiran
             </h3>
-            {[memberDocument, robotDocument].map((document) => (
+            {[
+                { label: "Bukti Pembayaran", href: registrationData.payment_proof_link },
+                { label: "Dokumen Robot", href: registrationData.robot_document_link }
+            ].map((document) => (
                 <div key={document.label} className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
@@ -175,7 +186,7 @@ const AdminSidebarContent = ({
                     <div className="shrink-0 self-start sm:self-auto">
                         {document.href ? (
                             <Button variant="secondary" size="sm" className="rounded-full shadow-sm h-8 w-full sm:w-auto" asChild>
-                                <a href={document.href} target="_blank" rel="noreferrer">
+                                <a href={getSafeUrl(document.href) ?? "#"} target="_blank" rel="noreferrer">
                                     Buka
                                     <ExternalLink className="ml-1.5 h-3 w-3" />
                                 </a>
@@ -195,25 +206,31 @@ const AdminSidebarContent = ({
                 <h3 className="font-semibold tracking-tight text-sm">Ringkasan Status</h3>
             </div>
             <dl className="flex-1 divide-y divide-border/50">
-                <DetailItem label="Team ID" value={registrationData.team_id ?? "-"} />
-                <DetailItem label="Pendaftaran" value={
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                        registrationData.registration_status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                        registrationData.registration_status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        'bg-amber-100 text-amber-800'
+                <DetailItem label="Join Code" value={registrationData.join_code ?? "-"} />
+                <DetailItem label="Submission" value={
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+                        registrationData.submission_status === 'submitted' 
+                        ? 'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30' 
+                        : 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30'
                     }`}>
-                        {registrationData.registration_status ? 
-                            registrationData.registration_status.charAt(0).toUpperCase() + registrationData.registration_status.slice(1) 
-                            : "Terdaftar"}
+                        {registrationData.submission_status === 'submitted' ? "Submitted" : "Draft"}
+                    </span>
+                } />
+                <DetailItem label="Admin Approval" value={
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+                        registrationData.admin_approval_status === 'approved' 
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' :
+                        registrationData.admin_approval_status === "revision" 
+                        ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30' :
+                        'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30'
+                    }`}>
+                        {registrationData.admin_approval_status === 'approved' ? "Disetujui" :
+                         registrationData.admin_approval_status === "revision" ? "Revisi" : "Pending"}
                     </span>
                 } />
                 <DetailItem
                     label="Dikirim"
                     value={formatMechaturaDateTime(registrationData.created_at)}
-                />
-                <DetailItem
-                    label="Check In"
-                    value={formatMechaturaDateTime(registrationData.check_in_time)}
                 />
             </dl>
         </section>
@@ -225,46 +242,11 @@ const AdminSidebarContent = ({
                 <h3 className="font-semibold tracking-tight text-sm">Identitas & Robot</h3>
             </div>
             <dl className="flex-1 divide-y divide-border/50">
-                <DetailItem label="Nama Tim" value={registrationData.team_name ?? "-"} />
-                <DetailItem
-                    label="Institusi"
-                    value={registrationData.institution ?? "-"}
-                />
-                <DetailItem label="Lokasi" value={
-                    <span className="flex items-center gap-1.5 justify-end">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        {registrationData.province ?? "-"}
-                    </span>
-                } />
+                <DetailItem label="Nama Tim" value={registrationData.name ?? "-"} />
                 <DetailItem label="Kat. Robot" value={competition} />
-                <DetailItem label="Nama Robot" value={registrationData.robot_name ?? "-"} />
             </dl>
         </section>
 
-        {/* Payment Info */}
-        <section className="rounded-xl border border-border bg-card p-5 flex flex-col">
-            <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold tracking-tight text-sm">Pembayaran</h3>
-            </div>
-            <dl className="flex-1 divide-y divide-border/50">
-                <DetailItem
-                    label="Status"
-                    value={
-                        <span
-                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClassName[paymentStatus]}`}
-                        >
-                            {paymentStatusLabels[paymentStatus]}
-                        </span>
-                    }
-                />
-                <DetailItem label="Metode" value={formatPaymentType(registrationData.payment_type)} />
-                <DetailItem
-                    label="Dibayar Pada"
-                    value={formatMechaturaDateTime(registrationData.paid_at)}
-                />
-            </dl>
-        </section>
     </div>
 );
 
@@ -278,9 +260,9 @@ export default async function MechaturaRegistrationDetails({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    const adminSupabase = createAdminClient();
-    const { data: registrationData, error } = await adminSupabase
-        .from("mechatura_registrations")
+    const supabase = await createClient();
+    const { data: registrationData, error } = await supabase
+        .from("mechatura_teams")
         .select(detailColumns)
         .eq("id", id)
         .single<MechaturaDetailRegistration>();
@@ -289,44 +271,41 @@ export default async function MechaturaRegistrationDetails({
         notFound();
     }
 
-    const [{ data: members, error: membersError }, memberDocument, robotDocument] =
-        await Promise.all([
-            adminSupabase
-                .from("mechatura_members")
-                .select("id,full_name,email,phone,is_leader")
-                .eq("registration_id", registrationData.id)
-                .order("is_leader", { ascending: false })
-                .order("full_name", { ascending: true })
-                .returns<MechaturaDetailMember[]>(),
-            getDocumentLink(
-                adminSupabase,
-                "Member Documents",
-                registrationData.member_document_path
-            ),
-            getDocumentLink(
-                adminSupabase,
-                "Robot Document",
-                registrationData.robot_document_path
-            ),
-        ]);
+    const { data: members, error: membersError } = await supabase
+        .from("mechatura_members")
+        .select("id,user_id,full_name,phone_number,institution,city,instagram_username,student_id_link,is_leader")
+        .eq("team_id", registrationData.id)
+        .order("is_leader", { ascending: false })
+        .order("full_name", { ascending: true })
+        .returns<MechaturaDetailMember[]>();
 
     if (membersError) {
         throw new Error(membersError.message);
     }
 
+    const enrichedMembers = await Promise.all(
+        (members || []).map(async (m) => {
+            let fallback_name = null;
+            if (m.user_id) {
+                try {
+                    const { data: userData } = await supabase.auth.admin.getUserById(m.user_id);
+                    if (userData?.user) {
+                        const meta = userData.user.user_metadata || {};
+                        fallback_name = meta.display_name || meta.username || userData.user.email || null;
+                    }
+                } catch (e) {
+                    // ignore error
+                }
+            }
+            return {
+                ...m,
+                fallback_name
+            };
+        })
+    );
+
     const paymentStatus = getPaymentStatus(registrationData.payment_status);
-    const competition = isMechaturaCompetitionType(registrationData.competition_type)
-        ? mechaturaCompetitionLabels[registrationData.competition_type]
-        : "-";
-
-    const leaderMember = members?.find((m) => m.is_leader);
-    const leaderData = leaderMember ? {
-        registration_id: registrationData.id,
-        full_name: leaderMember.full_name ?? "",
-        email: leaderMember.email,
-        phone: leaderMember.phone,
-    } : undefined;
-
+    const competition = registrationData.category === "robot_sumo" ? "Robot Sumo" : registrationData.category === "robot_transporter" ? "Robot Transporter" : registrationData.category;
 
     return (
         <div className="mx-auto w-full space-y-6 sm:space-y-8">
@@ -366,15 +345,121 @@ export default async function MechaturaRegistrationDetails({
                                     registrationData={registrationData}
                                     competition={competition}
                                     paymentStatus={paymentStatus}
-                                    memberDocument={memberDocument}
-                                    robotDocument={robotDocument}
                                 />
                             </div>
                         </SheetContent>
                     </Sheet>
-                    <TeamDetailActions teamId={registrationData.id} registrationStatus={registrationData.registration_status} />
+                    <TeamDetailActions 
+                        teamId={registrationData.id} 
+                        teamName={registrationData.name}
+                        category={registrationData.category}
+                        approvalStatus={registrationData.admin_approval_status} 
+                        submissionStatus={registrationData.submission_status}
+                        members={enrichedMembers}
+                    />
                 </div>
             </div>
+
+            {registrationData.admin_rejection_reason && (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:bg-red-950/30 dark:border-red-900/50 mb-8 shadow-sm">
+                    <h3 className="text-sm font-bold text-red-800 dark:text-red-400 flex items-center gap-2 mb-4">
+                        <AlertTriangle className="h-5 w-5" />
+                        Catatan Revisi Sebelumnya
+                    </h3>
+                    <div className="text-sm leading-relaxed text-red-900 dark:text-red-200">
+                        {(() => {
+                            try {
+                                const parsed = JSON.parse(registrationData.admin_rejection_reason);
+                                if (typeof parsed !== "object" || parsed === null) throw new Error();
+
+                                const fields = Array.isArray(parsed.fields) ? parsed.fields : [];
+                                const reason = parsed.reason || "";
+                                
+                                const docFields: string[] = [];
+                                const memberFields: Record<string, { name: string, fields: string[] }> = {};
+
+                                const labelMap: Record<string, string> = {
+                                    full_name: "Nama Lengkap",
+                                    institution_category: "Kategori Institusi",
+                                    institution: "Asal Sekolah / Institusi",
+                                    city: "Kota",
+                                    phone_number: "Nomor WhatsApp",
+                                    instagram_username: "Twibbon (Link)",
+                                    student_id_link: "Identitas/KTM (Link)"
+                                };
+
+                                fields.forEach((f: string) => {
+                                    if (f === "payment_proof") docFields.push("Bukti Pembayaran");
+                                    else if (f === "robot_document") docFields.push("Dokumen Robot");
+                                    else if (f.startsWith("member_")) {
+                                        const parts = f.split("_");
+                                        if (parts.length >= 3) {
+                                            const mId = parts[1];
+                                            const fieldName = parts.slice(2).join("_");
+                                            if (!memberFields[mId]) {
+                                                const m = enrichedMembers?.find(mem => mem.id === mId);
+                                                memberFields[mId] = { 
+                                                    name: m?.full_name || m?.fallback_name || "Anggota",
+                                                    fields: []
+                                                };
+                                            }
+                                            memberFields[mId].fields.push(labelMap[fieldName] || fieldName);
+                                        }
+                                    }
+                                });
+
+                                return (
+                                    <div className="space-y-5">
+                                        {fields.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="font-semibold text-red-950 dark:text-red-300">Bagian yang diminta untuk direvisi:</div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {docFields.length > 0 && (
+                                                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-red-100 dark:border-red-900/40">
+                                                            <div className="font-semibold text-red-950 dark:text-red-300 mb-2 border-b border-red-200 dark:border-red-900/50 pb-2">Pembayaran & Dokumen Tim</div>
+                                                            <ul className="list-disc list-inside space-y-1 text-red-800 dark:text-red-200/90 ml-1">
+                                                                {docFields.map(df => <li key={df}>{df}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {Object.values(memberFields).map((mf, i) => (
+                                                        <div key={i} className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-red-100 dark:border-red-900/40">
+                                                            <div className="font-semibold text-red-950 dark:text-red-300 mb-2 border-b border-red-200 dark:border-red-900/50 pb-2 flex items-center gap-2">
+                                                                <User className="w-4 h-4 text-red-700/70 dark:text-red-400/70" />
+                                                                {mf.name}
+                                                            </div>
+                                                            <ul className="list-disc list-inside space-y-1 text-red-800 dark:text-red-200/90 ml-1">
+                                                                {mf.fields.map(f => <li key={f}>{f}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {reason && (
+                                            <div className="space-y-2 pt-2 border-t border-red-200/60 dark:border-red-900/40">
+                                                <div className="font-semibold text-red-950 dark:text-red-300">Catatan Tambahan:</div>
+                                                <div className="whitespace-pre-wrap text-red-800 dark:text-red-200 bg-white/60 dark:bg-black/30 p-4 rounded-lg border border-red-200/60 dark:border-red-900/40">
+                                                    {reason}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {fields.length === 0 && !reason && (
+                                            <span className="italic text-red-800 dark:text-red-400">Tidak ada catatan spesifik.</span>
+                                        )}
+                                    </div>
+                                );
+                            } catch {
+                                return <div className="whitespace-pre-wrap font-mono text-xs opacity-70">{registrationData.admin_rejection_reason}</div>;
+                            }
+                        })()}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Left Column (Main Information) */}
@@ -383,7 +468,7 @@ export default async function MechaturaRegistrationDetails({
                     <section className="overflow-hidden rounded-xl border border-border bg-card/90">
                         <div className="border-b border-border bg-card p-6">
                             <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                                Anggota Tim ({members?.length ?? 0})
+                                Anggota Tim ({enrichedMembers?.length ?? 0})
                             </h3>
                         </div>
                         <Table>
@@ -393,44 +478,77 @@ export default async function MechaturaRegistrationDetails({
                                         #
                                     </TableHead>
                                     <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                        Nama
-                                    </TableHead>
-                                    <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                        Peran
-                                    </TableHead>
-                                    <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                        Email
+                                        Anggota & Peran
                                     </TableHead>
                                     <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                         Telepon
                                     </TableHead>
+                                    <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Institusi & Kota
+                                    </TableHead>
+                                    <TableHead className="h-12 px-4 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
+                                        Kartu Pelajar & Twibbon
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {members?.length ? (
-                                    members.map((member, index) => (
+                                {enrichedMembers?.length ? (
+                                    enrichedMembers.map((member, index) => (
                                         <TableRow key={member.id}>
                                             <TableCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                                                 {index + 1}
                                             </TableCell>
-                                            <TableCell className="px-4 py-3 font-medium whitespace-nowrap">
-                                                {member.full_name ?? "-"}
+                                            <TableCell className="px-4 py-3">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="font-medium whitespace-nowrap text-foreground">{member.full_name || member.fallback_name || "Anggota Belum Bernama"}</span>
+                                                    <div>
+                                                        <span
+                                                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${member.is_leader
+                                                                ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
+                                                                : "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30"
+                                                                }`}
+                                                        >
+                                                            {member.is_leader ? "Ketua" : "Anggota"}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="px-4 py-3 whitespace-nowrap">
-                                                <span
-                                                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${member.is_leader
-                                                        ? "bg-blue-100 text-blue-700"
-                                                        : "bg-zinc-100 text-zinc-700"
-                                                        }`}
-                                                >
-                                                    {member.is_leader ? "Ketua" : "Anggota"}
-                                                </span>
+                                            <TableCell className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                                                {member.phone_number ?? "-"}
                                             </TableCell>
-                                            <TableCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                                                {member.email ?? "-"}
+                                            <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="font-medium text-foreground">{member.institution ?? "-"}</span>
+                                                    <span>{member.city ?? "-"}</span>
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                                                {member.phone ?? "-"}
+                                            <TableCell className="px-4 py-3 text-right whitespace-nowrap">
+                                                <div className="flex flex-col items-end gap-2">
+                                                    {member.student_id_link ? (
+                                                        <a
+                                                            href={getSafeUrl(member.student_id_link) ?? "#"}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center text-blue-600 hover:underline text-sm font-medium"
+                                                        >
+                                                            <FileText className="w-4 h-4 mr-1" />
+                                                            Kartu Pelajar
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">-</span>
+                                                    )}
+                                                    {member.instagram_username && (
+                                                        <a
+                                                            href={`https://instagram.com/${member.instagram_username.replace("@", "")}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center text-blue-600 hover:underline text-sm font-medium"
+                                                        >
+                                                            <ExternalLink className="w-4 h-4 mr-1" />
+                                                            Bukti Twibbon
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -447,6 +565,59 @@ export default async function MechaturaRegistrationDetails({
                             </TableBody>
                         </Table>
                     </section>
+
+                    {/* Pembina Tim */}
+                    <section className="overflow-hidden rounded-xl border border-border bg-card/90">
+                        <div className="border-b border-border bg-card p-6">
+                            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                                Pembina Tim
+                            </h3>
+                        </div>
+                        <div className="p-6 overflow-hidden">
+                            {registrationData.pembina_name ? (
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Nama Pembina</dt>
+                                        <dd className="text-sm font-medium truncate" title={registrationData.pembina_name || undefined}>{registrationData.pembina_name}</dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Telepon</dt>
+                                        <dd className="text-sm font-medium truncate" title={registrationData.pembina_phone || undefined}>{registrationData.pembina_phone ?? "-"}</dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Hubungan</dt>
+                                        <dd className="text-sm font-medium capitalize truncate" title={registrationData.pembina_relationship || undefined}>{registrationData.pembina_relationship ?? "-"}</dd>
+                                    </div>
+                                    <div className="min-w-0 lg:col-span-2 xl:col-span-1">
+                                        <dt className="text-sm text-muted-foreground mb-1">Institusi & Kota</dt>
+                                        <dd className="text-sm font-medium flex flex-col gap-0.5">
+                                            <span className="truncate" title={registrationData.pembina_institution || undefined}>
+                                                {registrationData.pembina_institution ?? "-"}
+                                            </span>
+                                            {registrationData.pembina_city && (
+                                                <span className="truncate text-muted-foreground" title={registrationData.pembina_city}>
+                                                    {registrationData.pembina_city}
+                                                </span>
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <dt className="text-sm text-muted-foreground mb-1">Identitas</dt>
+                                        <dd className="text-sm font-medium truncate">
+                                            {registrationData.pembina_id_link ? (
+                                                <a href={getSafeUrl(registrationData.pembina_id_link) ?? "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center">
+                                                    <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                                                    Lihat Dokumen
+                                                </a>
+                                            ) : "-"}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            ) : (
+                                <p className="text-muted-foreground text-sm text-center py-4">Tim ini tidak menambahkan pembina.</p>
+                            )}
+                        </div>
+                    </section>
                 </div>
 
                 {/* Right Column (Administrative Meta) - Hidden on Mobile, Shown on XL */}
@@ -455,8 +626,6 @@ export default async function MechaturaRegistrationDetails({
                         registrationData={registrationData}
                         competition={competition}
                         paymentStatus={paymentStatus}
-                        memberDocument={memberDocument}
-                        robotDocument={robotDocument}
                     />
                 </div>
             </div>

@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase-admin";
+import { createClient } from "@/utils/supabase/server";
 import {
   deleteMechaturaRegistration,
   findLatestMechaturaRegistrationForUser,
@@ -25,9 +25,9 @@ export async function deleteExpiredRegistration(registrationId: string) {
         throw new Error("Format ID pendaftaran tidak valid");
     }
 
-    const adminSupabase = createAdminClient();
+    const supabase = await createClient();
     const latestRegistration = await findLatestMechaturaRegistrationForUser(
-        adminSupabase,
+        supabase,
         user.id
     );
 
@@ -40,7 +40,7 @@ export async function deleteExpiredRegistration(registrationId: string) {
     }
 
     const result = await deleteMechaturaRegistration(
-        adminSupabase,
+        supabase,
         parseResult.data.registrationId,
         user.id
     );

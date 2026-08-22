@@ -7,19 +7,17 @@ import {
 export type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>;
 export type MechaturaCategoryFilter = "all" | MechaturaCompetitionType;
 export type MechaturaPaymentFilter = "all" | PaymentStatus;
-export type MechaturaStatusFilter = "all" | "waiting_payment" | "registered" | "approved" | "rejected";
+export type MechaturaSubmissionFilter = "all" | "draft" | "submitted";
+export type MechaturaApprovalFilter = "all" | "pending" | "approved" | "revision";
 
 export const categoryFilters: MechaturaCategoryFilter[] = ["all", "sumo", "transporter"];
-export const statusFilters: MechaturaStatusFilter[] = ["all", "waiting_payment", "registered", "approved", "rejected"];
+export const submissionFilters: MechaturaSubmissionFilter[] = ["all", "draft", "submitted"];
+export const approvalFilters: MechaturaApprovalFilter[] = ["all", "pending", "approved", "revision"];
 export const paymentFilters: MechaturaPaymentFilter[] = [
     "all",
     "unpaid",
-    "pending",
-    "paid",
-    "settled",
-    "failed",
-    "expired",
-    "cancelled",
+    "pending_verification",
+    "verified",
 ];
 const completedPaymentStatuses = [...sharedCompletedPaymentStatuses];
 export const pageSizeOptions = [10, 20, 30, 40] as const;
@@ -27,18 +25,18 @@ export const defaultPageSize = 10;
 
 export const mechaturaRegistrationColumns = [
     "id",
-    "team_id",
-    "team_name",
-    "institution",
-    "competition_type",
-    "robot_name",
+    "join_code",
+    "name",
+    "category",
     "payment_status",
-    "attended",
-    "check_in_time",
+    "payment_proof_link",
+    "robot_document_link",
+    "submission_status",
+    "admin_approval_status",
     "created_at",
-    "registration_status",
-    "member_document_path",
-    "robot_document_path",
+    "pembina_name",
+    "pembina_phone",
+    "mechatura_members(id, user_id, is_leader, full_name, phone_number, institution, city, instagram_username, student_id_link, created_at)",
 ].join(",");
 
 export const firstParam = (value: string | string[] | undefined) =>
@@ -63,9 +61,24 @@ export const normalizePageSize = (value: string | undefined) => {
         : defaultPageSize;
 };
 
+export function getSafeUrl(url: string | null | undefined): string | undefined {
+    if (!url) return undefined;
+    try {
+        const parsed = new URL(url);
+        if (['http:', 'https:'].includes(parsed.protocol)) {
+            return parsed.toString();
+        }
+    } catch {
+        // Invalid URL
+    }
+    return undefined;
+}
+
 export const toSearchPattern = (value: string) => {
     const sanitized = value.replace(/[,%()]/g, " ").trim();
-    return sanitized ? `%${sanitized}%` : "";
+    if (!sanitized) return "";
+    const wildcarded = sanitized.replace(/\s+/g, "%");
+    return `%${wildcarded}%`;
 };
 
 export const toInList = (values: string[]) => `(${values.join(",")})`;
@@ -81,25 +94,35 @@ export const applyMechaturaFilters = <T,>(
     {
         categoryFilter,
         paymentFilter,
-        statusFilter,
+        submissionFilter,
+        approvalFilter,
         searchPattern,
-        leaderRegistrationIds,
+        memberRegistrationIds,
     }: {
         categoryFilter: MechaturaCategoryFilter;
         paymentFilter: MechaturaPaymentFilter;
-        statusFilter: MechaturaStatusFilter;
+        submissionFilter: MechaturaSubmissionFilter;
+        approvalFilter: MechaturaApprovalFilter;
         searchPattern: string;
-        leaderRegistrationIds: string[];
+        memberRegistrationIds: string[];
     }
 ) => {
     let filteredQuery = query as FilterableQuery<T>;
 
     if (categoryFilter !== "all") {
-        filteredQuery = filteredQuery.eq("competition_type", categoryFilter);
+        const categoryMap: Record<string, string> = {
+            "sumo": "robot_sumo",
+            "transporter": "robot_transporter",
+        };
+        filteredQuery = filteredQuery.eq("category", categoryMap[categoryFilter] || categoryFilter);
     }
 
-    if (statusFilter !== "all") {
-        filteredQuery = filteredQuery.eq("registration_status", statusFilter);
+    if (submissionFilter !== "all") {
+        filteredQuery = filteredQuery.eq("submission_status", submissionFilter);
+    }
+
+    if (approvalFilter !== "all") {
+        filteredQuery = filteredQuery.eq("admin_approval_status", approvalFilter);
     }
 
     if (paymentFilter === "unpaid") {
@@ -109,18 +132,11 @@ export const applyMechaturaFilters = <T,>(
     }
 
     if (searchPattern) {
-        const registrationFilters = [
-            `team_id.ilike.${searchPattern}`,
-            `team_name.ilike.${searchPattern}`,
-            `institution.ilike.${searchPattern}`,
-            `robot_name.ilike.${searchPattern}`,
-        ];
-
-        if (leaderRegistrationIds.length > 0) {
-            registrationFilters.push(`id.in.${toInList(leaderRegistrationIds)}`);
-        }
-
-        filteredQuery = filteredQuery.or(registrationFilters.join(","));
+        filteredQuery = filteredQuery.or(
+            `name.ilike.${searchPattern},join_code.ilike.${searchPattern},pembina_name.ilike.${searchPattern}${
+                memberRegistrationIds.length > 0 ? `,id.in.${toInList(memberRegistrationIds)}` : ""
+            }`
+        );
     }
 
     return filteredQuery as T;
@@ -132,21 +148,24 @@ export const buildMechaturaPageHref = ({
     search,
     category,
     payment,
-    status,
+    submission,
+    approval,
 }: {
     page: number;
     pageSize: number;
     search?: string;
     category: MechaturaCategoryFilter;
     payment: MechaturaPaymentFilter;
-    status: MechaturaStatusFilter;
+    submission: MechaturaSubmissionFilter;
+    approval: MechaturaApprovalFilter;
 }) => {
     const query = new URLSearchParams();
 
     if (search?.trim()) query.set("search", search.trim());
     if (category !== "all") query.set("category", category);
     if (payment !== "all") query.set("payment", payment);
-    if (status !== "all") query.set("status", status);
+    if (submission !== "all") query.set("submission", submission);
+    if (approval !== "all") query.set("approval", approval);
     if (page > 1) query.set("page", String(page));
     if (pageSize !== defaultPageSize) query.set("pageSize", String(pageSize));
 

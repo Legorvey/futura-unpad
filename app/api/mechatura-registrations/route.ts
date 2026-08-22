@@ -12,7 +12,6 @@ import {
 } from "@/lib/payment";
 import { getMechaturaRegistrationFee } from "@/lib/mechatura/batch";
 import { rateLimit } from "@/lib/rate-limit";
-import { createAdminClient } from "@/lib/supabase-admin";
 import {
   DEFAULT_MECHATURA_DOCUMENT_MAX_SIZE,
   mechaturaSubmissionSchema,
@@ -58,7 +57,7 @@ const isPdfBinary = async (file: File): Promise<boolean> => {
 let isDocumentBucketReady = false;
 
 const ensureDocumentBucket = async (
-  supabase: ReturnType<typeof createAdminClient>
+  supabase: any
 ) => {
   if (isDocumentBucketReady) {
     return true;
@@ -112,9 +111,9 @@ export async function POST(request: Request) {
     return jsonError("Please log in before registering for Mechatura.", 401);
   }
 
-  const adminSupabase = createAdminClient();
+  const supabase = await createClient();
   const existingRegistration = await findLatestMechaturaRegistrationForUser(
-    adminSupabase,
+    supabase,
     user.id
   ).catch((error) => {
     console.error("Mechatura registration lookup failed", error.message);
@@ -127,7 +126,7 @@ export async function POST(request: Request) {
 
   if (existingRegistration && isMechaturaPaymentExpired(existingRegistration)) {
     const deleted = await deleteMechaturaRegistration(
-      adminSupabase,
+      supabase,
       existingRegistration.id,
       user.id
     ).catch((error) => {
@@ -199,7 +198,7 @@ export async function POST(request: Request) {
   const memberDocumentPath = `${registrationId}/member-document.pdf`;
   const robotDocumentPath = `${registrationId}/robot-document.pdf`;
 
-  const { data: registration, error: registrationError } = await adminSupabase
+  const { data: registration, error: registrationError } = await supabase
     .from("mechatura_registrations")
     .insert({
       id: registrationId,
@@ -227,7 +226,7 @@ export async function POST(request: Request) {
     );
 
     const latestRegistration = await findLatestMechaturaRegistrationForUser(
-      adminSupabase,
+      supabase,
       user.id
     ).catch(() => null);
 
@@ -244,11 +243,11 @@ export async function POST(request: Request) {
     return serverError();
   }
 
-  const hasDocumentBucket = await ensureDocumentBucket(adminSupabase);
+  const hasDocumentBucket = await ensureDocumentBucket(supabase);
 
   if (!hasDocumentBucket) {
     console.error("Mechatura document bucket is unavailable");
-    await adminSupabase
+    await supabase
       .from("mechatura_registrations")
       .delete()
       .eq("id", registration.id);
@@ -256,13 +255,13 @@ export async function POST(request: Request) {
   }
 
   const documentUploads = await Promise.all([
-    adminSupabase.storage
+    supabase.storage
       .from(MECHATURA_DOCUMENT_BUCKET)
       .upload(memberDocumentPath, memberDocument, {
         contentType: "application/pdf",
         upsert: true,
       }),
-    adminSupabase.storage
+    supabase.storage
       .from(MECHATURA_DOCUMENT_BUCKET)
       .upload(robotDocumentPath, robotDocument, {
         contentType: "application/pdf",
@@ -274,7 +273,7 @@ export async function POST(request: Request) {
 
   if (documentUploadError) {
     console.error("Mechatura document upload failed", documentUploadError.message);
-    await adminSupabase
+    await supabase
       .from("mechatura_registrations")
       .delete()
       .eq("id", registration.id);
@@ -309,18 +308,18 @@ export async function POST(request: Request) {
       })),
   ];
 
-  const { error: membersError } = await adminSupabase
+  const { error: membersError } = await supabase
     .from("mechatura_members")
     .insert(memberRows);
 
   if (membersError) {
     console.error("Mechatura members insert failed", membersError.message);
     await Promise.allSettled([
-      adminSupabase
+      supabase
         .from("mechatura_registrations")
         .delete()
         .eq("id", registration.id),
-      adminSupabase.storage
+      supabase.storage
         .from(MECHATURA_DOCUMENT_BUCKET)
         .remove([memberDocumentPath, robotDocumentPath]),
     ]);

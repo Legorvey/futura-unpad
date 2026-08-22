@@ -2,8 +2,10 @@ import type { Metadata } from "next"
 /* eslint-disable */
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight } from "lucide-react"
+import { Ticket, Bot, BookOpen, CheckCircle2, Clock, ChevronRight, Crown, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { EditProfileDialog } from "@/components/edit-profile-dialog"
+import ProfileDashboardSidebar from "./sidebar"
 import {
   formatCurrency,
   isAcademicStatus,
@@ -55,6 +57,21 @@ type ProfileMechaturaLeader = {
   is_leader: boolean
 }
 
+const getInitials = (displayName: string | null | undefined, email: string | null | undefined) => {
+  const nameToUse = displayName || email?.split("@")[0] || "U"
+  const parts = nameToUse
+    .replace(/[._-]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+
+  if (parts.length === 0) return "U"
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("")
+}
+
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -91,7 +108,7 @@ export default async function ProfilePage() {
 
   const [
     { data: latestRegistration, error },
-    { data: latestMechaturaRegistration, error: mechaturaError },
+    { data: latestMechaturaMembership, error: mechaturaError },
   ] =
     await Promise.all([
       adminSupabase
@@ -105,14 +122,11 @@ export default async function ProfilePage() {
         .limit(1)
         .maybeSingle<ProfileRegistration>(),
       adminSupabase
-        .from("mechatura_registrations")
-        .select(
-          "id,team_name,institution,competition_type,robot_name,registration_status,payment_status,payment_amount,midtrans_order_id,created_at,paid_at,mechatura_members(full_name,email,phone,is_leader)"
-        )
+        .from("mechatura_members")
+        .select("id, is_leader, full_name, mechatura_teams(id, name, created_at, payment_status, category, submission_status, admin_approval_status, mechatura_members(id, is_leader, full_name))")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle<ProfileMechaturaRegistration>(),
+        .maybeSingle(),
     ])
 
   if (error || mechaturaError) {
@@ -135,9 +149,6 @@ export default async function ProfilePage() {
     throw new Error(membersError.message)
   }
 
-  const mechaturaMembers = latestMechaturaRegistration?.mechatura_members || [];
-  const mechaturaLeader = mechaturaMembers.find(m => m.is_leader);
-
   const groupMembers = membersData ?? []
   const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
   const checkedInCount = latestRegistration ? (latestRegistration.attended ? 1 : 0) + groupMembers.filter(m => m.attended).length : 0
@@ -145,152 +156,236 @@ export default async function ProfilePage() {
   const academicStatus = isAcademicStatus(latestRegistration?.status_akademika)
     ? latestRegistration.status_akademika
     : null
-  const mechaturaPaymentStatus = isPaymentStatus(
-    latestMechaturaRegistration?.payment_status
-  )
-    ? latestMechaturaRegistration.payment_status
-    : "unpaid"
-  const mechaturaCompetition = isMechaturaCompetitionType(
-    latestMechaturaRegistration?.competition_type
-  )
-    ? latestMechaturaRegistration.competition_type
-    : null
-  const isMechaturaPaymentComplete = isCompletedPaymentStatus(
-    mechaturaPaymentStatus
-  )
+
+  const hasMechaturaTeam = !!latestMechaturaMembership?.mechatura_teams;
+  const mechaturaTeam = Array.isArray(latestMechaturaMembership?.mechatura_teams)
+    ? latestMechaturaMembership?.mechatura_teams[0]
+    : latestMechaturaMembership?.mechatura_teams;
+
+  let mechaturaRoleText = "";
+  let mechaturaMemberCount = 0;
+  if (latestMechaturaMembership && mechaturaTeam && Array.isArray(mechaturaTeam.mechatura_members)) {
+    mechaturaMemberCount = mechaturaTeam.mechatura_members.length;
+    if (latestMechaturaMembership.is_leader) {
+      mechaturaRoleText = "Ketua";
+    } else {
+      const sortedNonLeaders = mechaturaTeam.mechatura_members
+        .filter((m: any) => !m.is_leader)
+        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+      const myIndex = sortedNonLeaders.findIndex((m: any) => m.id === latestMechaturaMembership.id);
+      mechaturaRoleText = myIndex !== -1 ? `Anggota ${myIndex + 1}` : "Anggota";
+    }
+  }
+
+
+
+  const displayName = user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split('@')[0] || 'Pengguna';
+
+  const lightThemeVars = {
+    '--background': '#f8fafc',
+    '--foreground': '#0f172a',
+    '--card': '#ffffff',
+    '--card-foreground': '#0f172a',
+    '--popover': '#ffffff',
+    '--popover-foreground': '#0f172a',
+    '--primary': '#fbbf24',
+    '--primary-foreground': '#0f172a',
+    '--secondary': '#f1f5f9',
+    '--secondary-foreground': '#0f172a',
+    '--muted': '#f8fafc',
+    '--muted-foreground': '#64748b',
+    '--accent': '#f1f5f9',
+    '--accent-foreground': '#0f172a',
+    '--border': '#e2e8f0',
+    '--input': '#e2e8f0',
+    '--ring': '#fbbf24',
+    '--radius': '0.75rem',
+  } as React.CSSProperties;
+
+  const initials = getInitials(user.user_metadata?.display_name || user.user_metadata?.username, user.email)
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <div className="space-y-6">
-        
-        {/* SEMINAR */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
-                <Ticket className="h-6 w-6 text-yellow-500" />
+    <div data-full-width className="w-full flex flex-col items-center pb-32 text-foreground" style={lightThemeVars}>
+      <div className="relative w-full max-w-[90rem] px-4 sm:px-8 space-y-6">
+
+        <section className="relative rounded-2xl border border-transparent lg:border-border bg-card text-card-foreground p-0 lg:p-8 lg:shadow-xl">
+          <div className="flex flex-col lg:flex-row items-stretch gap-0 relative lg:-mx-8 lg:-my-8 h-full rounded-[inherit]">
+            
+            {/* LEFT COLUMN: Profile Account Details */}
+            <ProfileDashboardSidebar>
+              <div className="p-5 md:p-6 rounded-2xl bg-card border border-border">
+                <div className="flex flex-col items-center text-center gap-4 mb-6 pb-6 border-b border-border">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-2xl font-medium text-primary">
+                    {initials}
+                  </div>
+                  <div className="w-full">
+                    <h2 className="text-xl font-semibold text-foreground mb-1 flex items-center justify-center gap-2">
+                      {user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split("@")[0] || "Pengguna"}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mb-5">{user.email}</p>
+                    <EditProfileDialog
+                      initialDisplayName={user.user_metadata?.display_name || ""}
+                      initialUsername={user.user_metadata?.username || ""}
+                      initialEmail={user.email || ""}
+                      className="border border-border bg-transparent text-foreground hover:bg-muted font-medium px-5 h-9 rounded-md w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Alamat Email</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-foreground truncate">{user.email ?? "-"}</p>
+                      {user.email_confirmed_at && (
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-green-50 border border-green-200 px-2 py-0.5 text-[9px] font-semibold text-green-700 uppercase">
+                          Terverifikasi
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Username</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Terdaftar Sejak</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(user.created_at)}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Seminar Nasional</h2>
-                <p className="text-sm tracking-tight text-white/50">
-                  {latestRegistration ? `Terdaftar pada ${formatDate(latestRegistration.created_at)}` : "Pendaftaran saat ini belum dibuka"}
-                </p>
+            </ProfileDashboardSidebar>
+
+            {/* RIGHT COLUMN: Registrations */}
+            <section className="flex-1 space-y-6 p-6 sm:p-8 lg:p-10 transition-all duration-300 min-w-0 bg-background/50 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-foreground">Acara & Pendaftaran</h3>
               </div>
+              
+        {/* MECHATURA */}
+        <section className="bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border p-6">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-lg font-medium text-foreground">Mechatura</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Kompetisi Robotika tingkat Nasional
+              </p>
             </div>
-            {latestRegistration && (
-              <div className="flex items-center">
-                <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${checkedInCount > 0 ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-white/5 border-white/10 text-white/60'}`}>
-                  {checkedInCount > 0 ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {latestRegistration.registration_type === "group" ? `${checkedInCount}/${totalParticipants} Hadir` : (latestRegistration.attended ? "Hadir" : "Menunggu Kehadiran")}
-                </span>
-              </div>
+            {mechaturaTeam ? (
+              <span className={`inline-flex w-max self-start sm:self-auto items-center rounded-full border px-3 py-1 text-xs font-medium ${
+                mechaturaTeam.submission_status === 'submitted'
+                  ? mechaturaTeam.admin_approval_status === 'approved'
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : mechaturaTeam.admin_approval_status === "revision"
+                    ? 'bg-red-50 border-red-200 text-red-700'
+                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                  : 'bg-slate-100 border-slate-200 text-slate-600'
+              }`}>
+                {mechaturaTeam.submission_status === 'submitted' ? (
+                  mechaturaTeam.admin_approval_status === "approved" ? "Disetujui" : mechaturaTeam.admin_approval_status === "revision" ? "Revisi" : "Menunggu Verifikasi"
+                ) : (
+                  'Draft'
+                )}
+              </span>
+            ) : (
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+                 Belum Mendaftar
+               </span>
             )}
           </div>
 
-          <div className="px-2">
-            {latestRegistration ? (
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <p className="text-sm text-white/40 tracking-tight mb-2">Nama Peserta</p>
-                  <p className="text-lg font-medium tracking-tight text-white">{latestRegistration.nama_lengkap}</p>
+          <div className="p-6">
+            {mechaturaTeam ? (
+              <div className="flex flex-col sm:flex-row items-end justify-between gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-6 flex-1 w-full sm:w-auto">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Kategori</p>
+                    <p className="text-sm font-medium text-foreground capitalize">{mechaturaTeam.category.replace('_', ' ')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Nama Tim</p>
+                    <p className="text-sm font-medium text-foreground">{mechaturaTeam.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Peran</p>
+                    <p className="text-sm font-medium text-foreground">{mechaturaRoleText}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Anggota</p>
+                    <p className="text-sm font-medium text-foreground">{mechaturaMemberCount} dari 3</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-white/40 tracking-tight mb-2">Asal Institusi</p>
-                  <p className="text-lg font-medium tracking-tight text-white">{latestRegistration.asal_institusi}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-white/40 tracking-tight mb-2">Nomor Telepon</p>
-                  <p className="text-lg font-medium tracking-tight text-white">{latestRegistration.no_telepon}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-white/40 tracking-tight mb-2">Status & Biaya</p>
-                  <p className="text-lg font-medium tracking-tight text-white">
-                    {academicStatus ? statusLabels[academicStatus] : "-"} <span className="text-white/40 font-normal ml-1">(Gratis)</span>
-                  </p>
+                <div className="w-full sm:w-auto shrink-0 mt-4 sm:mt-0">
+                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                    <Link href="/profile/mechatura" prefetch={true}>
+                      Kelola Tim
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <p className="text-xl font-medium tracking-tight text-white mb-3">Pendaftaran Belum Dibuka</p>
-                <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Pendaftaran Seminar Nasional saat ini belum dibuka. Lihat detail selengkapnya dengan mengklik tombol di bawah.</p>
-                <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
-                  <Link href="/seminar-nasional" prefetch={true}>Lihat Detail Acara</Link>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">Anda belum membentuk atau bergabung dengan tim Mechatura.</p>
+                <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                  <Link href="/mechatura" prefetch={true}>Daftar Sekarang</Link>
                 </Button>
               </div>
             )}
           </div>
         </section>
 
-        {/* MECHATURA */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
-                <Bot className="h-6 w-6 text-[#307FE2]" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Mechatura</h2>
-                <p className="text-sm tracking-tight text-white/50">
-                  {latestMechaturaRegistration ? `Terdaftar pada ${formatDate(latestMechaturaRegistration.created_at)}` : "Pendaftaran saat ini belum dibuka"}
-                </p>
-              </div>
+        {/* SEMINAR */}
+        <section className="bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border p-6">
+            <div>
+              <h2 className="text-lg font-medium text-foreground mb-1">Seminar Nasional</h2>
+              <p className="text-sm text-muted-foreground">
+                {latestRegistration ? `Terdaftar pada ${formatDate(latestRegistration.created_at)}` : "Sesi inspiratif dan teknologi"}
+              </p>
             </div>
-            {latestMechaturaRegistration && (
-              <div className="flex items-center">
-                <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${isMechaturaPaymentComplete ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
-                  {isMechaturaPaymentComplete ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {paymentStatusLabels[mechaturaPaymentStatus]}
-                </span>
-              </div>
+            {latestRegistration ? (
+              <span className={`inline-flex w-max self-start sm:self-auto items-center rounded-full border px-3 py-1 text-xs font-medium ${checkedInCount > 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                {latestRegistration.registration_type === "group" ? `${checkedInCount}/${totalParticipants} Hadir` : (latestRegistration.attended ? "Hadir" : "Menunggu Kehadiran")}
+              </span>
+            ) : (
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+                 Segera Dibuka
+               </span>
             )}
           </div>
 
-          <div className="px-2">
-            {latestMechaturaRegistration ? (
-              <div className="space-y-10">
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="p-6">
+            {latestRegistration ? (
+              <div className="flex flex-col sm:flex-row items-end justify-between gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-6 flex-1 w-full sm:w-auto">
                   <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Nama Tim</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{latestMechaturaRegistration.team_name}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Nama Peserta</p>
+                    <p className="text-sm font-medium text-foreground">{latestRegistration.nama_lengkap}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Kategori Lomba</p>
-                    <p className="text-lg font-medium tracking-tight text-white">
-                      {mechaturaCompetition ? mechaturaCompetitionLabels[mechaturaCompetition] : "-"}
+                    <p className="text-sm text-muted-foreground mb-1">Registrasi</p>
+                    <p className="text-sm font-medium text-foreground capitalize">
+                      {latestRegistration.registration_type === "group" && latestRegistration.group_name
+                        ? `Grup (${latestRegistration.group_name})`
+                        : latestRegistration.registration_type || "-"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Nama Robot</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{latestMechaturaRegistration.robot_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/40 tracking-tight mb-2">Ketua Tim</p>
-                    <p className="text-lg font-medium tracking-tight text-white">{mechaturaLeader?.full_name ?? "-"}</p>
-                  </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  {isMechaturaPaymentComplete ? (
-                    <Button asChild variant="outline" className="h-12 px-6 rounded-xl bg-white/[0.05] border-white/10 text-white hover:bg-white/[0.1] transition-colors">
-                      <Link href={`/payment/success?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
-                        Lihat Bukti Pembayaran <ChevronRight className="w-4 h-4 ml-2 opacity-70" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild variant="outline" className="h-12 px-6 rounded-xl bg-white/[0.05] border-white/10 text-white hover:bg-white/[0.1] transition-colors">
-                      <Link href={`/payment?order_id=${encodeURIComponent(latestMechaturaRegistration.midtrans_order_id)}`}>
-                        Detail Pembayaran <ChevronRight className="w-4 h-4 ml-2 opacity-70" />
-                      </Link>
-                    </Button>
-                  )}
+                <div className="w-full sm:w-auto shrink-0 mt-4 sm:mt-0">
+                  <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
+                    <Link href="/profile/seminar" prefetch={true}>Detail Registrasi</Link>
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <p className="text-xl font-medium tracking-tight text-white mb-3">Tim Belum Dibentuk</p>
-                <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Anda belum membentuk tim atau mendaftar untuk Kompetisi Robotika Mechatura.</p>
-                <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
-                  <Link href="/mechatura/form" prefetch={true}>Daftar Sekarang</Link>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional saat ini belum dibuka.</p>
+                <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
+                  <Link href="/seminar" prefetch={true}>Detail Acara</Link>
                 </Button>
               </div>
             )}
@@ -298,32 +393,31 @@ export default async function ProfilePage() {
         </section>
 
         {/* LOMBA KTI */}
-        <section className="relative rounded-3xl border border-white/10 bg-white/[0.02] p-[18px] sm:p-8 transition-colors hover:bg-white/[0.04]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/[0.08] backdrop-blur-md rounded-2xl border border-white/10">
-                <BookOpen className="h-6 w-6 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-medium tracking-tight text-white mb-1">Lomba Esai</h2>
-                <p className="text-sm tracking-tight text-white/50">
-                  Pendaftaran saat ini belum dibuka
-                </p>
-              </div>
+        <section className="bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border p-6">
+            <div>
+              <h2 className="text-lg font-medium text-foreground mb-1">Lomba Esai</h2>
+              <p className="text-sm text-muted-foreground">
+                Kompetisi esai tingkat Nasional
+              </p>
             </div>
+             <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+               Segera Dibuka
+             </span>
           </div>
 
-          <div className="px-2">
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-xl font-medium tracking-tight text-white mb-3">Pendaftaran Belum Dibuka</p>
-              <p className="text-base tracking-tight text-white/50 max-w-md mb-6">Pendaftaran Lomba Esai saat ini belum dibuka. Lihat detail selengkapnya dengan mengklik tombol di bawah.</p>
-              <Button asChild className="h-12 px-8 rounded-xl bg-white text-black hover:bg-white/90 font-medium">
-                <Link href="/lomba-esai" prefetch={true}>Lihat Detail Acara</Link>
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">Pendaftaran Lomba Esai saat ini belum dibuka.</p>
+              <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
+                <Link href="/lomba-esai" prefetch={true}>Detail Acara</Link>
               </Button>
             </div>
           </div>
         </section>
-
+            </section>
+          </div>
+        </section>
       </div>
     </div>
   )

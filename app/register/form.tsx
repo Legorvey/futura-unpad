@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "motion/react";
 import GoogleLoginButton from "../login/google-login";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 
-import { useAuth } from "@/components/auth-provider";
 import { useRegisterMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { signupSchema, type RegisterFormValues } from "@/lib/validation";
@@ -46,7 +46,11 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
     const [legalDialog, setLegalDialog] = useState<LegalDialogType | null>(null);
     const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
     const [otp, setOtp] = useState("");
+    const [otpErrorMessage, setOtpErrorMessage] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const otpInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(signupSchema),
@@ -73,23 +77,25 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
 
     // Listen for cross-tab verification (e.g. user clicked Magic Link in another tab)
     useEffect(() => {
-        if (!verifyEmail) return;
+        if (!verifyEmail || step !== 3) return;
 
-        const channel = new window.BroadcastChannel('auth-sync');
-        channel.onmessage = (event) => {
-            if (event.data === 'email_verified') {
-                toast.success("Email diverifikasi di tab lain!");
-                setVerifyEmail(null);
-                router.push("/login");
-            }
-        };
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const channel = new window.BroadcastChannel("auth-sync");
+            channel.onmessage = (event) => {
+                if (event.data === "email_verified") {
+                    toast.success("Email diverifikasi di tab lain!");
+                    setVerifyEmail(null);
+                    router.push(loginHref);
+                }
+            };
 
-        return () => channel.close();
-    }, [verifyEmail, router]);
+            return () => channel.close();
+        }
+    }, [verifyEmail, step, router, loginHref]);
 
-    // Explicitly lock body scroll when dialog is open
+    // Explicitly lock body scroll when legal dialog is open
     useEffect(() => {
-        if (legalDialog !== null || !!verifyEmail) {
+        if (legalDialog !== null) {
             document.documentElement.style.setProperty("overflow", "hidden", "important");
             document.body.style.setProperty("overflow", "hidden", "important");
         } else {
@@ -100,7 +106,7 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
             document.documentElement.style.removeProperty("overflow");
             document.body.style.removeProperty("overflow");
         };
-    }, [legalDialog, verifyEmail]);
+    }, [legalDialog]);
 
     const passwordStrength = getPasswordStrength(passwordValue);
 
@@ -109,15 +115,16 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         setSuccessMessage("");
 
         const data = await registerAccount.mutateAsync({
-                username: values.username,
-                email: values.email,
-                password: values.password,
-                confirmPassword: values.confirmPassword,
-                termsAccepted: values.termsAccepted,
+            username: values.username,
+            email: values.email,
+            password: values.password,
+            confirmPassword: values.confirmPassword,
+            termsAccepted: values.termsAccepted,
         }).catch((error) => {
-            setSubmitError(error instanceof Error ? error.message : "Registrasi gagal.");
+            const errorMsg = error instanceof Error ? error.message : "Registrasi gagal.";
+            setSubmitError(errorMsg);
             toast.error("Registrasi gagal", {
-                description: error instanceof Error ? error.message : "Terjadi kesalahan yang tidak terduga."
+                description: errorMsg,
             });
             return null;
         });
@@ -136,169 +143,451 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
         }
 
         setVerifyEmail(values.email);
-        setSuccessMessage("Pendaftaran berhasil. Silakan verifikasi email Anda.");
+        setStep(3);
         toast.success("Pendaftaran berhasil", {
-            description: "Silakan masukkan OTP yang dikirim ke email Anda untuk memverifikasi akun Anda."
+            description: "Silakan masukkan kode OTP yang dikirim ke email Anda untuk mengaktifkan akun.",
         });
     };
 
-    const requireLegalAgreement = () => {
-        if (termsAccepted) {
-            return true;
+    const handleVerifyOtp = async () => {
+        if (!verifyEmail || otp.length < 8 || isVerifying) return;
+
+        setIsVerifying(true);
+        setOtpErrorMessage("");
+
+        try {
+            const res = await fetch("/api/auth/verify-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: verifyEmail,
+                    token: otp,
+                    type: "signup",
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || "Kode verifikasi tidak valid atau telah kedaluwarsa.");
+            }
+
+            toast.success("Email berhasil diverifikasi! Silakan masuk ke akun Anda.");
+            router.push(loginHref);
+        } catch (err: unknown) {
+            let msg = err instanceof Error ? err.message : "Kode verifikasi tidak valid atau telah kedaluwarsa.";
+            if (
+                msg.toLowerCase().includes("expired") ||
+                msg.toLowerCase().includes("invalid") ||
+                msg.toLowerCase().includes("token")
+            ) {
+                msg = "Kode OTP tidak valid atau telah kedaluwarsa. Silakan periksa kembali email Anda.";
+            } else if (
+                msg.toLowerCase().includes("rate limit") ||
+                msg.toLowerCase().includes("too many")
+            ) {
+                msg = "Terlalu banyak percobaan. Silakan tunggu beberapa saat.";
+            }
+            setOtpErrorMessage(msg);
+            toast.error("Verifikasi gagal", { description: msg });
+        } finally {
+            setIsVerifying(false);
         }
-
-        setError("termsAccepted", {
-            type: "manual",
-            message: "Harap setujui Syarat dan Kebijakan Privasi.",
-        });
-        return false;
     };
+
 
     return (
         <>
             <FormProvider {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                    <FieldGroup className="gap-6">
-                    <FormTextField<RegisterFormValues>
-                        name="username"
-                        label="Username"
-                        placeholder="contoh: johndoe123"
-                        autoComplete="username"
-                    />
-
-                    <FormTextField<RegisterFormValues>
-                        name="email"
-                        label="Email"
-                        type="email"
-                        placeholder="contoh: johndoe@gmail.com"
-                        autoComplete="email"
-                    />
-
-                    <Field className="gap-2">
-                        <FormTextField<RegisterFormValues>
-                            name="password"
-                            label="Kata Sandi"
-                            type="password"
-                            placeholder="Masukkan kata sandi Anda"
-                            autoComplete="new-password"
-                        />
-
-                        {/* Password Strength Indicator */}
-                        <div className="mt-1 flex gap-1">
-                            {[1, 2, 3, 4].map((bar) => (
-                                <div
-                                    key={bar}
-                                    className={cn(
-                                        "h-1 flex-1 rounded-full transition-all duration-300",
-                                        passwordStrength >= bar
-                                            ? passwordStrength === 1
-                                                ? "bg-destructive"
-                                                : passwordStrength === 2
-                                                    ? "bg-orange-500"
-                                                    : passwordStrength === 3
-                                                        ? "bg-yellow-500"
-                                                        : "bg-emerald-500"
-                                            : "bg-muted-foreground/20"
-                                    )}
-                                />
-                            ))}
+                    {/* Step Indicator */}
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="flex items-center gap-1.5">
+                            <div
+                                className={cn(
+                                    "h-1.5 rounded-full transition-all duration-500",
+                                    step === 1 ? "w-8 bg-[#00205B]" : "w-4 bg-[#00205B]/20",
+                                    step === 2 && "cursor-pointer hover:bg-[#00205B]/40"
+                                )}
+                                onClick={() => {
+                                    if (step === 2) setStep(1);
+                                }}
+                            />
+                            <div
+                                className={cn(
+                                    "h-1.5 rounded-full transition-all duration-500",
+                                    step === 2 ? "w-8 bg-[#00205B]" : "w-4 bg-[#00205B]/20"
+                                )}
+                            />
+                            <div
+                                className={cn(
+                                    "h-1.5 rounded-full transition-all duration-500",
+                                    step === 3 ? "w-8 bg-[#00205B]" : "w-4 bg-[#00205B]/20"
+                                )}
+                            />
                         </div>
-                        {passwordStrength > 0 && (
-                            <p className={cn(
-                                "text-xs font-medium text-right transition-colors duration-300",
-                                passwordStrength === 1 ? "text-destructive" :
-                                    passwordStrength === 2 ? "text-orange-500" :
-                                        passwordStrength === 3 ? "text-yellow-500" :
-                                            "text-emerald-500"
-                            )}>
-                                {passwordStrength === 1 ? "Sangat Lemah" : passwordStrength === 2 ? "Lemah" : passwordStrength === 3 ? "Kuat" : "Sangat Kuat"}
-                            </p>
+                        <span className="text-sm font-medium text-zinc-500">
+                            {step === 1
+                                ? "Informasi Akun (1/3)"
+                                : step === 2
+                                ? "Kata Sandi (2/3)"
+                                : "Verifikasi Email (3/3)"}
+                        </span>
+                    </div>
+
+                    <FieldGroup className="gap-6">
+                        {/* STEP 1: Account Info */}
+                        {step === 1 && (
+                            <motion.div
+                                key="step-1"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                className="space-y-6"
+                            >
+                                <FormTextField<RegisterFormValues>
+                                    name="username"
+                                    label="Username"
+                                    placeholder="contoh: johndoe123"
+                                    autoComplete="username"
+                                />
+
+                                <FormTextField<RegisterFormValues>
+                                    name="email"
+                                    label="Email"
+                                    type="email"
+                                    placeholder="contoh: johndoe@gmail.com"
+                                    autoComplete="email"
+                                />
+
+                                <Field className="gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={async () => {
+                                            const isValid = await form.trigger(["username", "email"]);
+                                            if (isValid) setStep(2);
+                                        }}
+                                        className="h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm sm:text-base transition-all shadow-sm w-full"
+                                    >
+                                        Selanjutnya
+                                    </Button>
+
+                                    <div className="flex items-center gap-4 my-2">
+                                        <div className="h-px flex-1 bg-black/10"></div>
+                                        <span className="text-sm text-zinc-500 font-medium lowercase">atau</span>
+                                        <div className="h-px flex-1 bg-black/10"></div>
+                                    </div>
+
+                                    <GoogleLoginButton />
+                                </Field>
+                                <p className="text-center text-sm text-zinc-500">
+                                    Sudah punya akun?{" "}
+                                    <Link
+                                        href={loginHref}
+                                        prefetch={false}
+                                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                    >
+                                        Masuk
+                                    </Link>
+                                </p>
+                            </motion.div>
                         )}
-                    </Field>
 
-                    <FormTextField<RegisterFormValues>
-                        name="confirmPassword"
-                        label="Konfirmasi Kata Sandi"
-                        type="password"
-                        placeholder="Konfirmasi kata sandi Anda"
-                        autoComplete="new-password"
-                    />
-
-                <Field orientation="horizontal" className="items-start gap-3">
-                    <Checkbox
-                        id="termsAccepted"
-                        checked={termsAccepted}
-                        aria-invalid={!!errors.termsAccepted}
-                        aria-describedby={errors.termsAccepted ? "termsAccepted-error" : undefined}
-                        onCheckedChange={(checked) => {
-                            const accepted = checked === true;
-                            setValue("termsAccepted", accepted, {
-                                shouldDirty: true,
-                                shouldTouch: true,
-                                shouldValidate: true,
-                            });
-                            if (accepted) {
-                                clearErrors("termsAccepted");
-                            }
-                        }}
-                    />
-                    <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-sm leading-5 text-white/70">
-                            Saya setuju dengan{" "}
-                            <button
-                                type="button"
-                                className="cursor-pointer font-medium text-blue-300 hover:text-white underline-offset-4 hover:underline transition-colors"
-                                onClick={() => setLegalDialog("terms")}
+                        {/* STEP 2: Password & Terms */}
+                        {step === 2 && (
+                            <motion.div
+                                key="step-2"
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="space-y-6"
                             >
-                                Syarat
-                            </button>{" "}
-                            dan{" "}
-                            <button
-                                type="button"
-                                className="cursor-pointer font-medium text-blue-300 hover:text-white underline-offset-4 hover:underline transition-colors"
-                                onClick={() => setLegalDialog("privacy")}
+                                <Field className="gap-2">
+                                    <FormTextField<RegisterFormValues>
+                                        name="password"
+                                        label="Kata Sandi"
+                                        type="password"
+                                        placeholder="Masukkan kata sandi Anda"
+                                        autoComplete="new-password"
+                                    />
+
+                                    {/* Password Strength Indicator */}
+                                    <div className="mt-1 flex gap-1">
+                                        {[1, 2, 3, 4].map((bar) => (
+                                            <div
+                                                key={bar}
+                                                className={cn(
+                                                    "h-1 flex-1 rounded-full transition-all duration-300",
+                                                    passwordStrength >= bar
+                                                        ? passwordStrength === 1
+                                                            ? "bg-destructive"
+                                                            : passwordStrength === 2
+                                                            ? "bg-orange-500"
+                                                            : passwordStrength === 3
+                                                            ? "bg-yellow-500"
+                                                            : "bg-emerald-500"
+                                                        : "bg-muted-foreground/20"
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                    {passwordStrength > 0 && (
+                                        <p
+                                            className={cn(
+                                                "text-xs font-medium text-right transition-colors duration-300",
+                                                passwordStrength === 1
+                                                    ? "text-destructive"
+                                                    : passwordStrength === 2
+                                                    ? "text-orange-500"
+                                                    : passwordStrength === 3
+                                                    ? "text-yellow-500"
+                                                    : "text-emerald-500"
+                                            )}
+                                        >
+                                            {passwordStrength === 1
+                                                ? "Sangat Lemah"
+                                                : passwordStrength === 2
+                                                ? "Lemah"
+                                                : passwordStrength === 3
+                                                ? "Kuat"
+                                                : "Sangat Kuat"}
+                                        </p>
+                                    )}
+                                </Field>
+
+                                <FormTextField<RegisterFormValues>
+                                    name="confirmPassword"
+                                    label="Konfirmasi Kata Sandi"
+                                    type="password"
+                                    placeholder="Konfirmasi kata sandi Anda"
+                                    autoComplete="new-password"
+                                />
+
+                                <Field orientation="horizontal" className="items-start gap-3">
+                                    <Checkbox
+                                        id="termsAccepted"
+                                        checked={termsAccepted}
+                                        aria-invalid={!!errors.termsAccepted}
+                                        aria-describedby={errors.termsAccepted ? "termsAccepted-error" : undefined}
+                                        onCheckedChange={(checked) => {
+                                            const accepted = checked === true;
+                                            setValue("termsAccepted", accepted, {
+                                                shouldDirty: true,
+                                                shouldTouch: true,
+                                                shouldValidate: true,
+                                            });
+                                            if (accepted) {
+                                                clearErrors("termsAccepted");
+                                            }
+                                        }}
+                                    />
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                        <p className="text-sm leading-5 text-zinc-500">
+                                            Saya setuju dengan{" "}
+                                            <button
+                                                type="button"
+                                                className="cursor-pointer font-medium text-blue-600 hover:text-blue-700 underline-offset-4 hover:underline transition-colors"
+                                                onClick={() => setLegalDialog("terms")}
+                                            >
+                                                Syarat
+                                            </button>{" "}
+                                            dan{" "}
+                                            <button
+                                                type="button"
+                                                className="cursor-pointer font-medium text-blue-600 hover:text-blue-700 underline-offset-4 hover:underline transition-colors"
+                                                onClick={() => setLegalDialog("privacy")}
+                                            >
+                                                Kebijakan Privasi
+                                            </button>
+                                            .
+                                        </p>
+                                        {errors.termsAccepted ? (
+                                            <FieldError id="termsAccepted-error">{errors.termsAccepted.message}</FieldError>
+                                        ) : null}
+                                    </div>
+                                </Field>
+
+                                {submitError && <FieldError>{submitError}</FieldError>}
+                                {successMessage && (
+                                    <div className="text-sm font-medium text-emerald-600">{successMessage}</div>
+                                )}
+
+                                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                                    <Button
+                                        type="button"
+                                        onClick={() => setStep(1)}
+                                        className="h-11 rounded-xl font-semibold flex-1 bg-white text-black border border-zinc-200 hover:bg-zinc-50 shadow-sm transition-all"
+                                    >
+                                        Kembali
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        className="h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm sm:text-base transition-all shadow-sm flex-1"
+                                        disabled={registerAccount.isPending}
+                                    >
+                                        {registerAccount.isPending ? "Membuat akun..." : "Buat Akun"}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* STEP 3: Email OTP Verification (Simple & Elegant Segmented Design) */}
+                        {step === 3 && (
+                            <motion.div
+                                key="step-3"
+                                initial={{ opacity: 0, scale: 0.98, y: 6 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, y: -6 }}
+                                className="space-y-6"
                             >
-                                Kebijakan Privasi
-                            </button>
-                            .
-                        </p>
-                        {errors.termsAccepted ? (
-                            <FieldError id="termsAccepted-error">{errors.termsAccepted.message}</FieldError>
-                        ) : null}
-                    </div>
-                </Field>
+                                <div className="space-y-1.5">
+                                    <h2 className="text-xl font-semibold text-neutral-900 tracking-tight">
+                                        Verifikasi Email
+                                    </h2>
+                                    <p className="text-sm text-zinc-500 leading-relaxed">
+                                        Kode 8 digit telah dikirim ke{" "}
+                                        <span className="font-semibold text-neutral-900 break-all">
+                                            {verifyEmail}
+                                        </span>
+                                    </p>
+                                </div>
 
-                {submitError && <FieldError>{submitError}</FieldError>}
-                {successMessage && <div className="text-sm font-medium text-emerald-400">{successMessage}</div>}
+                                <div className="space-y-3 py-1">
+                                    {/* Segmented OTP Input */}
+                                    <div
+                                        className="relative flex flex-col items-center justify-center cursor-text py-2"
+                                        onClick={() => otpInputRef.current?.focus()}
+                                    >
+                                        <input
+                                            ref={otpInputRef}
+                                            type="text"
+                                            inputMode="numeric"
+                                            autoComplete="one-time-code"
+                                            pattern="[0-9]*"
+                                            maxLength={8}
+                                            value={otp}
+                                            onChange={(e) => {
+                                                setOtpErrorMessage("");
+                                                setOtp(e.target.value.replace(/\D/g, "").slice(0, 8));
+                                            }}
+                                            onFocus={() => setIsInputFocused(true)}
+                                            onBlur={() => setIsInputFocused(false)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" && otp.length === 8 && !isVerifying) {
+                                                    e.preventDefault();
+                                                    handleVerifyOtp();
+                                                }
+                                            }}
+                                            aria-label="Kode verifikasi 8 digit"
+                                            className="absolute inset-0 opacity-0 pointer-events-auto cursor-text w-full h-full"
+                                            disabled={isVerifying}
+                                            autoFocus
+                                        />
 
-                <Field className="gap-2">
-                    <Button
-                        type="submit"
-                        className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold text-sm sm:text-base transition-all shadow-sm"
-                        disabled={registerAccount.isPending}
-                    >
-                        {registerAccount.isPending ? "Membuat akun..." : "Buat Akun"}
-                    </Button>
+                                        <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                                {[0, 1, 2, 3].map((index) => {
+                                                    const char = otp[index] || "";
+                                                    const isCurrent =
+                                                        isInputFocused &&
+                                                        (otp.length === index || (otp.length === 8 && index === 7));
+                                                    return (
+                                                        <div
+                                                            key={index}
+                                                            className={cn(
+                                                                "w-8 sm:w-10 h-11 sm:h-12 rounded-xl flex items-center justify-center font-mono text-lg sm:text-xl font-semibold transition-all duration-150 select-none",
+                                                                isCurrent
+                                                                    ? "border-2 border-[#00205B] ring-2 ring-[#00205B]/15 bg-white text-neutral-900 shadow-xs"
+                                                                    : char
+                                                                    ? "border border-zinc-300 bg-white text-neutral-900"
+                                                                    : "border border-zinc-200 bg-zinc-50/70 text-transparent",
+                                                                otpErrorMessage &&
+                                                                    "border-destructive ring-2 ring-destructive/15 bg-destructive/[0.02]"
+                                                            )}
+                                                        >
+                                                            {char ||
+                                                                (isCurrent && !char ? (
+                                                                    <span className="inline-block w-0.5 h-5 bg-[#00205B] animate-pulse" />
+                                                                ) : (
+                                                                    ""
+                                                                ))}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
 
-                    <div className="flex items-center gap-4 my-2">
-                        <div className="h-px flex-1 bg-white/20"></div>
-                        <span className="text-sm text-white/70 font-medium lowercase">atau</span>
-                        <div className="h-px flex-1 bg-white/20"></div>
-                    </div>
+                                            <span className="text-zinc-300 font-bold select-none text-xs sm:text-sm px-0.5">
+                                                –
+                                            </span>
 
-                    <GoogleLoginButton onBeforeLogin={requireLegalAgreement} />
-                </Field>
-                <p className="text-center text-sm text-white/70">
-                    Sudah punya akun?{" "}
-                    <Link
-                        href={loginHref}
-                        prefetch={false}
-                        className="text-blue-300 hover:text-white font-medium transition-colors"
-                    >
-                        Masuk
-                    </Link>
-                </p>
-                </FieldGroup>
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                                {[4, 5, 6, 7].map((index) => {
+                                                    const char = otp[index] || "";
+                                                    const isCurrent = isInputFocused && otp.length === index;
+                                                    return (
+                                                        <div
+                                                            key={index}
+                                                            className={cn(
+                                                                "w-8 sm:w-10 h-11 sm:h-12 rounded-xl flex items-center justify-center font-mono text-lg sm:text-xl font-semibold transition-all duration-150 select-none",
+                                                                isCurrent
+                                                                    ? "border-2 border-[#00205B] ring-2 ring-[#00205B]/15 bg-white text-neutral-900 shadow-xs"
+                                                                    : char
+                                                                    ? "border border-zinc-300 bg-white text-neutral-900"
+                                                                    : "border border-zinc-200 bg-zinc-50/70 text-transparent",
+                                                                otpErrorMessage &&
+                                                                    "border-destructive ring-2 ring-destructive/15 bg-destructive/[0.02]"
+                                                            )}
+                                                        >
+                                                            {char ||
+                                                                (isCurrent && !char ? (
+                                                                    <span className="inline-block w-0.5 h-5 bg-[#00205B] animate-pulse" />
+                                                                ) : (
+                                                                    ""
+                                                                ))}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {otpErrorMessage && (
+                                        <div
+                                            className="text-xs text-destructive font-medium text-center bg-destructive/10 py-2 px-3 rounded-lg border border-destructive/20"
+                                            role="alert"
+                                        >
+                                            {otpErrorMessage}
+                                        </div>
+                                    )}
+
+                                    <p className="text-xs text-zinc-400 text-center">
+                                        Tidak menerima kode? Periksa folder spam.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3 pt-1">
+                                    <Button
+                                        type="button"
+                                        className="w-full h-11 text-sm font-semibold tracking-wide rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white transition-all shadow-sm"
+                                        disabled={otp.length < 8 || isVerifying}
+                                        onClick={handleVerifyOtp}
+                                    >
+                                        {isVerifying ? "Memverifikasi..." : "Verifikasi"}
+                                    </Button>
+
+                                    <p className="text-center text-sm text-zinc-500">
+                                        Sudah terverifikasi?{" "}
+                                        <Link
+                                            href={loginHref}
+                                            prefetch={false}
+                                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                        >
+                                            Masuk
+                                        </Link>
+                                    </p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </FieldGroup>
                 </form>
             </FormProvider>
 
@@ -311,69 +600,6 @@ export default function RegisterForm({ loginHref = "/login" }: { loginHref?: str
                     }
                 }}
             />
-
-            <Dialog 
-                open={!!verifyEmail} 
-                onOpenChange={(open) => {
-                    if (!open && !isVerifying) {
-                        setVerifyEmail(null);
-                        setOtp("");
-                    }
-                }}
-            >
-                <DialogContent className="sm:max-w-md dark bg-[#00205B] border border-white/20 text-white custom-scrollbar rounded-2xl shadow-2xl p-6 sm:p-8">
-                    <DialogHeader className="space-y-2 text-center">
-                        <DialogTitle className="text-center text-2xl font-bold tracking-tight text-white">
-                            Periksa Email Anda
-                        </DialogTitle>
-                        <DialogDescription className="text-center text-sm text-blue-100/75 leading-relaxed">
-                            Kami telah mengirimkan kode 8 digit ke{" "}
-                            <span className="font-semibold text-white block mt-0.5">{verifyEmail}</span>
-                            Masukkan kode di bawah ini untuk mengaktifkan akun Anda.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex flex-col space-y-4 py-3">
-                        <input
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            maxLength={8}
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                            placeholder="00000000"
-                            className="mx-auto flex h-14 sm:h-16 w-full max-w-[280px] rounded-xl border-2 border-white/20 bg-white/[0.08] px-3 py-1 text-center text-3xl sm:text-4xl font-mono font-bold tracking-[0.25em] text-white placeholder:text-white/20 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all disabled:opacity-50"
-                        />
-                    </div>
-                    <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
-                        <Button
-                            type="button"
-                            className="w-full h-11 text-sm sm:text-base font-semibold tracking-wide rounded-xl bg-white hover:bg-white/90 text-neutral-950 transition-all shadow-sm"
-                            disabled={otp.length < 8 || isVerifying}
-                            onClick={async () => {
-                                setIsVerifying(true);
-                                try {
-                                    const res = await fetch("/api/auth/verify-otp", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ email: verifyEmail, token: otp }),
-                                    });
-                                    const data = await res.json();
-                                    if (!res.ok) throw new Error(data.error || "Verifikasi gagal");
-                                    
-                                    toast.success("Email berhasil diverifikasi!");
-                                    router.push("/login");
-                                } catch (err: any) {
-                                    toast.error(err.message);
-                                } finally {
-                                    setIsVerifying(false);
-                                }
-                            }}
-                        >
-                            {isVerifying ? "Memverifikasi..." : "Verifikasi Akun"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </>
     );
 }
@@ -493,7 +719,7 @@ function PrivacyContent() {
             <section className="space-y-2 pt-2">
                 <h3 className="font-medium text-white">Data Log & Cookies</h3>
                 <p>
-                    Kami mengumpulkan Data Log yang dikirimkan browser Anda (seperti alamat IP, versi browser, halaman yang dikunjungi, dan waktu kunjungan). Kami juga menggunakan "cookies" untuk mengumpulkan informasi guna meningkatkan layanan kami.
+                    Kami mengumpulkan Data Log yang dikirimkan browser Anda (seperti alamat IP, versi browser, halaman yang dikunjungi, dan waktu kunjungan). Kami juga menggunakan &quot;cookies&quot; untuk mengumpulkan informasi guna meningkatkan layanan kami.
                 </p>
             </section>
 

@@ -86,7 +86,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                             label={
                                 <div className="flex justify-between w-full">
                                     <span>Kata Sandi</span>
-                                    <Link href="/forgot-password" prefetch={false} className="text-right text-sm text-muted-foreground hover:text-white transition">Lupa kata sandi?</Link>
+                                    <Link href="/forgot-password" prefetch={false} className="text-right text-sm text-zinc-600 hover:text-black transition">Lupa kata sandi?</Link>
                                 </div>
                             }
                             type="password"
@@ -116,21 +116,21 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                     <Field className="gap-2">
                         <Button
                             type="submit"
-                            className="h-11 rounded-xl bg-white hover:bg-white/90 text-neutral-950 font-semibold text-sm sm:text-base transition-all shadow-sm"
+                            className="h-11 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm sm:text-base transition-all shadow-sm"
                             disabled={login.isPending}
                         >
                             {login.isPending ? "Sedang masuk..." : "Masuk"}
                         </Button>
 
                         <div className="flex items-center gap-4 my-2">
-                            <div className="h-px flex-1 bg-white/20"></div>
-                            <span className="text-sm text-white/70 font-medium lowercase">atau</span>
-                            <div className="h-px flex-1 bg-white/20"></div>
+                            <div className="h-px flex-1 bg-black/10"></div>
+                            <span className="text-sm text-zinc-500 font-medium lowercase">atau</span>
+                            <div className="h-px flex-1 bg-black/10"></div>
                         </div>
 
                         <GoogleLoginButton keepSignedIn={keepSignedIn} />
                     </Field>
-                    <p className="text-center text-sm text-white/70">
+                    <p className="text-center text-sm text-zinc-500">
                         Belum punya akun?{" "}
                         <Link
                             href={
@@ -139,7 +139,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                                     : "/register"
                             }
                             prefetch={false}
-                            className="text-blue-300 hover:text-white font-medium transition-colors"
+                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                         >
                             Daftar
                         </Link>

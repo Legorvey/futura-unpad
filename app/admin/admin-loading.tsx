@@ -1,6 +1,6 @@
 export default function AdminLoading() {
     return (
-        <div className="w-full space-y-8 animate-pulse">
+        <div className="mx-auto w-full max-w-7xl space-y-8 animate-pulse">
             <section className="flex flex-col gap-5 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-3 w-full">
                     <div className="h-4 w-32 bg-muted rounded"></div>
@@ -10,20 +10,6 @@ export default function AdminLoading() {
                         <div className="h-4 w-1/2 max-w-xl bg-muted rounded"></div>
                     </div>
                 </div>
-            </section>
-
-            <section className="flex flex-col gap-4 rounded-xl border border-border p-6 bg-card">
-                <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                        <div className="h-6 w-48 bg-muted rounded"></div>
-                        <div className="h-4 w-64 bg-muted rounded"></div>
-                    </div>
-                    <div className="space-y-2 text-right">
-                        <div className="h-8 w-32 bg-muted rounded ml-auto"></div>
-                        <div className="h-4 w-40 bg-muted rounded ml-auto"></div>
-                    </div>
-                </div>
-                <div className="mt-4 h-[300px] w-full bg-muted rounded"></div>
             </section>
 
             <section>

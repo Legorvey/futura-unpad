@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         return invalidRequest()
     }
 
-    const adminSupabase = createAdminClient()
+    const supabase = createAdminClient()
     const { registration_id, attended, bulk } = parsed.data
 
     try {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         }
 
         const updateSingleRegistration = async () => {
-            const { data: updatedRegistration, error: updateError } = await adminSupabase
+            const { data: updatedRegistration, error: updateError } = await supabase
                 .from("seminar_registrations")
                 .update(attendancePatch)
                 .eq("id", registration_id)
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ ok: true })
         }
 
-        const { data: registration, error: fetchError } = await adminSupabase
+        const { data: registration, error: fetchError } = await supabase
             .from("seminar_registrations")
             .select("id, is_main_contact, group_id")
             .eq("id", registration_id)
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         }
 
         if (registration.is_main_contact && registration.group_id) {
-            const { error: updateError } = await adminSupabase
+            const { error: updateError } = await supabase
                 .from("seminar_registrations")
                 .update(attendancePatch)
                 .eq("group_id", registration.group_id)

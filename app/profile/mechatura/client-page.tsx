@@ -181,7 +181,7 @@ function TeamHeaderSection({ team, currentUserMembership, allMembers, copyCode, 
           )}
         </div>
         <p className="text-muted-foreground capitalize text-base mb-6 md:mb-0">
-          Kategori: {team.category.replace("_", " ")}
+          Kategori: {typeof team.category === 'string' ? team.category.replace(/_/g, " ") : "Unknown"}
         </p>
         <div className="mt-6">
           <TeamManagementSection team={team} currentUserMembership={currentUserMembership} allMembers={allMembers} isSubmitted={isSubmitted} />

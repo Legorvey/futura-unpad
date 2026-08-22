@@ -3,6 +3,7 @@
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { randomBytes } from "crypto";
 
 const IdentityDataSchema = z.object({
   full_name: z.string().min(2).max(255),
@@ -15,19 +16,34 @@ const IdentityDataSchema = z.object({
 
 export type IdentityData = z.infer<typeof IdentityDataSchema>;
 
+const CreateTeamSchema = z.object({
+  category: z.enum(["robot_sumo", "robot_transporter"]),
+  teamName: z.string().min(3).max(50)
+});
+
+const JoinTeamSchema = z.object({
+  joinCode: z.string().length(6),
+  selectedCategory: z.enum(["robot_sumo", "robot_transporter"])
+});
+
 function generateJoinCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return randomBytes(3).toString("hex").toUpperCase();
 }
 
 /**
  * Create a new team and add the current user as the leader.
  */
 export async function createTeam(category: string, teamName: string) {
+  const parsed = CreateTeamSchema.safeParse({ category, teamName });
+  if (!parsed.success) {
+    return { success: false, error: "Data input tidak valid." };
+  }
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error("You must be logged in to create a team.");
+    return { success: false, error: "You must be logged in to create a team." };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -39,7 +55,7 @@ export async function createTeam(category: string, teamName: string) {
     .maybeSingle();
 
   if (existingMembership) {
-    throw new Error("Anda sudah terdaftar di sebuah tim.");
+    return { success: false, error: "Anda sudah terdaftar di sebuah tim." };
   }
 
   const joinCode = generateJoinCode();
@@ -58,7 +74,8 @@ export async function createTeam(category: string, teamName: string) {
     .single();
 
   if (teamError) {
-    throw new Error(teamError.message);
+    console.error("Team creation error:", teamError);
+    return { success: false, error: "Gagal membuat tim. Silakan coba lagi." };
   }
 
   // 2. Add leader to members
@@ -72,8 +89,9 @@ export async function createTeam(category: string, teamName: string) {
 
   if (memberError) {
     // Rollback: Delete the orphaned team if member insertion fails
+    console.error("Member insertion error:", memberError);
     await supabaseAdmin.from("mechatura_teams").delete().eq("id", team.id);
-    throw new Error(memberError.message);
+    return { success: false, error: "Gagal menambahkan anggota. Silakan coba lagi." };
   }
 
   revalidatePath("/profile", "layout");
@@ -84,11 +102,16 @@ export async function createTeam(category: string, teamName: string) {
  * Join an existing team using a join code.
  */
 export async function joinTeam(joinCode: string, selectedCategory: string) {
+  const parsed = JoinTeamSchema.safeParse({ joinCode, selectedCategory });
+  if (!parsed.success) {
+    return { success: false, error: "Data input tidak valid." };
+  }
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error("You must be logged in to join a team.");
+    return { success: false, error: "You must be logged in to join a team." };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -100,7 +123,7 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
     .maybeSingle();
 
   if (existingMembership) {
-    throw new Error("Anda sudah terdaftar di sebuah tim.");
+    return { success: false, error: "Anda sudah terdaftar di sebuah tim." };
   }
 
   // 1. Find team
@@ -111,15 +134,15 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
     .single();
 
   if (findError || !team) {
-    throw new Error("Kode undangan tidak valid atau tim tidak ditemukan.");
+    return { success: false, error: "Kode undangan tidak valid atau tim tidak ditemukan." };
   }
 
   if (team.submission_status !== "draft") {
-    throw new Error("Tim ini sudah melakukan finalisasi pendaftaran dan tidak dapat menerima anggota baru.");
+    return { success: false, error: "Tim ini sudah melakukan finalisasi pendaftaran dan tidak dapat menerima anggota baru." };
   }
 
   if (team.category !== selectedCategory) {
-    throw new Error(`Tim ini terdaftar di kategori ${team.category === "robot_sumo" ? "Robot Sumo" : "Robot Transporter"}, berbeda dengan pilihan Anda.`);
+    return { success: false, error: `Tim ini terdaftar di kategori ${team.category === "robot_sumo" ? "Robot Sumo" : "Robot Transporter"}, berbeda dengan pilihan Anda.` };
   }
 
   // Check team capacity (max 3)
@@ -129,7 +152,7 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
     .eq("team_id", team.id);
 
   if (count !== null && count >= 3) {
-    throw new Error("Tim ini sudah penuh (maksimal 3 anggota).");
+    return { success: false, error: "Tim ini sudah penuh (maksimal 3 anggota)." };
   }
 
   // 2. Add member
@@ -143,9 +166,10 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
 
   if (memberError) {
     if (memberError.code === "23505") { // unique constraint violation
-      throw new Error("You are already in this team.");
+      return { success: false, error: "You are already in this team." };
     }
-    throw new Error(memberError.message);
+    console.error("Member join error:", memberError);
+    return { success: false, error: "Gagal bergabung dengan tim. Silakan coba lagi." };
   }
 
   revalidatePath("/profile", "layout");

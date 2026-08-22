@@ -533,3 +533,63 @@ export async function finalizeSubmission(teamId: string) {
   revalidatePath("/profile", "layout");
   return { success: true };
 }
+
+/**
+ * Remove (kick) a team member. Only the team leader can perform this action.
+ */
+export async function removeTeamMember(memberId: string) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("You must be logged in.");
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  // Get member details to find the team ID
+  const { data: targetMember, error: targetError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("team_id, is_leader, mechatura_teams(submission_status)")
+    .eq("id", memberId)
+    .single();
+
+  if (targetError || !targetMember) {
+    throw new Error("Anggota tidak ditemukan.");
+  }
+
+  if (targetMember.is_leader) {
+    throw new Error("Tidak dapat mengeluarkan ketua tim.");
+  }
+
+  const team: any = targetMember.mechatura_teams;
+  if (team && team.submission_status !== "draft") {
+    throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengeluarkan anggota lagi.");
+  }
+
+  // Check if current user is the leader of that team
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
+    .from("mechatura_members")
+    .select("id")
+    .eq("team_id", targetMember.team_id)
+    .eq("user_id", user.id)
+    .eq("is_leader", true)
+    .single();
+
+  if (leaderError || !leaderCheck) {
+    throw new Error("Hanya ketua tim yang dapat mengeluarkan anggota.");
+  }
+
+  // Delete the member
+  const { error: deleteError } = await supabaseAdmin
+    .from("mechatura_members")
+    .delete()
+    .eq("id", memberId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}

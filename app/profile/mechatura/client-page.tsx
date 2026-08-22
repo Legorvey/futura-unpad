@@ -16,9 +16,20 @@ import {
   type InstitutionType,
 } from "@/components/school-combobox";
 import { Button } from "@/components/ui/button";
-import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission } from "@/lib/mechatura/actions";
+import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
-import { Loader2, Copy, Check, AlertTriangle, FileText } from "lucide-react";
+import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -106,7 +117,7 @@ export function MechaturaProfileClient({ currentUserMembership, team, allMembers
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        <TeamMembersSection allMembers={allMembers} isSubmitted={isSubmitted} team={team} revisionFields={revisionFields} />
+        <TeamMembersSection allMembers={allMembers} isLeader={isLeader} isSubmitted={isSubmitted} team={team} revisionFields={revisionFields} />
         <PaymentSection team={team} isLeader={isLeader} isSubmitted={isSubmitted} revisionFields={revisionFields} />
       </MechaturaProfileSidebar>
 
@@ -448,7 +459,21 @@ function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = 
   );
 }
 
-function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
+function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields = [] }: any) {
+  const [kickingMemberId, setKickingMemberId] = useState<string | null>(null);
+
+  const handleKick = async (memberId: string) => {
+    setKickingMemberId(memberId);
+    try {
+      await removeTeamMember(memberId);
+      toast.success("Anggota berhasil dikeluarkan.");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengeluarkan anggota.");
+    } finally {
+      setKickingMemberId(null);
+    }
+  };
+
   return (
     <div className="p-5 md:p-6 rounded-2xl bg-card border border-border space-y-4">
       <div>
@@ -484,11 +509,34 @@ function TeamMembersSection({ allMembers, revisionFields = [] }: any) {
                   )}
                 </p>
               </div>
-              <div className="shrink-0 mt-0.5">
+              <div className="shrink-0 mt-0.5 flex items-center gap-3">
                 {isActuallyComplete ? (
                   <span className="text-xs font-semibold text-emerald-500 whitespace-nowrap">Lengkap</span>
                 ) : (
                   <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Belum Lengkap</span>
+                )}
+                {isLeader && !isSubmitted && !m.is_leader && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10" disabled={kickingMemberId === m.id}>
+                        {kickingMemberId === m.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserMinus className="w-3.5 h-3.5" />}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Keluarkan Anggota?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Apakah Anda yakin ingin mengeluarkan <strong>{m.full_name || m.fallback_name || "anggota ini"}</strong> dari tim? Mereka harus bergabung kembali menggunakan kode jika ini adalah sebuah kesalahan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => handleKick(m.id)}>
+                          Ya, Keluarkan
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </div>

@@ -6,9 +6,10 @@ import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
 import { ArrowLeft } from "lucide-react";
 import ResetPasswordForm from "./reset-password-form";
 
+import LoginInfoHub from "@/app/login/login-info-hub";
 function ExpiredResetLink() {
   return (
-    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-2 font-sans overflow-x-hidden">
+    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-12 font-sans overflow-x-hidden">
       <style
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
@@ -21,7 +22,7 @@ function ExpiredResetLink() {
       />
 
       {/* Left side: Content */}
-      <div className="flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
+      <div className="lg:col-span-5 flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
         <div className="absolute top-8 left-6 lg:left-12 z-50">
           <Link
             href="/login"
@@ -66,9 +67,9 @@ function ExpiredResetLink() {
       </div>
 
       {/* Right side: Rounded Blue Box */}
-      <div className="hidden lg:block p-4 lg:p-6 relative">
-        <div className="w-full h-full min-h-[500px] bg-[#00205B] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#307FE2]/20 to-transparent pointer-events-none" />
+      <div className="hidden lg:block lg:col-span-7 p-4 lg:p-6 relative">
+        <div className="w-full h-full min-h-[500px] rounded-[2.5rem] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl flex flex-col items-center justify-center relative">
+          <LoginInfoHub />
         </div>
       </div>
     </main>

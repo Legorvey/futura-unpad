@@ -27,7 +27,7 @@ function AuthStatusLayout({
   actionLabel: string;
 }) {
   return (
-    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-2 font-sans overflow-x-hidden">
+    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-12 font-sans overflow-x-hidden">
       <style
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
@@ -40,7 +40,7 @@ function AuthStatusLayout({
       />
 
       {/* Left side: Content */}
-      <div className="flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
+      <div className="lg:col-span-5 flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
         <div className="absolute top-8 left-6 lg:left-12 z-50">
           <Link
             href="/login"
@@ -79,7 +79,7 @@ function AuthStatusLayout({
       </div>
 
       {/* Right side: Info Hub */}
-      <div className="hidden lg:block p-4 lg:p-6 relative">
+      <div className="hidden lg:block lg:col-span-7 p-4 lg:p-6 relative">
         <div className="w-full h-full min-h-[500px] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl relative rounded-[2.5rem]">
           <LoginInfoHub />
         </div>
@@ -125,7 +125,7 @@ export default async function LoginPage({
   const isVerified = cookieStore.get("email_verified_flash")?.value === "1";
 
   return (
-    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-2 font-sans overflow-x-hidden">
+    <main className="bg-white min-h-screen w-full relative grid lg:grid-cols-12 font-sans overflow-x-hidden">
       <style
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
@@ -170,7 +170,7 @@ export default async function LoginPage({
       />
 
       {/* Left side: Form */}
-      <div className="flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
+      <div className="lg:col-span-5 flex flex-col items-center justify-center px-6 lg:px-12 pt-24 pb-12 w-full h-full lg:min-h-screen relative">
         <div className="absolute top-8 left-6 lg:left-12 z-50">
           <Link
             href="/"
@@ -210,7 +210,7 @@ export default async function LoginPage({
       </div>
 
       {/* Right side: Info Hub */}
-      <div className="hidden lg:block p-4 lg:p-6 relative">
+      <div className="hidden lg:block lg:col-span-7 p-4 lg:p-6 relative">
         <div className="w-full h-full min-h-[500px] sticky top-6 max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl relative rounded-[2.5rem]">
           <LoginInfoHub />
         </div>

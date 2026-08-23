@@ -45,7 +45,7 @@ export default function LoginInfoHub() {
         ======================================================== 
       */}
       <motion.div 
-        className="absolute top-[-10%] right-[-10%] w-[120%] h-[120%] opacity-[0.08] mix-blend-screen pointer-events-none"
+        className="absolute top-[-20%] right-[-10%] w-[120%] h-[120%] opacity-[0.08] mix-blend-screen pointer-events-none"
         style={{
           x: useTransform(x, [-1, 1], [80, -80]),
           y: useTransform(y, [-1, 1], [60, -60]),
@@ -56,7 +56,7 @@ export default function LoginInfoHub() {
       </motion.div>
 
       <motion.div 
-        className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] opacity-[0.1] mix-blend-screen pointer-events-none"
+        className="absolute bottom-[-30%] left-[50%] w-[80%] h-[80%] opacity-[0.2] mix-blend-screen pointer-events-none"
         style={{
           x: useTransform(x, [-1, 1], [-100, 100]),
           y: useTransform(y, [-1, 1], [-80, 80]),
@@ -129,7 +129,7 @@ export default function LoginInfoHub() {
            y: useTransform(y, [-1, 1], [-10, 10]),
          }}
       >
-        <span className="text-[10px] md:text-xs font-light text-white/50 tracking-[0.1em] uppercase block">Narahubung Pendaftaran Mechatura</span>
+        <span className="text-xs md:text-sm font-light text-white/50 block">Narahubung Pendaftaran Mechatura</span>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-12 w-full border-t border-white/10 pt-4 mt-3">
           <a 
             href="https://wa.me/6289529846686" 
@@ -137,7 +137,7 @@ export default function LoginInfoHub() {
             rel="noopener noreferrer"
             className="flex flex-col w-fit group/contact"
           >
-            <span className="text-lg md:text-xl font-light text-white/90 group-hover/contact:text-amber-300 transition-colors tracking-wide">
+            <span className="text-lg md:text-xl font-light text-white/90 group-hover/contact:text-amber-300 transition-colors tracking-tight">
               Hubungi Adam
             </span>
             <span className="text-xs md:text-sm font-light text-white/50 group-hover/contact:text-white/80 transition-colors tracking-wider mt-0.5">
@@ -151,7 +151,7 @@ export default function LoginInfoHub() {
             rel="noopener noreferrer"
             className="flex flex-col w-fit group/contact"
           >
-            <span className="text-lg md:text-xl font-light text-white/90 group-hover/contact:text-amber-300 transition-colors tracking-wide">
+            <span className="text-lg md:text-xl font-light text-white/90 group-hover/contact:text-amber-300 transition-colors tracking-tight">
               Hubungi Raisa
             </span>
             <span className="text-xs md:text-sm font-light text-white/50 group-hover/contact:text-white/80 transition-colors tracking-wider mt-0.5">

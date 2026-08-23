@@ -242,8 +242,10 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
           className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
           priority
         />
-        <p className="text-xs text-muted-foreground text-center font-medium mt-3">
-          Scan QRIS di atas untuk melakukan pembayaran
+        <p className="text-lg text-center font-medium mt-3">
+          Batch 1: Rp175.000
+        </p><p className="text-xs text-muted-foreground text-center font-medium mb-6">
+          Bank Digital BCA <br /> a.n. Kenzie Asadel Dhabantha
         </p>
       </div>
 

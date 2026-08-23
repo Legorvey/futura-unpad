@@ -385,7 +385,7 @@ export default async function ProfilePage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional saat ini belum dibuka.</p>
                 <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
-                  <Link href="/seminar" prefetch={true}>Detail Acara</Link>
+                  <Link href="/seminar-nasional" prefetch={true}>Detail Acara</Link>
                 </Button>
               </div>
             )}

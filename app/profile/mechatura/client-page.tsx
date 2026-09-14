@@ -1153,7 +1153,7 @@ function FinalizeSection({ team, isLeader, isSubmitted, allMembers }: any) {
                 : 'Anda yakin ingin submit sekarang? Setelah disubmit, Anda tidak dapat lagi mengubah biodata anggota, mengganti bukti pembayaran, atau memperbarui dokumen robot.'}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-6 gap-2 sm:gap-0">
+          <DialogFooter className="mt-6 gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isFinalizing}>
               Batal
             </Button>

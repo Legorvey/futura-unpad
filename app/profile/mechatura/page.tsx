@@ -70,29 +70,30 @@ export default async function MechaturaProfilePage() {
     })
   );
 
-  const lightThemeVars = {
-    '--background': '#f8fafc',
-    '--foreground': '#0f172a',
-    '--card': '#ffffff',
-    '--card-foreground': '#0f172a',
-    '--popover': '#ffffff',
-    '--popover-foreground': '#0f172a',
-    '--primary': '#fbbf24',
-    '--primary-foreground': '#0f172a',
-    '--secondary': '#f1f5f9',
-    '--secondary-foreground': '#0f172a',
-    '--muted': '#f8fafc',
-    '--muted-foreground': '#64748b',
-    '--accent': '#f1f5f9',
-    '--accent-foreground': '#0f172a',
-    '--border': '#e2e8f0',
-    '--input': '#e2e8f0',
-    '--ring': '#fbbf24',
-    '--radius': '0.75rem',
-  } as React.CSSProperties;
-
   return (
-    <div data-full-width className="w-full flex flex-col items-center pb-32 text-foreground" style={lightThemeVars}>
+    <div data-full-width className="w-full flex flex-col items-center pb-32 text-foreground mechatura-wrapper">
+      <style dangerouslySetInnerHTML={{ __html: `
+          .mechatura-wrapper {
+              --background: #f8fafc;
+              --foreground: #0f172a;
+              --card: #ffffff;
+              --card-foreground: #0f172a;
+              --popover: #ffffff;
+              --popover-foreground: #0f172a;
+              --primary: #fbbf24;
+              --primary-foreground: #0f172a;
+              --secondary: #f1f5f9;
+              --secondary-foreground: #0f172a;
+              --muted: #f8fafc;
+              --muted-foreground: #64748b;
+              --accent: #f1f5f9;
+              --accent-foreground: #0f172a;
+              --border: #e2e8f0;
+              --input: #e2e8f0;
+              --ring: #fbbf24;
+              --radius: 0.75rem;
+          }
+      `}} />
       <div className="relative w-full max-w-[90rem] px-4 sm:px-8 space-y-6">
           <section className="space-y-1.5 px-2">
               <h1 className="text-3xl font-semibold text-white">

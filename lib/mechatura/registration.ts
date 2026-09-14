@@ -144,7 +144,7 @@ export async function deleteMechaturaRegistration(
   userId?: string,
   options: { allowPaid?: boolean } = {}
 ): Promise<DeleteMechaturaResult> {
-  let query = supabase
+  const query = supabase
     .from("mechatura_teams")
     .select("id, payment_status, leader_id")
     .eq("id", registrationId);

@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 import { Tv, Radio, Newspaper, Mic, Video, Camera, Clapperboard, Rss } from "lucide-react"
 
 const partners = [

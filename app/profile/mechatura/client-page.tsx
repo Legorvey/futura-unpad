@@ -50,6 +50,7 @@ import { Input } from "@/components/ui/input";
 
 const identitySchema = z.object({
   full_name: z.string().trim().min(2, "Nama lengkap minimal 2 karakter"),
+  institution_category: z.string().optional(),
   institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().trim().min(2, "Kota minimal 2 karakter"),
   phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
@@ -63,6 +64,7 @@ const paymentSchema = z.object({
 
 const pembinaSchema = z.object({
   pembina_name: z.string().trim().min(2, "Nama minimal 2 karakter"),
+  pembina_institution_category: z.string().optional(),
   pembina_institution: z.string().trim().min(3, "Asal institusi/sekolah minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   pembina_city: z.string().trim().min(2, "Kota minimal 2 karakter"),
   pembina_phone: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
@@ -283,12 +285,15 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
 
 function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = [] }: any) {
   const [isSaving, setIsSaving] = useState(false);
-  const [institutionType, setInstitutionType] = useState<InstitutionType>("SD");
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(
+    (currentUserMembership.institution_category as InstitutionType) || "SD"
+  );
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(identitySchema),
     defaultValues: {
       full_name: currentUserMembership.full_name || "",
+      institution_category: currentUserMembership.institution_category || "SD",
       institution: currentUserMembership.institution || "",
       city: currentUserMembership.city || "",
       phone_number: currentUserMembership.phone_number || "",
@@ -311,6 +316,7 @@ function IdentitySection({ currentUserMembership, isSubmitted, revisionFields = 
 
   const handleTypeChange = (type: InstitutionType) => {
     setInstitutionType(type);
+    identityForm.setValue("institution_category", type, { shouldValidate: true });
     // Reset institution value when category changes
     identityForm.setValue("institution", "");
   };
@@ -496,6 +502,7 @@ function PembinaSection({ team, isSubmitted, revisionFields = [] }: any) {
     resolver: zodResolver(pembinaSchema),
     defaultValues: {
       pembina_name: team.pembina_name || "",
+      pembina_institution_category: team.pembina_institution_category || "SD",
       pembina_institution: team.pembina_institution || "",
       pembina_city: team.pembina_city || "",
       pembina_phone: team.pembina_phone || "",
@@ -539,6 +546,7 @@ function PembinaSection({ team, isSubmitted, revisionFields = [] }: any) {
 
   const handleTypeChange = (type: InstitutionType) => {
     setInstitutionType(type);
+    pembinaForm.setValue("pembina_institution_category", type, { shouldValidate: true });
     pembinaForm.setValue("pembina_institution", "");
   };
 

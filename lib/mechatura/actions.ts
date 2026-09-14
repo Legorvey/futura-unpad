@@ -7,6 +7,7 @@ import { randomBytes } from "crypto";
 
 const IdentityDataSchema = z.object({
   full_name: z.string().min(2).max(255),
+  institution_category: z.string().optional(),
   institution: z.string().min(3).max(255),
   city: z.string().min(2).max(255),
   phone_number: z.string().min(10).max(50),
@@ -212,9 +213,11 @@ const parsedData = IdentityDataSchema.safeParse(data);
     throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah data anggota lagi.");
   }
 
+  const { institution_category, ...payload } = parsedData.data;
+
   const { error } = await supabaseAdmin
     .from("mechatura_members")
-    .update(parsedData.data)
+    .update(payload)
     .eq("id", memberId);
 
   if (error) {
@@ -620,6 +623,7 @@ export async function removeTeamMember(memberId: string) {
 
 const PembinaDataSchema = z.object({
   pembina_name: z.string().min(2, "Nama minimal 2 karakter"),
+  pembina_institution_category: z.string().optional(),
   pembina_institution: z.string().min(3, "Asal institusi/sekolah minimal 3 karakter"),
   pembina_city: z.string().min(2, "Kota minimal 2 karakter"),
   pembina_phone: z.string().min(10, "Nomor WhatsApp minimal 10 karakter"),
@@ -671,9 +675,11 @@ export async function updatePembinaData(teamId: string, data: PembinaData) {
 
   await verifyLeaderAndDraftStatus(supabase, teamId, user.id, "mengubah data pembina");
 
+  const { pembina_institution_category, ...payload } = parsedData.data;
+
   const { error } = await supabase
     .from("mechatura_teams")
-    .update(parsedData.data)
+    .update(payload)
     .eq("id", teamId)
     .select()
     .single();

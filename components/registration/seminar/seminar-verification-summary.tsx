@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 import { useFormContext } from "react-hook-form";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
 import { SummaryItem } from "@/components/form/summary-item";

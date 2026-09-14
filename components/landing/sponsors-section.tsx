@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 import { Hexagon, Triangle, Circle, Square, Box, Globe, Cloud, Zap } from "lucide-react"
 
 const sponsors = [

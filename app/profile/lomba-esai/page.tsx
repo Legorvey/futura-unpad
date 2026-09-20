@@ -66,8 +66,8 @@ export default async function LombaEsaiProfilePage() {
               <div className="relative">
                   <LombaEsaiClient 
                       registration={registration} 
-                      userEmail={user.email} 
-                      userName={user.user_metadata?.full_name || user.user_metadata?.name} 
+                      userEmail={user.email || null} 
+                      userName={user.user_metadata?.full_name || user.user_metadata?.name || null} 
                   />
               </div>
           </section>

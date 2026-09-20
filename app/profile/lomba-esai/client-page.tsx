@@ -95,28 +95,32 @@ const PaymentSchema = z.object({
 });
 type PaymentValues = z.infer<typeof PaymentSchema>;
 
-function UploadedFileDisplay({ path, onRemove }: { path: string | null; onRemove?: () => void }) {
+function UploadedFileDisplay({ path, onRemove, label, description }: { path: string | null; onRemove?: () => void; label?: string; description?: string }) {
   if (!path) return null;
   const rawFileName = path.split('/').pop() || "file_terunggah";
   const fileName = decodeURIComponent(rawFileName);
   return (
-    <div className="flex items-center gap-3 p-3 rounded-md border bg-muted/30 text-muted-foreground mb-3 shadow-sm">
-      <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-      <div className="flex flex-col min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground truncate" title={fileName}>{fileName}</p>
+    <div className="flex flex-col gap-2 w-full mb-1">
+      {label && <label className="text-sm font-medium leading-none">{label}</label>}
+      <div className="flex items-center gap-3 p-3 rounded-md border bg-muted/30 text-muted-foreground shadow-sm">
+        <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+        <div className="flex flex-col min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate" title={fileName}>{fileName}</p>
+        </div>
+        {onRemove && (
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            onClick={onRemove} 
+            className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            Ganti
+          </Button>
+        )}
       </div>
-      {onRemove && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-4 w-4 mr-1.5" />
-          Ganti
-        </Button>
-      )}
+      {description && <p className="text-[0.8rem] text-muted-foreground">{description}</p>}
     </div>
   );
 }
@@ -338,7 +342,12 @@ export function LombaEsaiClient({
           <FormProvider {...paymentForm}>
             <form onSubmit={paymentForm.handleSubmit(onSavePayment)} className="space-y-4">
               <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                <UploadedFileDisplay path={registration.payment_proof_url} onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined} />
+                <UploadedFileDisplay 
+                  path={registration.payment_proof_url} 
+                  onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined} 
+                  label="Unggah Bukti Pembayaran" 
+                  description="Maksimal 3MB (JPG, PNG, PDF)" 
+                />
                 {!isSubmitted && !registration.payment_proof_url && (
                   <FormTextField
                     type="file"
@@ -512,7 +521,12 @@ export function LombaEsaiClient({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Twibbon Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay path={registration.instagram_twibbon_url} onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined} />
+                    <UploadedFileDisplay 
+                      path={registration.instagram_twibbon_url} 
+                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined} 
+                      label="Bukti Twibbon & Follow Instagram" 
+                      description="Maksimal 3MB (JPG, PNG, PDF)" 
+                    />
                     {!isSubmitted && !registration.instagram_twibbon_url && (
                       <FormTextField
                         type="file"
@@ -527,7 +541,12 @@ export function LombaEsaiClient({
 
                   {/* KTM Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay path={registration.identity_card_url} onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined} />
+                    <UploadedFileDisplay 
+                      path={registration.identity_card_url} 
+                      onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined} 
+                      label="KTM / Kartu Pelajar" 
+                      description="Maksimal 3MB (JPG, PNG, PDF)" 
+                    />
                     {!isSubmitted && !registration.identity_card_url && (
                       <FormTextField
                         type="file"
@@ -542,7 +561,12 @@ export function LombaEsaiClient({
 
                   {/* Essay Paper Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30 md:col-span-2">
-                    <UploadedFileDisplay path={registration.essay_paper_url} onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined} />
+                    <UploadedFileDisplay 
+                      path={registration.essay_paper_url} 
+                      onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined} 
+                      label="File Karya Esai" 
+                      description="Maksimal 2MB (Hanya PDF)" 
+                    />
                     {!isSubmitted && !registration.essay_paper_url && (
                       <FormTextField
                         type="file"

@@ -13,6 +13,9 @@ export const TARGET_DATE = ({
   return new Date(`${year}-${mm}-${dd}T00:00:00+07:00`).getTime();
 };
 
+export const ESAI_REG_START_DATE = "2026-09-21T00:00:00+07:00";
+export const IS_ESAI_REGISTRATION_OPEN = false; // Set to true to manually open registration
+
 export const timeBlocks: { key: keyof ReturnType<typeof calculateTimeLeft>; label: string }[] = [
   { key: "days", label: "Days" },
   { key: "hours", label: "Hours" },

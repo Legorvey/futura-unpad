@@ -592,25 +592,27 @@ export function LombaEsaiClient({
         </div>
 
         {/* Finalize Section */}
-        <div className="p-5 md:p-6 rounded-2xl bg-card border border-border">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-medium text-foreground">Finalisasi Pendaftaran</h3>
-              <p className="text-sm text-muted-foreground mt-1">Pastikan seluruh data dan dokumen sudah tersimpan. Data yang disubmit tidak dapat diubah kembali.</p>
-            </div>
-            {!isSubmitted ? (
+        {isSubmitted ? (
+          <div className="p-5 md:p-6 rounded-2xl bg-primary/10 border border-primary/20 text-center space-y-3">
+            <h3 className="text-lg font-medium text-primary">Formulir Telah Disubmit</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Data pendaftaran Anda telah dikirim dan sedang menunggu pengecekan dari panitia. Anda tidak dapat lagi mengubah data diri, bukti pembayaran, atau karya esai.
+            </p>
+          </div>
+        ) : (
+          <div className="p-5 md:p-6 rounded-2xl bg-card border border-border">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-medium text-foreground">Finalisasi Pendaftaran</h3>
+                <p className="text-sm text-muted-foreground mt-1">Pastikan seluruh data dan dokumen sudah tersimpan. Data yang disubmit tidak dapat diubah kembali.</p>
+              </div>
               <Button type="button" onClick={onFinalSubmit} disabled={isSubmittingFinal || !canSubmitFinal} className="w-full md:w-auto">
                 {isSubmittingFinal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Submit Final
               </Button>
-            ) : (
-              <div className="flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 px-4 py-2 rounded-lg font-medium text-sm">
-                <CheckCircle2 className="w-4 h-4" />
-                Pendaftaran Selesai
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
       </section>
     </div>

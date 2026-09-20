@@ -2,7 +2,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink, FileText, Info, Receipt, User, Building2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Info, Receipt, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -123,19 +123,7 @@ const AdminSidebarContent = ({
             </dl>
         </section>
 
-        {/* Institution Info */}
-        <section className="rounded-xl border border-border bg-card p-5 flex flex-col">
-            <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold tracking-tight text-sm text-foreground">
-                    Identitas & Instansi
-                </h3>
-            </div>
-            <dl className="flex-1 divide-y divide-border/50">
-                <DetailItem label="Nama Peserta" value={participant.full_name ?? "-"} />
-                <DetailItem label="Asal Instansi" value={participant.institution ?? "-"} />
-            </dl>
-        </section>
+
     </div>
 );
 
@@ -161,14 +149,7 @@ export default async function EsaiParticipantDetailPage({
         notFound();
     }
 
-    const { data: userData } = await adminSupabase.auth.admin.getUserById(participant.user_id);
-    let authName = null;
-    let authEmail = null;
-    if (userData?.user) {
-        const meta = userData.user.user_metadata || {};
-        authName = meta.display_name || meta.username || null;
-        authEmail = userData.user.email || null;
-    }
+
 
     const getSignedUrl = async (path: string | null) => {
         if (!path) return null;
@@ -245,17 +226,24 @@ export default async function EsaiParticipantDetailPage({
                             </h3>
                         </div>
                         <div className="p-6">
-                            <div className="flex flex-col gap-1 border-b border-border pb-5 mb-5">
-                                <dt className="text-sm text-muted-foreground">ID Pendaftaran</dt>
-                                <dd className="text-sm font-mono bg-muted/50 w-fit px-2 py-1 rounded-md">{participant.id}</dd>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                                <DetailItem label="Nama Lengkap" value={participant.full_name || "-"} />
-                                <DetailItem label="Instansi / Sekolah" value={participant.institution || "-"} />
-                                <DetailItem label="Email" value={participant.email || "-"} />
-                                <DetailItem label="No. Telepon / WA" value={participant.phone_number || "-"} />
-                                <DetailItem label="Akun Sistem (Auth)" value={authName ? `${authName} (${authEmail})` : authEmail || participant.user_id} wide />
-                            </div>
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Nama Lengkap</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.full_name || undefined}>{participant.full_name || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Instansi / Sekolah</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.institution || undefined}>{participant.institution || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Email</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.email || undefined}>{participant.email || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">No. Telepon / WA</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.phone_number || undefined}>{participant.phone_number || "-"}</dd>
+                                </div>
+                            </dl>
                         </div>
                     </section>
                 </div>

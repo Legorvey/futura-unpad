@@ -24,15 +24,11 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
             const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
             
             const nameMatches = isMatch(row.original.full_name);
-            const idMatches = isMatch(row.original.id);
             
             return (
                 <div className="min-w-0 flex flex-col gap-1 items-start">
                     <span className={`font-medium ${nameMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm" : ""}`}>
                         {row.original.full_name || "Tanpa Nama"}
-                    </span>
-                    <span className={`text-xs text-muted-foreground tracking-wide uppercase ${idMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm font-medium" : ""}`}>
-                        ID: {row.original.id.substring(0, 8)}...
                     </span>
                 </div>
             );

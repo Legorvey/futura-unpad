@@ -51,7 +51,7 @@ type EsaiListClientProps = {
 const COLUMN_GROUPS = [
     {
         title: "Identitas Peserta",
-        keys: ["id", "full_name", "institution", "city", "created_at"]
+        keys: ["full_name", "institution", "city", "created_at"]
     },
     {
         title: "Kontak",
@@ -83,7 +83,7 @@ export default function EsaiListClient({
     });
 
     const defaultCols = {
-        id: true,
+
         full_name: true,
         institution: true,
         city: true,
@@ -304,11 +304,11 @@ export default function EsaiListClient({
                 </div>
             </div>
 
-            <div className="grid gap-y-8 border-y border-border py-7 sm:grid-cols-2 xl:grid-cols-2">
+            <div className="grid gap-y-8 border-y border-border py-7 sm:grid-cols-3 xl:grid-cols-3">
                 {metrics.map((metric, index) => (
                     <div
                         key={metric.label}
-                        className={`flex items-center gap-4 sm:px-4 xl:px-8 ${index === 0 ? "sm:pl-0" : ""} ${index < metrics.length - 1 ? "xl:border-r xl:border-border" : ""}`}
+                        className={`flex items-center gap-4 sm:px-4 xl:px-8 ${index === 0 ? "sm:pl-0" : ""} ${index < metrics.length - 1 ? "sm:border-r sm:border-border xl:border-r xl:border-border" : ""}`}
                     >
                         <div className="min-w-0">
                             <div className="flex items-baseline gap-3">

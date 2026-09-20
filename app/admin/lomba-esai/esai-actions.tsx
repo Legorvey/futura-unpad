@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { 
-    Eye, FileText, MoreHorizontal, Phone, Tags, Mail, 
+    Eye, FileText, MoreHorizontal, Phone, Mail, 
     CheckCircle, Unlock, Trash, Info, User, Receipt
 } from "lucide-react";
 import { toast } from "sonner";
@@ -115,10 +115,7 @@ export function EsaiActions({ participant }: { participant: AdminEsaiRegistratio
 
                     <DropdownMenuGroup>
                         <DropdownMenuLabel>Salin</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => copyText(participant.id, "ID Pendaftaran")}>
-                            <Tags className="h-4 w-4 mr-2" />
-                            ID Pendaftaran
-                        </DropdownMenuItem>
+
 
                         <DropdownMenuItem onClick={() => copyText(participant.phone_number, "Nomor Telepon")}>
                             <Phone className="h-4 w-4 mr-2" />

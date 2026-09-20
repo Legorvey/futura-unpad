@@ -168,18 +168,23 @@ export function LombaEsaiClient({
   });
 
   const { isValid: isIdentityValid } = identityForm.formState;
-  const isIdentityComplete = Boolean(registration.full_name && registration.institution && registration.city && registration.phone_number && registration.identity_card_url) || isIdentityValid;
+  const isIdentityComplete = Boolean(
+    registration.full_name && 
+    registration.institution && 
+    registration.city && 
+    registration.phone_number && 
+    registration.identity_card_url &&
+    registration.instagram_twibbon_url
+  );
   
   const essayWatch = docsForm.watch("essay");
   
-  const isDocsComplete = Boolean(
-    (essayWatch?.length > 0 || registration.essay_paper_url)
-  );
+  const isDocsComplete = Boolean(registration.essay_paper_url);
   
   const isDocsValid = docsForm.formState.isValid && Boolean(essayWatch?.length > 0);
 
   const paymentWatch = paymentForm.watch("payment");
-  const isPaymentComplete = Boolean(paymentWatch?.length > 0 || registration.payment_proof_url);
+  const isPaymentComplete = Boolean(registration.payment_proof_url);
   const isPaymentValid = paymentForm.formState.isValid && Boolean(paymentWatch?.length > 0);
 
   const canSubmitFinal = isIdentityComplete && isDocsComplete && isPaymentComplete;

@@ -219,6 +219,8 @@ export function LombaEsaiClient({
     setIsSavingDocs(true);
     try {
       const essayFile = values.essay?.[0];
+      const twibbonFile = values.twibbon?.[0];
+      const ktmFile = values.ktm?.[0];
 
       const userId = registration.user_id;
       const uploadPromises: Promise<string | null | undefined>[] = [];
@@ -235,9 +237,11 @@ export function LombaEsaiClient({
       if (essayFile) essayUrlPromise = handleFileUpload(essayFile, `${userId}/${essayFile.name}`);
       uploadPromises.push(essayUrlPromise);
 
-      const [essayUrl] = await Promise.all(uploadPromises);
+      const [twibbonUrl, ktmUrl, essayUrl] = await Promise.all(uploadPromises);
 
       const submitValues = {
+        instagram_twibbon_url: twibbonUrl,
+        identity_card_url: ktmUrl,
         essay_paper_url: essayUrl,
       };
 

@@ -1,76 +1,131 @@
 import type { Metadata } from "next"
-export const dynamic = "force-dynamic"
-export const fetchCache = "force-no-store"
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
-import { AlertCircle } from "lucide-react"
-import { requireAdminOrRedirect } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase-admin";
+import { requireAdminOrRedirect } from "@/lib/auth";
+import EsaiListClient from "./esai-list-client";
+import {
+    type AdminSearchParams,
+    type AdminEsaiRegistration,
+    applyEsaiFilters,
+    firstParam,
+    esaiRegistrationColumns,
+    normalizeFilter,
+    normalizePageSize,
+    normalizePositiveInt,
+    submissionFilters,
+    toSearchPattern,
+} from "./_lib/esai-utils";
 import { Suspense } from "react"
 import TableLoading from "../table-loading"
-import { LombaEsaiFilter } from "./lomba-esai-filter"
 
-type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>
-
-async function LKTIAdminData({
+async function EsaiAdminData({
     searchParams,
 }: {
-    searchParams: AdminSearchParams
+    searchParams: AdminSearchParams;
 }) {
-    await requireAdminOrRedirect()
-    const params = await searchParams
-    const categoryParam = Array.isArray(params.category)
-        ? params.category[0]
-        : params.category
-    const searchParam = Array.isArray(params.search)
-        ? params.search[0]
-        : params.search
+    await requireAdminOrRedirect();
+    const params = await searchParams;
+    const searchParam = firstParam(params.search);
+    const submissionParam = firstParam(params.submission);
+    const pageParam = firstParam(params.page);
+    const pageSizeParam = firstParam(params.pageSize);
+    
+    const submissionFilter = normalizeFilter(submissionParam, submissionFilters, "all");
+    const searchFilter = (searchParam ?? "").trim();
+    const searchPattern = toSearchPattern(searchFilter);
+    const requestedPage = normalizePositiveInt(pageParam, 1);
+    const pageSize = normalizePageSize(pageSizeParam);
+    const requestedFrom = (requestedPage - 1) * pageSize;
+    const requestedTo = requestedFrom + pageSize - 1;
+    const supabaseAdmin = createAdminClient();
+
+    const filterOptions = {
+        submissionFilter,
+        searchPattern,
+    };
+    
+    const buildFilteredTeamQuery = (
+        select: string,
+        options?: { count?: "exact"; head?: boolean }
+    ) =>
+        applyEsaiFilters(
+            supabaseAdmin.from("esai_registrations").select(select, options),
+            filterOptions
+        );
+
+    const [
+        { data: requestedPageData, error: pageError, count },
+        { count: totalRegistrations },
+        { count: submittedRegistrations },
+        { count: approvedRegistrations },
+    ] = await Promise.all([
+        buildFilteredTeamQuery(esaiRegistrationColumns, { count: "exact" })
+            .order("created_at", { ascending: false })
+            .range(requestedFrom, requestedTo)
+            .returns<AdminEsaiRegistration[]>(),
+        supabaseAdmin.from("esai_registrations").select("*", { count: "exact", head: true }),
+        supabaseAdmin.from("esai_registrations").select("*", { count: "exact", head: true }).eq("submission_status", "submitted"),
+        supabaseAdmin.from("esai_registrations").select("*", { count: "exact", head: true }).eq("submission_status", "approved"),
+    ]);
+
+    if (pageError) {
+        throw new Error(pageError.message);
+    }
+    
+    const totalFilteredRegistrations = count ?? requestedPageData?.length ?? 0;
+    const totalPages = Math.max(1, Math.ceil(totalFilteredRegistrations / pageSize));
+    const page = Math.min(requestedPage, totalPages);
+    let registrations = requestedPageData ?? [];
+
+    if (page !== requestedPage) {
+        const { data: clampedPageData, error: clampedPageError } =
+            await buildFilteredTeamQuery(esaiRegistrationColumns)
+                .order("created_at", { ascending: false })
+                .range((page - 1) * pageSize, page * pageSize - 1)
+                .returns<AdminEsaiRegistration[]>();
+
+        if (clampedPageError) {
+            throw new Error(clampedPageError.message);
+        }
+
+        registrations = clampedPageData ?? [];
+    }
+
+    const from = (page - 1) * pageSize;
 
     return (
-        <div className="mx-auto w-full max-w-6xl space-y-8">
-            <section className="rounded-xl bg-card">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                        <h2 className="font-semibold text-2xl">Lomba Karya Tulis Ilmiah (LKTI)</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Cari dan filter peserta LKTI.
-                        </p>
-                    </div>
-                    <LombaEsaiFilter searchParam={searchParam} categoryParam={categoryParam} />
-                </div>
-
-                <div className="grid gap-3 border-y border-border py-6 mt-6 sm:grid-cols-4">
-                    <div className="rounded-lg border border-border bg-card/90 p-5 opacity-50">
-                        <p className="text-sm text-muted-foreground">Total Tim</p>
-                        <p className="mt-3 text-3xl font-semibold tracking-tight">-</p>
-                    </div>
-                    <div className="rounded-lg border border-border p-5 opacity-50">
-                        <p className="text-sm text-muted-foreground">Tim Lunas</p>
-                        <p className="mt-3 text-3xl font-semibold tracking-tight">-</p>
-                    </div>
-                    <div className="rounded-lg border border-border p-5 opacity-50">
-                        <p className="text-sm text-muted-foreground">Teknologi / Kesehatan</p>
-                        <p className="mt-3 text-3xl font-semibold tracking-tight">-</p>
-                    </div>
-                    <div className="rounded-lg border border-border p-5 opacity-50">
-                        <p className="text-sm text-muted-foreground">Lainnya</p>
-                        <p className="mt-3 text-3xl font-semibold tracking-tight">-</p>
-                    </div>
-                </div>
-
-                <div className="mt-6 rounded-[8px] border-1 border-amber-300 bg-amber-50 p-6">
-                    <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
-                        <AlertCircle className="h-5 w-5" />
-                        Backend Belum Terintegrasi
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-amber-700">
-                        Saat ini belum ada tabel basis data backend untuk pendaftaran Lomba Karya Tulis Ilmiah. Halaman ini akan menampilkan data peserta dan metrik nyata setelah integrasi selesai.
-                    </p>
-                </div>
-            </section>
-        </div>
-    )
+        <EsaiListClient
+            registrations={registrations}
+            searchParam={searchParam}
+            submissionFilter={submissionFilter}
+            pageSize={pageSize}
+            pagination={{
+                page,
+                pageSize,
+                totalItems: totalFilteredRegistrations,
+                totalPages,
+                startItem: totalFilteredRegistrations === 0 ? 0 : from + 1,
+                endItem: Math.min(from + pageSize, totalFilteredRegistrations),
+            }}
+            stats={{
+                totalParticipants: totalRegistrations ?? 0,
+                approvedDocuments: approvedRegistrations ?? 0,
+                submittedDocuments: submittedRegistrations ?? 0,
+            }}
+        />
+    );
 }
+
 export const metadata: Metadata = {
   title: "Admin Lomba Esai"
 }
 
-export default function LKTIAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { return <Suspense fallback={<TableLoading />}><LKTIAdminData searchParams={searchParams} /></Suspense> }
+export default function LombaEsaiAdminPage({ searchParams }: { searchParams: AdminSearchParams }) { 
+    return (
+        <Suspense fallback={<TableLoading />}>
+            <EsaiAdminData searchParams={searchParams} />
+        </Suspense>
+    ) 
+}

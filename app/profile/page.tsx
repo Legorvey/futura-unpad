@@ -109,6 +109,7 @@ export default async function ProfilePage() {
   const [
     { data: latestRegistration, error },
     { data: latestMechaturaMembership, error: mechaturaError },
+    { data: esaiRegistration, error: esaiError }
   ] =
     await Promise.all([
       adminSupabase
@@ -127,10 +128,15 @@ export default async function ProfilePage() {
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle(),
+      adminSupabase
+        .from("esai_registrations")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle()
     ])
 
-  if (error || mechaturaError) {
-    throw new Error(error?.message ?? mechaturaError?.message)
+  if (error || mechaturaError || esaiError) {
+    throw new Error(error?.message ?? mechaturaError?.message ?? esaiError?.message)
   }
 
   const groupMembersPromise = isProfileGroupRegistration(latestRegistration) && latestRegistration?.group_id
@@ -392,7 +398,7 @@ export default async function ProfilePage() {
           </div>
         </section>
 
-        {/* LOMBA KTI */}
+        {/* LOMBA ESAI */}
         <section className="bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border p-6">
             <div>
@@ -401,18 +407,66 @@ export default async function ProfilePage() {
                 Kompetisi esai tingkat Nasional
               </p>
             </div>
-             <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
-               Segera Dibuka
-             </span>
+            {esaiRegistration ? (
+              <span className={`inline-flex w-max self-start sm:self-auto items-center rounded-full border px-3 py-1 text-xs font-medium ${
+                esaiRegistration.submission_status === 'submitted'
+                  ? 'bg-blue-50 border-blue-200 text-blue-700'
+                  : 'bg-slate-100 border-slate-200 text-slate-600'
+              }`}>
+                {esaiRegistration.submission_status === 'submitted' ? "Disubmit" : "Draft"}
+              </span>
+            ) : (
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+                 Belum Mendaftar
+               </span>
+            )}
           </div>
 
           <div className="p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">Pendaftaran Lomba Esai saat ini belum dibuka.</p>
-              <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
-                <Link href="/lomba-esai" prefetch={true}>Detail Acara</Link>
-              </Button>
-            </div>
+            {esaiRegistration ? (
+              <div className="flex flex-col sm:flex-row items-end justify-between gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-6 flex-1 w-full sm:w-auto">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Nama Lengkap</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {esaiRegistration.full_name || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Instansi</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {esaiRegistration.institution || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Email</p>
+                    <p className="text-sm font-medium text-foreground truncate" title={esaiRegistration.email || ""}>
+                      {esaiRegistration.email || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">No. WA</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {esaiRegistration.phone_number || "-"}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full sm:w-auto shrink-0 mt-4 sm:mt-0">
+                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                    <Link href="/profile/lomba-esai" prefetch={true}>
+                      Kelola Berkas
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">Anda belum mendaftar Lomba Esai.</p>
+                <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                  <Link href="/lomba-esai" prefetch={true}>Daftar Sekarang</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </section>
             </section>

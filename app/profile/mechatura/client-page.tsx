@@ -235,7 +235,7 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
         </h3>
       </div>
 
-      <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6">
+      <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-4">
         <Image
           src="/qris-mechatura.jpeg"
           alt="QRIS Pembayaran Mechatura"
@@ -244,11 +244,14 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
           className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
           priority
         />
-        {/* <p className="text-lg text-center font-medium mt-3">
-          Batch 1: Rp175.000
-        </p><p className="text-xs text-muted-foreground text-center font-medium mb-6">
-          Bank Digital BCA <br /> a.n. Kenzie Asadel Dhabantha
-        </p> */}
+        {(() => {
+          const isBatch1 = !team.created_at || new Date(team.created_at).getTime() < new Date("2026-09-21T00:00:00+07:00").getTime();
+          return (
+            <p className="text-lg text-center font-medium mt-1 text-foreground">
+              {isBatch1 ? "Batch 1: Rp175.000" : "Batch 2: Rp200.000"}
+            </p>
+          );
+        })()}
       </div>
 
       {isLeader ? (

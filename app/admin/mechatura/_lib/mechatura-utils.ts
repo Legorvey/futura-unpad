@@ -9,10 +9,12 @@ export type MechaturaCategoryFilter = "all" | MechaturaCompetitionType;
 export type MechaturaPaymentFilter = "all" | PaymentStatus;
 export type MechaturaSubmissionFilter = "all" | "draft" | "submitted";
 export type MechaturaApprovalFilter = "all" | "pending" | "approved" | "revision";
+export type MechaturaBatchFilter = "all" | "batch1" | "batch2";
 
 export const categoryFilters: MechaturaCategoryFilter[] = ["all", "sumo", "transporter"];
 export const submissionFilters: MechaturaSubmissionFilter[] = ["all", "draft", "submitted"];
 export const approvalFilters: MechaturaApprovalFilter[] = ["all", "pending", "approved", "revision"];
+export const batchFilters: MechaturaBatchFilter[] = ["all", "batch1", "batch2"];
 export const paymentFilters: MechaturaPaymentFilter[] = [
     "all",
     "unpaid",
@@ -87,6 +89,9 @@ type FilterableQuery<T> = T & {
     eq: (column: string, value: unknown) => FilterableQuery<T>;
     in: (column: string, values: unknown[]) => FilterableQuery<T>;
     or: (filters: string) => FilterableQuery<T>;
+    lt: (column: string, value: unknown) => FilterableQuery<T>;
+    lte: (column: string, value: unknown) => FilterableQuery<T>;
+    gte: (column: string, value: unknown) => FilterableQuery<T>;
 };
 
 export const applyMechaturaFilters = <T,>(
@@ -96,6 +101,7 @@ export const applyMechaturaFilters = <T,>(
         paymentFilter,
         submissionFilter,
         approvalFilter,
+        batchFilter,
         searchPattern,
         memberRegistrationIds,
     }: {
@@ -103,6 +109,7 @@ export const applyMechaturaFilters = <T,>(
         paymentFilter: MechaturaPaymentFilter;
         submissionFilter: MechaturaSubmissionFilter;
         approvalFilter: MechaturaApprovalFilter;
+        batchFilter: MechaturaBatchFilter;
         searchPattern: string;
         memberRegistrationIds: string[];
     }
@@ -131,6 +138,12 @@ export const applyMechaturaFilters = <T,>(
         filteredQuery = filteredQuery.eq("payment_status", paymentFilter);
     }
 
+    if (batchFilter === "batch1") {
+        filteredQuery = filteredQuery.lt("created_at", "2026-09-21T00:00:00+07:00");
+    } else if (batchFilter === "batch2") {
+        filteredQuery = filteredQuery.gte("created_at", "2026-09-21T00:00:00+07:00");
+    }
+
     if (searchPattern) {
         filteredQuery = filteredQuery.or(
             `name.ilike.${searchPattern},join_code.ilike.${searchPattern},pembina_name.ilike.${searchPattern}${
@@ -150,6 +163,7 @@ export const buildMechaturaPageHref = ({
     payment,
     submission,
     approval,
+    batch,
 }: {
     page: number;
     pageSize: number;
@@ -158,6 +172,7 @@ export const buildMechaturaPageHref = ({
     payment: MechaturaPaymentFilter;
     submission: MechaturaSubmissionFilter;
     approval: MechaturaApprovalFilter;
+    batch?: MechaturaBatchFilter;
 }) => {
     const query = new URLSearchParams();
 
@@ -166,6 +181,7 @@ export const buildMechaturaPageHref = ({
     if (payment !== "all") query.set("payment", payment);
     if (submission !== "all") query.set("submission", submission);
     if (approval !== "all") query.set("approval", approval);
+    if (batch && batch !== "all") query.set("batch", batch);
     if (page > 1) query.set("page", String(page));
     if (pageSize !== defaultPageSize) query.set("pageSize", String(pageSize));
 

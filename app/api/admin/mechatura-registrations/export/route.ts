@@ -9,6 +9,7 @@ import {
     paymentFilters,
     submissionFilters,
     approvalFilters,
+    batchFilters,
     toSearchPattern,
 } from "@/app/admin/mechatura/_lib/mechatura-utils";
 import { mechaturaCompetitionLabels, paymentStatusLabels } from "@/lib/payment";
@@ -58,11 +59,13 @@ export async function GET(request: NextRequest) {
     const searchParam = searchParams.get("search") ?? undefined;
     const submissionParam = searchParams.get("submission") ?? undefined;
     const approvalParam = searchParams.get("approval") ?? undefined;
+    const batchParam = searchParams.get("batch") ?? undefined;
 
     const categoryFilter = normalizeFilter(categoryParam, categoryFilters, "all");
     const paymentFilter = normalizeFilter(paymentParam, paymentFilters, "all");
     const submissionFilter = normalizeFilter(submissionParam, submissionFilters, "all");
     const approvalFilter = normalizeFilter(approvalParam, approvalFilters, "all");
+    const batchFilter = normalizeFilter(batchParam, batchFilters, "all");
     const searchPattern = toSearchPattern(searchParam ?? "");
 
     const supabase = await createClient();
@@ -83,6 +86,7 @@ export async function GET(request: NextRequest) {
         paymentFilter,
         submissionFilter,
         approvalFilter,
+        batchFilter,
         searchPattern,
         memberRegistrationIds: memberTeamIds,
     };
@@ -131,19 +135,19 @@ export async function GET(request: NextRequest) {
     // Attempt to fetch emails for members
     const uniqueUserIds = Array.from(new Set(members.map(m => m.user_id).filter(Boolean)));
     const emailsByUserId = new Map<string, string>();
-    const fetchBatchSize = 20;
-
     const adminSupabase = createAdminClient();
-    for (let i = 0; i < uniqueUserIds.length; i += fetchBatchSize) {
-        const batch = uniqueUserIds.slice(i, i + fetchBatchSize);
-        await Promise.all(batch.map(async (userId) => {
-            try {
-                const { data: userData } = await adminSupabase.auth.admin.getUserById(userId);
-                if (userData?.user?.email) emailsByUserId.set(userId, userData.user.email);
-            } catch (e) {
-                // ignore
+    let page = 1;
+    let hasNextPage = true;
+    while (hasNextPage) {
+        const { data, error } = await adminSupabase.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error || !data.users.length) break;
+        for (const u of data.users) {
+            if (u.email && uniqueUserIds.includes(u.id)) {
+                emailsByUserId.set(u.id, u.email);
             }
-        }));
+        }
+        hasNextPage = data.users.length === 1000;
+        page++;
     }
 
     const membersByTeamId = new Map<string, any[]>();

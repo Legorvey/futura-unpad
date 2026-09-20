@@ -46,7 +46,9 @@ import { z } from "zod";
 
 const UpdateEsaiSchema = z.object({
   full_name: z.string().min(2).max(255).optional(),
+  institution_category: z.string().optional(),
   institution: z.string().min(3).max(255).optional(),
+  city: z.string().optional(),
   email: z.string().email().max(255).optional(),
   phone_number: z.string().min(10).max(50).optional(),
   instagram_twibbon_url: z.string().max(1000).optional().nullable(),
@@ -88,7 +90,7 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
 
   // Prevent submitting an incomplete registration
   if (validatedFields.data.submission_status === "submitted") {
-    const isComplete = reg.full_name && reg.institution && reg.email && reg.phone_number &&
+    const isComplete = reg.full_name && reg.institution && reg.city && reg.phone_number &&
                        reg.instagram_twibbon_url && reg.identity_card_url &&
                        reg.essay_paper_url && reg.payment_proof_url;
     if (!isComplete) {

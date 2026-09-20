@@ -14,6 +14,20 @@ import { updateEsaiRegistration } from "@/lib/essay/actions";
 import { Button } from "@/components/ui/button";
 import { FormTextField } from "@/components/form/form-text-field";
 import MechaturaProfileSidebar from "../mechatura/sidebar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  SchoolCombobox,
+  PlainInstitutionInput,
+  INSTITUTION_TYPE_OPTIONS,
+  SEARCHABLE_TYPES,
+  type InstitutionType,
+} from "@/components/school-combobox";
 
 const MAX_GENERAL_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 const MAX_ESSAY_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -21,10 +35,13 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 const ALLOWED_PDF_TYPE = ["application/pdf"];
 
 const IdentitySchema = z.object({
-  full_name: z.string().min(2, "Nama lengkap minimal 2 karakter"),
-  institution: z.string().min(3, "Asal instansi minimal 3 karakter"),
-  email: z.string().email("Email tidak valid"),
-  phone_number: z.string().min(10, "Nomor WA minimal 10 karakter"),
+  full_name: z.string().trim().min(2, "Nama lengkap minimal 2 karakter"),
+  institution_category: z.string().optional(),
+  institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
+  city: z.string().trim().min(2, "Kota minimal 2 karakter"),
+  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
+  instagram_twibbon_url: z.string().trim().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
+  identity_card_url: z.string().trim().url("Link Google Drive tidak valid")
 });
 type IdentityValues = z.infer<typeof IdentitySchema>;
 
@@ -122,15 +139,21 @@ export function LombaEsaiClient({
   const [isSavingDocs, setIsSavingDocs] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(
+    (registration.institution_category as InstitutionType) || "SD"
+  );
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(IdentitySchema),
     mode: "onChange",
     defaultValues: {
       full_name: registration.full_name || userName || "",
+      institution_category: registration.institution_category || "SD",
       institution: registration.institution || "",
-      email: registration.email || userEmail || "",
+      city: registration.city || "",
       phone_number: registration.phone_number || "",
+      instagram_twibbon_url: registration.instagram_twibbon_url || "",
+      identity_card_url: registration.identity_card_url || "",
     }
   });
 
@@ -145,19 +168,15 @@ export function LombaEsaiClient({
   });
 
   const { isValid: isIdentityValid } = identityForm.formState;
-  const isIdentityComplete = Boolean(registration.full_name && registration.institution && registration.email && registration.phone_number) || isIdentityValid;
+  const isIdentityComplete = Boolean(registration.full_name && registration.institution && registration.city && registration.phone_number && registration.identity_card_url) || isIdentityValid;
   
-  const twibbonWatch = docsForm.watch("twibbon");
-  const ktmWatch = docsForm.watch("ktm");
   const essayWatch = docsForm.watch("essay");
   
   const isDocsComplete = Boolean(
-    (twibbonWatch?.length > 0 || registration.instagram_twibbon_url) && 
-    (ktmWatch?.length > 0 || registration.identity_card_url) && 
     (essayWatch?.length > 0 || registration.essay_paper_url)
   );
   
-  const isDocsValid = docsForm.formState.isValid && Boolean(twibbonWatch?.length > 0 || ktmWatch?.length > 0 || essayWatch?.length > 0);
+  const isDocsValid = docsForm.formState.isValid && Boolean(essayWatch?.length > 0);
 
   const paymentWatch = paymentForm.watch("payment");
   const isPaymentComplete = Boolean(paymentWatch?.length > 0 || registration.payment_proof_url);
@@ -199,8 +218,6 @@ export function LombaEsaiClient({
   const onSaveDocs = async (values: DocsValues) => {
     setIsSavingDocs(true);
     try {
-      const twibbonFile = values.twibbon?.[0];
-      const ktmFile = values.ktm?.[0];
       const essayFile = values.essay?.[0];
 
       const userId = registration.user_id;
@@ -218,11 +235,9 @@ export function LombaEsaiClient({
       if (essayFile) essayUrlPromise = handleFileUpload(essayFile, `${userId}/${essayFile.name}`);
       uploadPromises.push(essayUrlPromise);
 
-      const [twibbonUrl, ktmUrl, essayUrl] = await Promise.all(uploadPromises);
+      const [essayUrl] = await Promise.all(uploadPromises);
 
       const submitValues = {
-        instagram_twibbon_url: twibbonUrl,
-        identity_card_url: ktmUrl,
         essay_paper_url: essayUrl,
       };
 
@@ -361,6 +376,16 @@ export function LombaEsaiClient({
               <h3 className="text-lg font-medium text-foreground flex items-center gap-2">Data Diri</h3>
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
                 <p>Lengkapi informasi pribadi Anda untuk keperluan pendaftaran.</p>
+                <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
+                  <li>
+                    <span className="font-medium text-foreground">Student ID / Identitas:</span><br/>
+                    Wajib mengunggah KTM (mahasiswa), Kartu Pelajar, atau KTP/identitas resmi via Google Drive.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Twibbon:</span><br/>
+                    Wajib mengunggah twibbon di Instagram publik & follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a>
+                  </li>
+                </ul>
               </div>
             </div>
 
@@ -368,9 +393,87 @@ export function LombaEsaiClient({
               <form onSubmit={identityForm.handleSubmit(onSaveIdentity)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormTextField name="full_name" label="Nama Lengkap" disabled={isSubmitted} />
-                  <FormTextField name="institution" label="Asal Instansi" disabled={isSubmitted} />
-                  <FormTextField name="email" label="Alamat Email" type="email" disabled={isSubmitted} />
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium leading-snug">
+                      Jenjang / Kategori Institusi
+                    </label>
+                    <Select
+                      value={institutionType}
+                      onValueChange={(v) => {
+                        setInstitutionType(v as InstitutionType);
+                        identityForm.setValue("institution_category", v, { shouldValidate: true });
+                        identityForm.setValue("institution", "");
+                      }}
+                      disabled={isSubmitted}
+                    >
+                      <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">
+                        <SelectValue placeholder="Pilih jenjang..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
+                        {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <span className="font-medium">{opt.label}</span>
+                            <span className="ml-1.5 text-muted-foreground text-xs">
+                              — {opt.sublabel}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="institution" className="text-sm font-medium leading-snug">
+                    Institusi / Asal Sekolah
+                  </label>
+                  {SEARCHABLE_TYPES.includes(institutionType) ? (
+                    <SchoolCombobox
+                      id="institution"
+                      value={identityForm.watch("institution")}
+                      onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                      institutionType={institutionType}
+                      disabled={isSubmitted}
+                      aria-invalid={!!identityForm.formState.errors.institution}
+                      aria-describedby={identityForm.formState.errors.institution ? "institution-error" : undefined}
+                    />
+                  ) : institutionType === "perguruan_tinggi" ? (
+                    <PlainInstitutionInput
+                      id="institution"
+                      value={identityForm.watch("institution")}
+                      onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                      disabled={isSubmitted}
+                      placeholder="Tulis nama lengkap universitas (Contoh: Universitas Padjadjaran, bukan UNPAD)"
+                      aria-invalid={!!identityForm.formState.errors.institution}
+                      aria-describedby={identityForm.formState.errors.institution ? "institution-error" : undefined}
+                    />
+                  ) : (
+                    <PlainInstitutionInput
+                      id="institution"
+                      value={identityForm.watch("institution")}
+                      onChange={(v) => identityForm.setValue("institution", v, { shouldValidate: true })}
+                      disabled={isSubmitted}
+                      placeholder="Nama instansi / komunitas / ketik 'Individu'"
+                      aria-invalid={!!identityForm.formState.errors.institution}
+                      aria-describedby={identityForm.formState.errors.institution ? "institution-error" : undefined}
+                    />
+                  )}
+                  {identityForm.formState.errors.institution && (
+                    <div role="alert" id="institution-error" className="flex items-start gap-1.5 text-sm font-normal text-destructive">
+                      <span>{String(identityForm.formState.errors.institution.message)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormTextField name="city" label="Kota" disabled={isSubmitted} />
                   <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormTextField name="instagram_twibbon_url" label="Link Post Instagram (Twibbon)" type="url" disabled={isSubmitted} />
+                  <FormTextField name="identity_card_url" label="Identitas/KTM (Link Google Drive)" type="url" disabled={isSubmitted} />
                 </div>
                 {!isSubmitted && (
                   <Button type="submit" disabled={isSavingIdentity || !isIdentityValid} className="mt-2">
@@ -387,9 +490,9 @@ export function LombaEsaiClient({
         <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
           <div className="space-y-5">
             <div>
-              <h3 className="text-lg font-medium text-foreground flex items-center gap-2">Dokumen Pendukung & Esai</h3>
+              <h3 className="text-lg font-medium text-foreground flex items-center gap-2">Karya Esai</h3>
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
-                <p>Unggah file KTM/Kartu Pelajar, Twibbon, dan Karya Esai Anda.</p>
+                <p>Unggah Karya Esai Anda.</p>
               </div>
             </div>
 

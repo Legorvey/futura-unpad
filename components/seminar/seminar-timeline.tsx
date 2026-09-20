@@ -17,14 +17,14 @@ const seminarTimelineItems: GrandTimelineItem[] = [
   {
     category: "Seminar Nasional",
     event: "Mulai Registrasi",
-    date: "21 September 2026",
+    date: "To Be Announced",
     description: "Periode registrasi peserta Seminar Nasional Futura.",
     location: "Online/Daring",
   },
   {
     category: "Seminar Nasional",
     event: "Akhir Registrasi",
-    date: "21 November 2026",
+    date: "To Be Announced",
     description: "Akhir registrasi peserta Seminar Nasional Futura.",
     location: "Online/Daring",
   },

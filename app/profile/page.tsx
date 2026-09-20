@@ -425,17 +425,29 @@ export default async function ProfilePage() {
           <div className="p-6">
             {esaiRegistration ? (
               <div className="flex flex-col sm:flex-row items-end justify-between gap-6">
-                <div className="grid grid-cols-2 gap-y-6 gap-x-6 flex-1 w-full sm:w-auto">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-6 flex-1 w-full sm:w-auto">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Status Pendaftaran</p>
-                    <p className="text-sm font-medium text-foreground capitalize">
-                      {esaiRegistration.submission_status}
+                    <p className="text-sm text-muted-foreground mb-1">Nama Lengkap</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {esaiRegistration.full_name || "-"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Instansi</p>
                     <p className="text-sm font-medium text-foreground truncate">
                       {esaiRegistration.institution || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Email</p>
+                    <p className="text-sm font-medium text-foreground truncate" title={esaiRegistration.email || ""}>
+                      {esaiRegistration.email || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">No. WA</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {esaiRegistration.phone_number || "-"}
                     </p>
                   </div>
                 </div>

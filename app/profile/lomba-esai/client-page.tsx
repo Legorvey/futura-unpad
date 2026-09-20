@@ -106,11 +106,11 @@ function UploadedFileDisplay({ path, onRemove }: { path: string | null; onRemove
         <p className="text-sm font-medium text-foreground truncate" title={fileName}>{fileName}</p>
       </div>
       {onRemove && (
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm" 
-          onClick={onRemove} 
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
           className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
         >
           <Trash2 className="h-4 w-4 mr-1.5" />
@@ -169,19 +169,21 @@ export function LombaEsaiClient({
 
   const { isValid: isIdentityValid } = identityForm.formState;
   const isIdentityComplete = Boolean(
-    registration.full_name && 
-    registration.institution && 
-    registration.city && 
-    registration.phone_number && 
+    registration.full_name &&
+    registration.institution &&
+    registration.city &&
+    registration.phone_number &&
     registration.identity_card_url &&
     registration.instagram_twibbon_url
   );
-  
+
   const essayWatch = docsForm.watch("essay");
-  
+  const twibbonWatch = docsForm.watch("twibbon");
+  const ktmWatch = docsForm.watch("ktm");
+
   const isDocsComplete = Boolean(registration.essay_paper_url);
-  
-  const isDocsValid = docsForm.formState.isValid && Boolean(essayWatch?.length > 0);
+
+  const isDocsValid = docsForm.formState.isValid && (Boolean(essayWatch?.length > 0) || Boolean(twibbonWatch?.length > 0) || Boolean(ktmWatch?.length > 0));
 
   const paymentWatch = paymentForm.watch("payment");
   const isPaymentComplete = Boolean(registration.payment_proof_url);
@@ -229,7 +231,7 @@ export function LombaEsaiClient({
 
       const userId = registration.user_id;
       const uploadPromises: Promise<string | null | undefined>[] = [];
-      
+
       let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
       if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/${twibbonFile.name}`);
       uploadPromises.push(twibbonUrlPromise);
@@ -252,7 +254,7 @@ export function LombaEsaiClient({
 
       const res = await updateEsaiRegistration(registration.id, submitValues);
       if (!res.success) throw new Error(res.error || "Gagal menyimpan dokumen.");
-      
+
       docsForm.reset();
       toast.success("Dokumen berhasil disimpan!");
       router.refresh();
@@ -268,7 +270,7 @@ export function LombaEsaiClient({
     try {
       const paymentFile = values.payment?.[0];
       const userId = registration.user_id;
-      
+
       let paymentUrl = registration.payment_proof_url;
       if (paymentFile) {
         paymentUrl = await handleFileUpload(paymentFile, `${userId}/${paymentFile.name}`);
@@ -278,7 +280,7 @@ export function LombaEsaiClient({
 
       const res = await updateEsaiRegistration(registration.id, submitValues);
       if (!res.success) throw new Error(res.error || "Gagal menyimpan pembayaran.");
-      
+
       paymentForm.reset();
       toast.success("Bukti pembayaran berhasil disimpan!");
       router.refresh();
@@ -312,7 +314,7 @@ export function LombaEsaiClient({
 
   return (
     <div className="flex flex-col lg:flex-row items-stretch gap-0 relative lg:-mx-8 lg:-my-8 h-full rounded-[inherit]">
-      <MechaturaProfileSidebar 
+      <MechaturaProfileSidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       >
@@ -360,7 +362,7 @@ export function LombaEsaiClient({
       </MechaturaProfileSidebar>
 
       <section className="flex-1 space-y-6 p-6 sm:p-8 lg:p-10 transition-all duration-300 min-w-0 bg-background/50 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl">
-        
+
         <div className="p-5 md:p-6 rounded-2xl bg-card border border-border flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-3">
@@ -377,7 +379,7 @@ export function LombaEsaiClient({
             </div>
           </div>
         </div>
-            
+
         {/* Data Diri Section */}
         <div className="space-y-6 p-5 md:p-6 rounded-2xl bg-card border border-border">
           <div className="space-y-5">
@@ -387,11 +389,11 @@ export function LombaEsaiClient({
                 <p>Lengkapi informasi pribadi Anda untuk keperluan pendaftaran.</p>
                 <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
                   <li>
-                    <span className="font-medium text-foreground">Student ID / Identitas:</span><br/>
+                    <span className="font-medium text-foreground">Student ID / Identitas:</span><br />
                     Wajib mengunggah KTM (mahasiswa), Kartu Pelajar, atau KTP/identitas resmi via Google Drive.
                   </li>
                   <li>
-                    <span className="font-medium text-foreground">Twibbon:</span><br/>
+                    <span className="font-medium text-foreground">Twibbon:</span><br />
                     Wajib mengunggah twibbon di Instagram publik & follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a>
                   </li>
                 </ul>

@@ -39,9 +39,7 @@ const IdentitySchema = z.object({
   institution_category: z.string().optional(),
   institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().trim().min(2, "Kota minimal 2 karakter"),
-  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
-  instagram_twibbon_url: z.string().trim().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
-  identity_card_url: z.string().trim().url("Link Google Drive tidak valid")
+  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit")
 });
 type IdentityValues = z.infer<typeof IdentitySchema>;
 
@@ -156,8 +154,6 @@ export function LombaEsaiClient({
       institution: registration.institution || "",
       city: registration.city || "",
       phone_number: registration.phone_number || "",
-      instagram_twibbon_url: registration.instagram_twibbon_url || "",
-      identity_card_url: registration.identity_card_url || "",
     }
   });
 
@@ -176,16 +172,18 @@ export function LombaEsaiClient({
     registration.full_name &&
     registration.institution &&
     registration.city &&
-    registration.phone_number &&
-    registration.identity_card_url &&
-    registration.instagram_twibbon_url
+    registration.phone_number
   );
 
   const essayWatch = docsForm.watch("essay");
   const twibbonWatch = docsForm.watch("twibbon");
   const ktmWatch = docsForm.watch("ktm");
 
-  const isDocsComplete = Boolean(registration.essay_paper_url);
+  const isDocsComplete = Boolean(
+    registration.essay_paper_url &&
+    registration.identity_card_url &&
+    registration.instagram_twibbon_url
+  );
 
   const isDocsValid = docsForm.formState.isValid && (Boolean(essayWatch?.length > 0) || Boolean(twibbonWatch?.length > 0) || Boolean(ktmWatch?.length > 0));
 
@@ -203,8 +201,14 @@ export function LombaEsaiClient({
 
   const handleRemoveFile = async (field: string) => {
     try {
+      const pathToDelete = registration[field];
       const res = await updateEsaiRegistration(registration.id, { [field]: null });
       if (!res.success) throw new Error(res.error || "Gagal menghapus file.");
+      
+      if (pathToDelete) {
+        await supabase.storage.from("esai_documents").remove([pathToDelete]);
+      }
+
       toast.success("File berhasil dihapus. Silakan unggah yang baru.");
       router.refresh();
     } catch (err: unknown) {
@@ -399,11 +403,11 @@ export function LombaEsaiClient({
                 <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
                   <li>
                     <span className="font-medium text-foreground">Student ID / Identitas:</span><br />
-                    Wajib mengunggah KTM (mahasiswa), Kartu Pelajar, atau KTP/identitas resmi via Google Drive.
+                    Wajib mengunggah pindaian/foto KTM (mahasiswa), Kartu Pelajar, atau KTP resmi pada bagian <b>Dokumen</b> di bawah.
                   </li>
                   <li>
-                    <span className="font-medium text-foreground">Twibbon:</span><br />
-                    Wajib mengunggah twibbon di Instagram publik & follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a>
+                    <span className="font-medium text-foreground">Twibbon & Instagram:</span><br />
+                    Wajib mengunggah <b>screenshot</b> bukti post twibbon di Instagram dan bukti follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a> pada bagian <b>Dokumen</b>.
                   </li>
                 </ul>
               </div>
@@ -491,10 +495,7 @@ export function LombaEsaiClient({
                   <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormTextField name="instagram_twibbon_url" label="Link Post Instagram (Twibbon)" type="url" disabled={isSubmitted} />
-                  <FormTextField name="identity_card_url" label="Identitas/KTM (Link Google Drive)" type="url" disabled={isSubmitted} />
-                </div>
+
                 {!isSubmitted && (
                   <Button type="submit" disabled={isSavingIdentity || !isIdentityValid} className="mt-2">
                     {isSavingIdentity && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

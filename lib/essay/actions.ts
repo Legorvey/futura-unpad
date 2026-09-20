@@ -2,8 +2,13 @@
 
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { ESAI_REG_START_DATE, IS_ESAI_REGISTRATION_OPEN } from "@/lib/landing/helper";
 
 export async function registerEsai() {
+  if (!IS_ESAI_REGISTRATION_OPEN) {
+    return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
+  }
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -59,6 +64,10 @@ const UpdateEsaiSchema = z.object({
 });
 
 export async function updateEsaiRegistration(registrationId: string, values: z.infer<typeof UpdateEsaiSchema>) {
+  if (!IS_ESAI_REGISTRATION_OPEN) {
+    return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -90,9 +99,10 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
 
   // Prevent submitting an incomplete registration
   if (validatedFields.data.submission_status === "submitted") {
-    const isComplete = reg.full_name && reg.institution && reg.city && reg.phone_number &&
-                       reg.instagram_twibbon_url && reg.identity_card_url &&
-                       reg.essay_paper_url && reg.payment_proof_url;
+    const checkData = { ...reg, ...validatedFields.data };
+    const isComplete = checkData.full_name && checkData.institution && checkData.city && checkData.phone_number &&
+                       checkData.instagram_twibbon_url && checkData.identity_card_url &&
+                       checkData.essay_paper_url && checkData.payment_proof_url;
     if (!isComplete) {
       return { success: false, error: "Data belum lengkap. Silakan lengkapi semua form dan dokumen." };
     }

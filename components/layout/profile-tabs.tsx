@@ -7,7 +7,7 @@ import { ChevronLeft } from "lucide-react"
 export function ProfileTabs() {
     const pathname = usePathname()
 
-    if (pathname.includes("/profile/mechatura")) {
+    if (pathname.includes("/profile/mechatura") || pathname.includes("/profile/lomba-esai")) {
         return (
             <div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8 -mb-2">
                 <div className="px-2">

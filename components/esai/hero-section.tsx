@@ -5,6 +5,7 @@ import { useInView } from "motion/react"
 import Link from "next/link"
 import { Button } from "../ui/button"
 import FlipCountdown from "@/components/seminar/flip-countdown"
+import { EsaiRegistrationButton } from "./RegistrationButton"
 
 const SCRAMBLE_TARGET = "LOMBA ESAI"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
@@ -84,12 +85,13 @@ export function HeroSection() {
               Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030
             </p>
             
-            <div className="flex flex-col items-center mt-12 gap-8">
-              <div className="flex flex-col items-center gap-4">
-                <span className="font-bold uppercase tracking-wide text-sm md:text-base">
-                  Countdown
-                </span>
-                <FlipCountdown targetDate={new Date("2026-09-21T00:00:00+07:00").getTime()} />
+            <div className="flex flex-col items-center mt-8 gap-8">
+              <div className="mx-auto flex flex-col md:flex-row items-center gap-4">
+                <EsaiRegistrationButton />
+
+                <Button asChild className="rounded-full w-full md:w-fit py-6 md:py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
+                    <Link href="#">Lihat Booklet</Link>
+                </Button>
               </div>
             </div>
           </div>

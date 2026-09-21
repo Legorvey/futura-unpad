@@ -23,6 +23,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   SchoolCombobox,
   PlainInstitutionInput,
   INSTITUTION_TYPE_OPTIONS,
@@ -348,13 +359,14 @@ export function LombaEsaiClient({
             </h3>
           </div>
 
-          <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6">
+          <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6 gap-3">
+            <span className="text-xl font-bold text-foreground bg-muted/50 px-4 py-1.5 rounded-full border">Rp. 50.000</span>
             <Image
               src="/qris-mechatura.jpeg"
               alt="QRIS Pembayaran Lomba Esai"
               width={240}
               height={240}
-              className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+              className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal rounded-xl"
             />
           </div>
 
@@ -571,7 +583,7 @@ export function LombaEsaiClient({
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
                 <p>Silakan unggah dokumen naskah Karya Esai Anda. Pastikan karya yang dikumpulkan adalah <strong className="text-foreground">orisinal dan belum pernah dipublikasikan atau diikutsertakan dalam kompetisi lain.</strong></p>
                 <div className="flex flex-wrap gap-3 pt-2">
-                  <a href="#" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                  <a href="/booklet-esai.pdf" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
                     Baca Booklet Resmi
                   </a>
                 </div>
@@ -627,10 +639,26 @@ export function LombaEsaiClient({
                 <h3 className="text-lg font-medium text-foreground">Finalisasi Pendaftaran</h3>
                 <p className="text-sm text-muted-foreground mt-1">Pastikan seluruh data dan dokumen sudah tersimpan. Data yang disubmit tidak dapat diubah kembali.</p>
               </div>
-              <Button type="button" onClick={onFinalSubmit} disabled={isSubmittingFinal || !canSubmitFinal} className="w-full md:w-auto">
-                {isSubmittingFinal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Final
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" disabled={isSubmittingFinal || !canSubmitFinal} className="w-full md:w-auto">
+                    {isSubmittingFinal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit Final
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-foreground">Apakah Anda yakin?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Data dan file yang sudah disubmit tidak dapat diubah kembali. Pastikan seluruh informasi sudah benar.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={onFinalSubmit}>Ya, Submit Final</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         )}

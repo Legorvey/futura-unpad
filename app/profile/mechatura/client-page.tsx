@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember, updatePembinaData, clearPembinaData } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
+import { getMechaturaBatchInfo } from "@/lib/mechatura/batch";
 import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
 import {
   AlertDialog,
@@ -245,10 +246,10 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
           priority
         />
         {(() => {
-          const isBatch1 = !team.created_at || new Date(team.created_at).getTime() < new Date("2026-09-21T00:00:00+07:00").getTime();
+          const batchInfo = getMechaturaBatchInfo(team.created_at ? new Date(team.created_at) : new Date());
           return (
             <p className="text-lg text-center font-medium mt-1 text-foreground">
-              {isBatch1 ? "Batch 1: Rp175.000" : "Batch 2: Rp200.000"}
+              {batchInfo.batchName}: {batchInfo.formattedPrice}
             </p>
           );
         })()}

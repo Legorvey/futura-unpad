@@ -209,6 +209,7 @@ export function LombaEsaiClient({
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSubmitted) return;
       if (identityForm.formState.isDirty || docsForm.formState.isDirty || paymentForm.formState.isDirty) {
         e.preventDefault();
         e.returnValue = "Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman ini?";
@@ -216,7 +217,7 @@ export function LombaEsaiClient({
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [identityForm.formState.isDirty, docsForm.formState.isDirty, paymentForm.formState.isDirty]);
+  }, [identityForm.formState.isDirty, docsForm.formState.isDirty, paymentForm.formState.isDirty, isSubmitted]);
 
   const { isValid: isIdentityValid } = identityForm.formState;
   const isIdentityComplete = Boolean(
@@ -250,7 +251,7 @@ export function LombaEsaiClient({
     return path;
   };
 
-  const handleRemoveFile = async (field: string) => {
+  const handleRemoveFile = async (field: "instagram_twibbon_url" | "identity_card_url" | "essay_paper_url" | "payment_proof_url") => {
     try {
       const pathToDelete = registration[field];
       const res = await updateEsaiRegistration(registration.id, { [field]: null });
@@ -299,8 +300,15 @@ export function LombaEsaiClient({
       const res = await updateEsaiRegistration(registration.id, submitValues);
       if (!res.success) throw new Error(res.error || "Gagal menyimpan data.");
 
-      identityForm.setValue("twibbon", undefined);
-      identityForm.setValue("ktm", undefined);
+      identityForm.reset({
+        full_name: submitValues.full_name,
+        institution_category: submitValues.institution_category,
+        institution: submitValues.institution,
+        city: submitValues.city,
+        phone_number: submitValues.phone_number,
+        twibbon: undefined,
+        ktm: undefined,
+      });
       toast.success("Data diri berhasil disimpan!");
       router.refresh();
     } catch (err: unknown) {

@@ -390,7 +390,7 @@ export function LombaEsaiClient({
                   />
                 )}
               </div>
-              {!isSubmitted && (
+              {!isSubmitted && !registration.payment_proof_url && (
                 <Button type="submit" disabled={isSavingPayment || !isPaymentValid} className="w-full">
                   {isSavingPayment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Simpan Bukti
@@ -613,7 +613,7 @@ export function LombaEsaiClient({
                   </div>
                 </div>
 
-                {!isSubmitted && (
+                {!isSubmitted && !registration.essay_paper_url && (
                   <Button type="submit" disabled={isSavingDocs || !isDocsValid} className="mt-6">
                     {isSavingDocs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Simpan Dokumen
@@ -631,6 +631,11 @@ export function LombaEsaiClient({
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Data pendaftaran Anda telah dikirim dan sedang menunggu pengecekan dari panitia. Anda tidak dapat lagi mengubah data diri, bukti pembayaran, atau karya esai.
             </p>
+            <div className="pt-2">
+              <Button type="button" variant="outline" onClick={() => router.push("/profile")}>
+                Kembali ke Profil Utama
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="p-5 md:p-6 rounded-2xl bg-card border border-border">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,7 @@ import { updateEsaiRegistration } from "@/lib/essay/actions";
 
 import { Button } from "@/components/ui/button";
 import { FormTextField } from "@/components/form/form-text-field";
+import { FormFileField } from "@/components/form/form-file-field";
 import MechaturaProfileSidebar from "../mechatura/sidebar";
 import {
   Select,
@@ -21,6 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   SchoolCombobox,
   PlainInstitutionInput,
@@ -39,14 +51,9 @@ const IdentitySchema = z.object({
   institution_category: z.string().optional(),
   institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().trim().min(2, "Kota minimal 2 karakter"),
-  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit")
-});
-type IdentityValues = z.infer<typeof IdentitySchema>;
-
-const DocsSchema = z.object({
+  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit").regex(/^[0-9+ \-]+$/, "Nomor telepon tidak valid"),
   twibbon: z.any().optional(),
   ktm: z.any().optional(),
-  essay: z.any().optional(),
 }).superRefine((val, ctx) => {
   if (val.twibbon && val.twibbon.length > 0) {
     const file = val.twibbon[0];
@@ -66,6 +73,12 @@ const DocsSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Format tidak didukung", path: ["ktm"] });
     }
   }
+});
+type IdentityValues = z.infer<typeof IdentitySchema>;
+
+const DocsSchema = z.object({
+  essay: z.any().optional(),
+}).superRefine((val, ctx) => {
   if (val.essay && val.essay.length > 0) {
     const file = val.essay[0];
     if (file.size > MAX_ESSAY_FILE_SIZE) {
@@ -96,7 +109,7 @@ type PaymentValues = z.infer<typeof PaymentSchema>;
 function UploadedFileDisplay({ path, onRemove, label, description }: { path: string | null; onRemove?: () => void; label?: string; description?: string }) {
   if (!path) return null;
   const rawFileName = path.split('/').pop() || "file_terunggah";
-  const fileName = decodeURIComponent(rawFileName);
+  const fileName = decodeURIComponent(rawFileName).replace(/^(twibbon|ktm|essay|payment)_\d+_/, '');
   return (
     <div className="flex flex-col gap-2 w-full mb-1">
       {label && <label className="text-sm font-medium leading-none">{label}</label>}
@@ -106,11 +119,11 @@ function UploadedFileDisplay({ path, onRemove, label, description }: { path: str
           <p className="text-sm font-medium text-foreground truncate" title={fileName}>{fileName}</p>
         </div>
         {onRemove && (
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            onClick={onRemove} 
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
             className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-1.5" />
@@ -119,6 +132,32 @@ function UploadedFileDisplay({ path, onRemove, label, description }: { path: str
         )}
       </div>
       {description && <p className="text-[0.8rem] text-muted-foreground">{description}</p>}
+    </div>
+  );
+}
+
+function LocalImagePreview({ fileList }: { fileList?: any }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!fileList || fileList.length === 0) {
+      setPreviewUrl(null);
+      return;
+    }
+    const file = fileList[0] as File;
+    if (!file.type.startsWith("image/")) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [fileList]);
+
+  if (!previewUrl) return null;
+  return (
+    <div className="mt-3 relative w-full flex justify-center rounded-lg overflow-hidden border border-border bg-muted/30 p-2">
+      <img src={previewUrl} className="max-w-full max-h-48 object-contain rounded-md" alt="Preview" />
     </div>
   );
 }
@@ -141,16 +180,17 @@ export function LombaEsaiClient({
   const [isSavingDocs, setIsSavingDocs] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
-  const [institutionType, setInstitutionType] = useState<InstitutionType>(
-    (registration.institution_category as InstitutionType) || "SD"
-  );
+  const initialInstitutionType = (registration.institution_category && ["SMA", "SMK", "perguruan_tinggi"].includes(registration.institution_category)) 
+    ? registration.institution_category as InstitutionType 
+    : "SMA";
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(initialInstitutionType);
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(IdentitySchema),
     mode: "onChange",
     defaultValues: {
       full_name: registration.full_name || userName || "",
-      institution_category: registration.institution_category || "SD",
+      institution_category: initialInstitutionType,
       institution: registration.institution || "",
       city: registration.city || "",
       phone_number: registration.phone_number || "",
@@ -167,25 +207,37 @@ export function LombaEsaiClient({
     mode: "onChange"
   });
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSubmitted) return;
+      if (identityForm.formState.isDirty || docsForm.formState.isDirty || paymentForm.formState.isDirty) {
+        e.preventDefault();
+        e.returnValue = "Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman ini?";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [identityForm.formState.isDirty, docsForm.formState.isDirty, paymentForm.formState.isDirty, isSubmitted]);
+
   const { isValid: isIdentityValid } = identityForm.formState;
   const isIdentityComplete = Boolean(
     registration.full_name &&
     registration.institution &&
     registration.city &&
-    registration.phone_number
-  );
-
-  const essayWatch = docsForm.watch("essay");
-  const twibbonWatch = docsForm.watch("twibbon");
-  const ktmWatch = docsForm.watch("ktm");
-
-  const isDocsComplete = Boolean(
-    registration.essay_paper_url &&
+    registration.phone_number &&
     registration.identity_card_url &&
     registration.instagram_twibbon_url
   );
 
-  const isDocsValid = docsForm.formState.isValid && (Boolean(essayWatch?.length > 0) || Boolean(twibbonWatch?.length > 0) || Boolean(ktmWatch?.length > 0));
+  const twibbonWatch = identityForm.watch("twibbon");
+  const ktmWatch = identityForm.watch("ktm");
+  const essayWatch = docsForm.watch("essay");
+
+  const isDocsComplete = Boolean(
+    registration.essay_paper_url
+  );
+
+  const isDocsValid = docsForm.formState.isValid && Boolean(essayWatch?.length > 0);
 
   const paymentWatch = paymentForm.watch("payment");
   const isPaymentComplete = Boolean(registration.payment_proof_url);
@@ -199,12 +251,12 @@ export function LombaEsaiClient({
     return path;
   };
 
-  const handleRemoveFile = async (field: string) => {
+  const handleRemoveFile = async (field: "instagram_twibbon_url" | "identity_card_url" | "essay_paper_url" | "payment_proof_url") => {
     try {
       const pathToDelete = registration[field];
       const res = await updateEsaiRegistration(registration.id, { [field]: null });
       if (!res.success) throw new Error(res.error || "Gagal menghapus file.");
-      
+
       if (pathToDelete) {
         await supabase.storage.from("esai_documents").remove([pathToDelete]);
       }
@@ -219,8 +271,44 @@ export function LombaEsaiClient({
   const onSaveIdentity = async (values: IdentityValues) => {
     setIsSavingIdentity(true);
     try {
-      const res = await updateEsaiRegistration(registration.id, values);
+      const twibbonFile = values.twibbon?.[0];
+      const ktmFile = values.ktm?.[0];
+      const userId = registration.user_id;
+
+      const uploadPromises: Promise<string | null | undefined>[] = [];
+
+      let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
+      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/twibbon_${Date.now()}_${twibbonFile.name}`);
+      uploadPromises.push(twibbonUrlPromise);
+
+      let ktmUrlPromise = Promise.resolve(registration.identity_card_url);
+      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/ktm_${Date.now()}_${ktmFile.name}`);
+      uploadPromises.push(ktmUrlPromise);
+
+      const [twibbonUrl, ktmUrl] = await Promise.all(uploadPromises);
+
+      const submitValues = {
+        full_name: values.full_name,
+        institution_category: values.institution_category,
+        institution: values.institution,
+        city: values.city,
+        phone_number: values.phone_number,
+        instagram_twibbon_url: twibbonUrl,
+        identity_card_url: ktmUrl,
+      };
+
+      const res = await updateEsaiRegistration(registration.id, submitValues);
       if (!res.success) throw new Error(res.error || "Gagal menyimpan data.");
+
+      identityForm.reset({
+        full_name: submitValues.full_name,
+        institution_category: submitValues.institution_category,
+        institution: submitValues.institution,
+        city: submitValues.city,
+        phone_number: submitValues.phone_number,
+        twibbon: undefined,
+        ktm: undefined,
+      });
       toast.success("Data diri berhasil disimpan!");
       router.refresh();
     } catch (err: unknown) {
@@ -234,29 +322,14 @@ export function LombaEsaiClient({
     setIsSavingDocs(true);
     try {
       const essayFile = values.essay?.[0];
-      const twibbonFile = values.twibbon?.[0];
-      const ktmFile = values.ktm?.[0];
-
       const userId = registration.user_id;
-      const uploadPromises: Promise<string | null | undefined>[] = [];
 
-      let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
-      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/${twibbonFile.name}`);
-      uploadPromises.push(twibbonUrlPromise);
-
-      let ktmUrlPromise = Promise.resolve(registration.identity_card_url);
-      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/${ktmFile.name}`);
-      uploadPromises.push(ktmUrlPromise);
-
-      let essayUrlPromise = Promise.resolve(registration.essay_paper_url);
-      if (essayFile) essayUrlPromise = handleFileUpload(essayFile, `${userId}/${essayFile.name}`);
-      uploadPromises.push(essayUrlPromise);
-
-      const [twibbonUrl, ktmUrl, essayUrl] = await Promise.all(uploadPromises);
+      let essayUrl = registration.essay_paper_url;
+      if (essayFile) {
+        essayUrl = await handleFileUpload(essayFile, `${userId}/essay_${Date.now()}_${essayFile.name}`);
+      }
 
       const submitValues = {
-        instagram_twibbon_url: twibbonUrl,
-        identity_card_url: ktmUrl,
         essay_paper_url: essayUrl,
       };
 
@@ -281,7 +354,7 @@ export function LombaEsaiClient({
 
       let paymentUrl = registration.payment_proof_url;
       if (paymentFile) {
-        paymentUrl = await handleFileUpload(paymentFile, `${userId}/${paymentFile.name}`);
+        paymentUrl = await handleFileUpload(paymentFile, `${userId}/payment_${Date.now()}_${paymentFile.name}`);
       }
 
       const submitValues = { payment_proof_url: paymentUrl };
@@ -333,37 +406,41 @@ export function LombaEsaiClient({
             </h3>
           </div>
 
-          <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6">
+          <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6 gap-3">
+            <span className="text-xl font-bold text-foreground bg-muted/50 px-4 py-1.5 rounded-full border">Rp. 50.000</span>
             <Image
               src="/qris-mechatura.jpeg"
               alt="QRIS Pembayaran Lomba Esai"
               width={240}
               height={240}
-              className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+              className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal rounded-xl"
             />
           </div>
 
           <FormProvider {...paymentForm}>
             <form onSubmit={paymentForm.handleSubmit(onSavePayment)} className="space-y-4">
               <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                <UploadedFileDisplay 
-                  path={registration.payment_proof_url} 
-                  onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined} 
-                  label="Unggah Bukti Pembayaran" 
-                  description="Maksimal 3MB (JPG, PNG, PDF)" 
+                <UploadedFileDisplay
+                  path={registration.payment_proof_url}
+                  onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined}
+                  label="Bukti Pembayaran"
+                  description="Maksimal 3MB (JPG, PNG, PDF)"
                 />
                 {!isSubmitted && !registration.payment_proof_url && (
-                  <FormTextField
-                    type="file"
-                    name="payment"
-                    label="Unggah Bukti Pembayaran"
-                    accept="image/jpeg, image/png, application/pdf"
-                    disabled={isSavingPayment || isSubmittingFinal}
-                    description="Maksimal 3MB (JPG, PNG, PDF)"
-                  />
+                  <>
+                    <FormFileField
+                      name="payment"
+                      label="Bukti Pembayaran"
+                      accept="image/jpeg, image/png, application/pdf"
+                      disabled={isSavingPayment || isSubmittingFinal}
+                      maxSizeInBytes={3 * 1024 * 1024}
+                      variant="button"
+                    />
+                    <LocalImagePreview fileList={paymentWatch} />
+                  </>
                 )}
               </div>
-              {!isSubmitted && (
+              {!isSubmitted && !registration.payment_proof_url && (
                 <Button type="submit" disabled={isSavingPayment || !isPaymentValid} className="w-full">
                   {isSavingPayment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Simpan Bukti
@@ -403,11 +480,11 @@ export function LombaEsaiClient({
                 <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
                   <li>
                     <span className="font-medium text-foreground">Student ID / Identitas:</span><br />
-                    Wajib mengunggah pindaian/foto KTM (mahasiswa), Kartu Pelajar, atau KTP resmi pada bagian <b>Dokumen</b> di bawah.
+                    Wajib mengunggah pindaian/foto KTM (mahasiswa), Kartu Pelajar, atau KTP resmi pada bagian ini.
                   </li>
                   <li>
-                    <span className="font-medium text-foreground">Twibbon & Instagram:</span><br />
-                    Wajib mengunggah <b>screenshot</b> bukti post twibbon di Instagram dan bukti follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a> pada bagian <b>Dokumen</b>.
+                    <span className="font-medium text-foreground">Twibbon:</span><br />
+                    Wajib mengunggah <b>screenshot</b> bukti post twibbon di Instagram pada bagian ini.
                   </li>
                 </ul>
               </div>
@@ -435,7 +512,7 @@ export function LombaEsaiClient({
                         <SelectValue placeholder="Pilih jenjang..." />
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
-                        {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                        {INSTITUTION_TYPE_OPTIONS.filter(opt => ["SMA", "SMK", "perguruan_tinggi"].includes(opt.value)).map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             <span className="font-medium">{opt.label}</span>
                             <span className="ml-1.5 text-muted-foreground text-xs">
@@ -491,10 +568,57 @@ export function LombaEsaiClient({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormTextField name="city" label="Kota" disabled={isSubmitted} />
-                  <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} />
+                  <FormTextField name="city" label="Kota" disabled={isSubmitted} placeholder="Bandung, Jakarta..." />
+                  <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} placeholder="081234567890" />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {/* Twibbon Upload */}
+                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
+                    <UploadedFileDisplay
+                      path={registration.instagram_twibbon_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined}
+                      label="Bukti Twibbon"
+                      description="Maksimal 3MB (JPG, PNG, PDF)"
+                    />
+                    {!isSubmitted && !registration.instagram_twibbon_url && (
+                      <>
+                        <FormFileField
+                          name="twibbon"
+                          label="Bukti Twibbon"
+                          accept="image/jpeg, image/png, application/pdf"
+                          disabled={isSavingIdentity}
+                          maxSizeInBytes={3 * 1024 * 1024}
+                          variant="button"
+                        />
+                        <LocalImagePreview fileList={twibbonWatch} />
+                      </>
+                    )}
+                  </div>
+
+                  {/* KTM Upload */}
+                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
+                    <UploadedFileDisplay
+                      path={registration.identity_card_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined}
+                      label="KTM / Kartu Pelajar"
+                      description="Maksimal 3MB (JPG, PNG, PDF)"
+                    />
+                    {!isSubmitted && !registration.identity_card_url && (
+                      <>
+                        <FormFileField
+                          name="ktm"
+                          label="KTM / Kartu Pelajar"
+                          accept="image/jpeg, image/png, application/pdf"
+                          disabled={isSavingIdentity}
+                          maxSizeInBytes={3 * 1024 * 1024}
+                          variant="button"
+                        />
+                        <LocalImagePreview fileList={ktmWatch} />
+                      </>
+                    )}
+                  </div>
+                </div>
 
                 {!isSubmitted && (
                   <Button type="submit" disabled={isSavingIdentity || !isIdentityValid} className="mt-2">
@@ -513,75 +637,39 @@ export function LombaEsaiClient({
             <div>
               <h3 className="text-lg font-medium text-foreground flex items-center gap-2">Karya Esai</h3>
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
-                <p>Unggah Karya Esai Anda.</p>
+                <p>Silakan unggah dokumen naskah Karya Esai Anda. Pastikan karya yang dikumpulkan adalah <strong className="text-foreground">orisinal dan belum pernah dipublikasikan atau diikutsertakan dalam kompetisi lain.</strong></p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <a href="/booklet-esai.pdf" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                    Baca Booklet Resmi
+                  </a>
+                </div>
               </div>
             </div>
 
             <FormProvider {...docsForm}>
               <form onSubmit={docsForm.handleSubmit(onSaveDocs)}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Twibbon Upload */}
-                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay 
-                      path={registration.instagram_twibbon_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined} 
-                      label="Bukti Twibbon & Follow Instagram" 
-                      description="Maksimal 3MB (JPG, PNG, PDF)" 
-                    />
-                    {!isSubmitted && !registration.instagram_twibbon_url && (
-                      <FormTextField
-                        type="file"
-                        name="twibbon"
-                        label="Bukti Twibbon & Follow Instagram"
-                        accept="image/jpeg, image/png, application/pdf"
-                        disabled={isSavingDocs}
-                        description="Maksimal 3MB (JPG, PNG, PDF)"
-                      />
-                    )}
-                  </div>
-
-                  {/* KTM Upload */}
-                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay 
-                      path={registration.identity_card_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined} 
-                      label="KTM / Kartu Pelajar" 
-                      description="Maksimal 3MB (JPG, PNG, PDF)" 
-                    />
-                    {!isSubmitted && !registration.identity_card_url && (
-                      <FormTextField
-                        type="file"
-                        name="ktm"
-                        label="KTM / Kartu Pelajar"
-                        accept="image/jpeg, image/png, application/pdf"
-                        disabled={isSavingDocs}
-                        description="Maksimal 3MB (JPG, PNG, PDF)"
-                      />
-                    )}
-                  </div>
-
+                <div className="grid grid-cols-1 gap-6">
                   {/* Essay Paper Upload */}
-                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30 md:col-span-2">
-                    <UploadedFileDisplay 
-                      path={registration.essay_paper_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined} 
-                      label="File Karya Esai" 
-                      description="Maksimal 2MB (Hanya PDF)" 
+                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
+                    <UploadedFileDisplay
+                      path={registration.essay_paper_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined}
+                      label="File Karya Esai"
+                      description="Maksimal 2MB (Hanya PDF)"
                     />
                     {!isSubmitted && !registration.essay_paper_url && (
-                      <FormTextField
-                        type="file"
+                      <FormFileField
                         name="essay"
                         label="File Karya Esai"
                         accept="application/pdf"
                         disabled={isSavingDocs}
-                        description="Maksimal 2MB (Hanya PDF)"
+                        maxSizeInBytes={2 * 1024 * 1024}
                       />
                     )}
                   </div>
                 </div>
 
-                {!isSubmitted && (
+                {!isSubmitted && !registration.essay_paper_url && (
                   <Button type="submit" disabled={isSavingDocs || !isDocsValid} className="mt-6">
                     {isSavingDocs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Simpan Dokumen
@@ -599,6 +687,11 @@ export function LombaEsaiClient({
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Data pendaftaran Anda telah dikirim dan sedang menunggu pengecekan dari panitia. Anda tidak dapat lagi mengubah data diri, bukti pembayaran, atau karya esai.
             </p>
+            <div className="pt-2">
+              <Button type="button" variant="outline" onClick={() => router.push("/profile")}>
+                Kembali ke Profil Utama
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="p-5 md:p-6 rounded-2xl bg-card border border-border">
@@ -607,10 +700,26 @@ export function LombaEsaiClient({
                 <h3 className="text-lg font-medium text-foreground">Finalisasi Pendaftaran</h3>
                 <p className="text-sm text-muted-foreground mt-1">Pastikan seluruh data dan dokumen sudah tersimpan. Data yang disubmit tidak dapat diubah kembali.</p>
               </div>
-              <Button type="button" onClick={onFinalSubmit} disabled={isSubmittingFinal || !canSubmitFinal} className="w-full md:w-auto">
-                {isSubmittingFinal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Final
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" disabled={isSubmittingFinal || !canSubmitFinal} className="w-full md:w-auto">
+                    {isSubmittingFinal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit Final
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-foreground">Apakah Anda yakin?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Data dan file yang sudah disubmit tidak dapat diubah kembali. Pastikan seluruh informasi sudah benar.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={onFinalSubmit}>Ya, Submit Final</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         )}

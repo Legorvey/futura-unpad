@@ -101,6 +101,21 @@ export const mechaturaFaqs: FAQ[] = [
 
 export const esaiFaqs: FAQ[] = [
   {
+    question: "Apakah lomba ini individu atau tim?",
+    answer:
+      "Lomba esai ini merupakan kompetisi individu (perorangan) dan tidak dilakukan secara berkelompok.",
+  },
+  {
+    question: "Apakah ada format penulisan khusus (Margin, Font)?",
+    answer:
+      "Ya, terdapat ketentuan khusus mengenai margin, ukuran kertas, jenis font, dan format penulisan lainnya. Silakan unduh dan baca Booklet Resmi Lomba Esai untuk melihat seluruh panduan format naskah secara lengkap.",
+  },
+  {
+    question: "Kapan batas akhir pembayaran?",
+    answer:
+      "Batas akhir pembayaran adalah bersamaan dengan penutupan pendaftaran dan pengumpulan karya, yaitu pada tanggal 31 Oktober 2026.",
+  },
+  {
     question: "Apakah saya bisa berpartisipasi secara online (daring)?",
     answer:
       "Ya, Lomba Esai dapat diikuti secara daring. Pengumpulan naskah dilakukan secara online melalui website ini.",

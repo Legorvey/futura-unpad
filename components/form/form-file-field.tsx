@@ -41,6 +41,7 @@ export interface FormFileFieldProps<
     files: FileList | null,
     event: ChangeEvent<HTMLInputElement>
   ) => void;
+  variant?: "drag-drop" | "button";
 }
 
 function formatFileSize(bytes: number) {
@@ -182,6 +183,7 @@ export function FormFileField<
   id: idProp,
   accept,
   multiple,
+  variant = "drag-drop",
   ...props
 }: FormFileFieldProps<TValues, TName>) {
   const { control } = useFormContext<TValues>();
@@ -280,7 +282,9 @@ export function FormFileField<
 
             <div
               className={cn(
-                "overflow-hidden rounded-[8px] border border-dashed border-input bg-muted/30 transition-all",
+                "overflow-hidden rounded-[8px] transition-all",
+                variant === "drag-drop" && "border border-dashed border-input bg-muted/30",
+                variant === "button" && "border border-input bg-background shadow-sm",
                 "focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
                 isDragging &&
                   "border-primary bg-primary/5 ring-3 ring-primary/15",
@@ -335,42 +339,57 @@ export function FormFileField<
                 }}
               />
 
-              <label
-                htmlFor={id}
-                className={cn(
-                  "flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 px-6 py-8 text-center",
-                  "hover:bg-background/60",
-                  disabled && "pointer-events-none cursor-not-allowed"
-                )}
-              >
-                <span
+              {selectedFiles.length === 0 && variant === "drag-drop" ? (
+                <label
+                  htmlFor={id}
                   className={cn(
-                    "flex size-14 items-center justify-center rounded-full border bg-background shadow-xs transition-colors",
-                    isDragging &&
-                      "border-primary bg-primary text-primary-foreground"
+                    "flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 px-6 py-6 text-center",
+                    "hover:bg-background/60",
+                    disabled && "pointer-events-none cursor-not-allowed"
                   )}
-                  aria-hidden="true"
                 >
-                  <UploadCloud className="size-7" />
-                </span>
-                <span className="space-y-1">
-                  <span className="block text-sm font-medium">
-                    {isDragging
-                      ? "Drop your file here"
-                      : "Drag and drop your file here"}
+                  <span
+                    className={cn(
+                      "flex size-14 items-center justify-center rounded-full border bg-background shadow-xs transition-colors",
+                      isDragging &&
+                        "border-primary bg-primary text-primary-foreground"
+                    )}
+                    aria-hidden="true"
+                  >
+                    <UploadCloud className="size-7" />
                   </span>
-                  <span className="block text-sm text-muted-foreground">
-                    or{" "}
-                    <span className="font-medium text-primary">
-                      browse from device
+                  <span className="space-y-1">
+                    <span className="block text-sm font-medium">
+                      {isDragging
+                        ? "Drop your file here"
+                        : "Drag and drop your file here"}
+                    </span>
+                    <span className="block text-sm text-muted-foreground">
+                      or{" "}
+                      <span className="font-medium text-primary">
+                        browse from device
+                      </span>
                     </span>
                   </span>
-                </span>
-              </label>
+                </label>
+              ) : null}
+
+              {selectedFiles.length === 0 && variant === "button" ? (
+                <label
+                  htmlFor={id}
+                  className={cn(
+                    "flex w-full cursor-pointer items-center justify-center gap-2 bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 text-foreground",
+                    disabled && "pointer-events-none opacity-50"
+                  )}
+                >
+                  <UploadCloud className="size-4 opacity-70" />
+                  {fieldTitle === "Unggah file anda" ? "Browse File..." : `Pilih ${fieldTitle}`}
+                </label>
+              ) : null}
 
               {selectedFiles.length > 0 ? (
-                <div className="border-t bg-background/80 p-3">
-                  <div className="flex items-center gap-3 rounded-[8px] bg-muted/60 px-3 py-2">
+                <div className={cn("bg-background/80", variant === "drag-drop" ? "border-t p-3" : "p-1")}>
+                  <div className={cn("flex items-center gap-3 rounded-[8px] bg-muted/60", variant === "drag-drop" ? "px-3 py-2" : "px-3 py-2")}>
                     <FileText
                       className="size-5 shrink-0 text-primary"
                       aria-hidden="true"

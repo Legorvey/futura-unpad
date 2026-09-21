@@ -49,19 +49,7 @@ export async function registerEsai() {
 
 import { z } from "zod";
 
-const UpdateEsaiSchema = z.object({
-  full_name: z.string().min(2).max(255).optional(),
-  institution_category: z.string().optional(),
-  institution: z.string().min(3).max(255).optional(),
-  city: z.string().optional(),
-  email: z.string().email().max(255).optional(),
-  phone_number: z.string().min(10).max(50).optional(),
-  instagram_twibbon_url: z.string().max(1000).optional().nullable(),
-  identity_card_url: z.string().max(1000).optional().nullable(),
-  essay_paper_url: z.string().max(1000).optional().nullable(),
-  payment_proof_url: z.string().max(1000).optional().nullable(),
-  submission_status: z.enum(["draft", "submitted"]).optional(),
-});
+import { UpdateEsaiSchema } from "@/lib/validation/esai";
 
 export async function updateEsaiRegistration(registrationId: string, values: z.infer<typeof UpdateEsaiSchema>) {
   if (!IS_ESAI_REGISTRATION_OPEN) {
@@ -100,7 +88,7 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
   // Prevent submitting an incomplete registration
   if (validatedFields.data.submission_status === "submitted") {
     const checkData = { ...reg, ...validatedFields.data };
-    const isComplete = checkData.full_name && checkData.institution && checkData.city && checkData.phone_number &&
+    const isComplete = checkData.full_name && checkData.institution_category && checkData.institution && checkData.city && checkData.phone_number &&
                        checkData.instagram_twibbon_url && checkData.identity_card_url &&
                        checkData.essay_paper_url && checkData.payment_proof_url;
     if (!isComplete) {
@@ -121,6 +109,31 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
     return { success: false, error: "Gagal menyimpan data pendaftaran." };
   }
 
+  revalidatePath("/profile", "layout");
+  return { success: true };
+}
+
+export async function removeEsaiFile(registrationId: string, field: "instagram_twibbon_url" | "identity_card_url" | "essay_paper_url" | "payment_proof_url") {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  const supabaseAdmin = createAdminClient();
+  
+  // Verify ownership
+  const { data: reg } = await supabaseAdmin.from("esai_registrations").select("*").eq("id", registrationId).single();
+  if (!reg || reg.user_id !== user.id) return { success: false, error: "Unauthorized" };
+
+  if (reg.submission_status === "submitted" || reg.submission_status === "approved") {
+    return { success: false, error: "Pendaftaran sudah disubmit, file tidak dapat dihapus." };
+  }
+
+  const filePath = reg[field];
+  if (filePath) {
+    await supabaseAdmin.storage.from("esai_documents").remove([filePath]);
+  }
+  
+  await supabaseAdmin.from("esai_registrations").update({ [field]: null }).eq("id", registrationId);
   revalidatePath("/profile", "layout");
   return { success: true };
 }

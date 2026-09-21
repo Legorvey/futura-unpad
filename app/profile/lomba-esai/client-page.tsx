@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2, FileText, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { updateEsaiRegistration } from "@/lib/essay/actions";
+import { updateEsaiRegistration, removeEsaiFile } from "@/lib/essay/actions";
+import { IdentitySchema, DocsSchema, PaymentSchema, type IdentityValues, type DocsValues, type PaymentValues } from "@/lib/validation/esai";
 
 import { Button } from "@/components/ui/button";
 import { FormTextField } from "@/components/form/form-text-field";
@@ -40,71 +41,6 @@ import {
   SEARCHABLE_TYPES,
   type InstitutionType,
 } from "@/components/school-combobox";
-
-const MAX_GENERAL_FILE_SIZE = 3 * 1024 * 1024; // 3MB
-const MAX_ESSAY_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
-const ALLOWED_PDF_TYPE = ["application/pdf"];
-
-const IdentitySchema = z.object({
-  full_name: z.string().trim().min(2, "Nama lengkap minimal 2 karakter"),
-  institution_category: z.string().optional(),
-  institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
-  city: z.string().trim().min(2, "Kota minimal 2 karakter"),
-  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit").regex(/^[0-9+ \-]+$/, "Nomor telepon tidak valid"),
-  twibbon: z.any().optional(),
-  ktm: z.any().optional(),
-}).superRefine((val, ctx) => {
-  if (val.twibbon && val.twibbon.length > 0) {
-    const file = val.twibbon[0];
-    if (file.size > MAX_GENERAL_FILE_SIZE) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Twibbon maksimal 3MB", path: ["twibbon"] });
-    }
-    if (![...ALLOWED_IMAGE_TYPES, ...ALLOWED_PDF_TYPE].includes(file.type)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Format tidak didukung", path: ["twibbon"] });
-    }
-  }
-  if (val.ktm && val.ktm.length > 0) {
-    const file = val.ktm[0];
-    if (file.size > MAX_GENERAL_FILE_SIZE) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "KTM maksimal 3MB", path: ["ktm"] });
-    }
-    if (![...ALLOWED_IMAGE_TYPES, ...ALLOWED_PDF_TYPE].includes(file.type)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Format tidak didukung", path: ["ktm"] });
-    }
-  }
-});
-type IdentityValues = z.infer<typeof IdentitySchema>;
-
-const DocsSchema = z.object({
-  essay: z.any().optional(),
-}).superRefine((val, ctx) => {
-  if (val.essay && val.essay.length > 0) {
-    const file = val.essay[0];
-    if (file.size > MAX_ESSAY_FILE_SIZE) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Esai maksimal 2MB", path: ["essay"] });
-    }
-    if (!ALLOWED_PDF_TYPE.includes(file.type)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Hanya PDF yang didukung", path: ["essay"] });
-    }
-  }
-});
-type DocsValues = z.infer<typeof DocsSchema>;
-
-const PaymentSchema = z.object({
-  payment: z.any().optional(),
-}).superRefine((val, ctx) => {
-  if (val.payment && val.payment.length > 0) {
-    const file = val.payment[0];
-    if (file.size > MAX_GENERAL_FILE_SIZE) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Bukti pembayaran maksimal 3MB", path: ["payment"] });
-    }
-    if (![...ALLOWED_IMAGE_TYPES, ...ALLOWED_PDF_TYPE].includes(file.type)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Format tidak didukung", path: ["payment"] });
-    }
-  }
-});
-type PaymentValues = z.infer<typeof PaymentSchema>;
 
 function UploadedFileDisplay({ path, onRemove, label, description }: { path: string | null; onRemove?: () => void; label?: string; description?: string }) {
   if (!path) return null;
@@ -253,16 +189,10 @@ export function LombaEsaiClient({
 
   const handleRemoveFile = async (field: "instagram_twibbon_url" | "identity_card_url" | "essay_paper_url" | "payment_proof_url") => {
     try {
-      const pathToDelete = registration[field];
-      const res = await updateEsaiRegistration(registration.id, { [field]: null });
+      const res = await removeEsaiFile(registration.id, field);
       if (!res.success) throw new Error(res.error || "Gagal menghapus file.");
 
-      if (pathToDelete) {
-        await supabase.storage.from("esai_documents").remove([pathToDelete]);
-      }
-
       toast.success("File berhasil dihapus. Silakan unggah yang baru.");
-      router.refresh();
     } catch (err: unknown) {
       if (err instanceof Error) { toast.error(err.message); } else { toast.error("Terjadi kesalahan."); }
     }
@@ -391,7 +321,8 @@ export function LombaEsaiClient({
     }
   };
 
-  const displayName = registration.full_name || userName || registration.email || userEmail || "Peserta Esai";
+  const watchFullName = identityForm.watch("full_name");
+  const displayName = watchFullName || registration.full_name || userName || registration.email || userEmail || "Peserta Esai";
 
   return (
     <div className="flex flex-col lg:flex-row items-stretch gap-0 relative lg:-mx-8 lg:-my-8 h-full rounded-[inherit]">

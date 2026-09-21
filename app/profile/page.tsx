@@ -462,9 +462,16 @@ export default async function ProfilePage() {
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-sm text-muted-foreground">Anda belum mendaftar Lomba Esai.</p>
-                <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
-                  <Link href="/lomba-esai" prefetch={true}>Daftar Sekarang</Link>
-                </Button>
+                {/* To change the button back to the yellow one, set IS_LOMBA_ESAI_OPEN to true */}
+                {false ? (
+                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                    <Link href="/lomba-esai" prefetch={true}>Daftar Sekarang</Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
+                    <Link href="/lomba-esai" prefetch={true}>Detail Acara</Link>
+                  </Button>
+                )}
               </div>
             )}
           </div>

@@ -94,7 +94,7 @@ const timelineTabs = [
       {
         category: "Lomba Esai",
         event: "Registrasi & Pengumpulan",
-        date: "20 September - 22 Oktober 2026",
+        date: "21 September - 31 Oktober 2026",
         description:
           "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
         location: "Online/Daring",
@@ -102,7 +102,7 @@ const timelineTabs = [
       {
         category: "Lomba Esai",
         event: "Seleksi Naskah",
-        date: "23 Oktober - 2 November 2026",
+        date: "31 Oktober - 2 November 2026",
         description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
         location: "Oleh Panitia",
       },
@@ -120,13 +120,6 @@ const timelineTabs = [
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
         location: "TBA (To be Announced)",
-      },
-      {
-        category: "Lomba Esai",
-        event: "Seleksi Finalis",
-        date: "13 - 27 November 2026",
-        description: "Penilaian final untuk menentukan pemenang Lomba Esai.",
-        location: "Oleh Panitia",
       },
       {
         category: "Lomba Esai",

@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { updateMemberIdentity, submitPaymentProof, updateRobotDocuments, leaveTeam, transferLeadership, initiateTeamDeletion, finalizeSubmission, removeTeamMember, updatePembinaData, clearPembinaData } from "@/lib/mechatura/actions";
 import { toast } from "sonner";
+import { getMechaturaBatchInfo } from "@/lib/mechatura/batch";
 import { Loader2, Copy, Check, AlertTriangle, FileText, UserMinus, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
 import {
   AlertDialog,
@@ -235,7 +236,7 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
         </h3>
       </div>
 
-      <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-6">
+      <div className="flex flex-col items-center justify-center w-full max-w-[240px] mx-auto mb-4">
         <Image
           src="/qris-mechatura.jpeg"
           alt="QRIS Pembayaran Mechatura"
@@ -244,11 +245,14 @@ function PaymentSection({ team, isLeader, isSubmitted, revisionFields = [] }: an
           className="w-full h-auto object-contain mix-blend-multiply dark:mix-blend-normal"
           priority
         />
-        {/* <p className="text-lg text-center font-medium mt-3">
-          Batch 1: Rp175.000
-        </p><p className="text-xs text-muted-foreground text-center font-medium mb-6">
-          Bank Digital BCA <br /> a.n. Kenzie Asadel Dhabantha
-        </p> */}
+        {(() => {
+          const batchInfo = getMechaturaBatchInfo(team.created_at ? new Date(team.created_at) : new Date());
+          return (
+            <p className="text-lg text-center font-medium mt-1 text-foreground">
+              {batchInfo.batchName}: {batchInfo.formattedPrice}
+            </p>
+          );
+        })()}
       </div>
 
       {isLeader ? (

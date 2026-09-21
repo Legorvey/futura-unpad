@@ -22,6 +22,7 @@ import {
     paymentFilters,
     submissionFilters,
     approvalFilters,
+    batchFilters,
     toSearchPattern,
 } from "./_lib/mechatura-utils";
 import { Suspense } from "react"
@@ -39,12 +40,14 @@ async function MechaturaAdminData({
     const searchParam = firstParam(params.search);
     const submissionParam = firstParam(params.submission);
     const approvalParam = firstParam(params.approval);
+    const batchParam = firstParam(params.batch);
     const pageParam = firstParam(params.page);
     const pageSizeParam = firstParam(params.pageSize);
     const categoryFilter = normalizeFilter(categoryParam, categoryFilters, "all");
     const paymentFilter = normalizeFilter(paymentParam, paymentFilters, "all");
     const submissionFilter = normalizeFilter(submissionParam, submissionFilters, "all");
     const approvalFilter = normalizeFilter(approvalParam, approvalFilters, "all");
+    const batchFilter = normalizeFilter(batchParam, batchFilters, "all");
     const searchFilter = (searchParam ?? "").trim();
     const searchPattern = toSearchPattern(searchFilter);
     const requestedPage = normalizePositiveInt(pageParam, 1);
@@ -60,7 +63,7 @@ async function MechaturaAdminData({
             .or(
                 `full_name.ilike.${searchPattern},phone_number.ilike.${searchPattern}`
             )
-            .limit(10_000)
+            .limit(100)
             .returns<Array<{ team_id: string }>>()
         : { data: [], error: null };
 
@@ -76,6 +79,7 @@ async function MechaturaAdminData({
         paymentFilter,
         submissionFilter,
         approvalFilter,
+        batchFilter,
         searchPattern,
         memberRegistrationIds: memberTeamIds,
     };
@@ -178,6 +182,7 @@ async function MechaturaAdminData({
             paymentFilter={paymentFilter}
             submissionFilter={submissionFilter}
             approvalFilter={approvalFilter}
+            batchFilter={batchFilter}
             pageSize={pageSize}
             pagination={{
                 page,

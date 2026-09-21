@@ -12,13 +12,13 @@ export type MechaturaBatchInfo = {
   statusBadge: string;
 };
 
-// Batch 1: 21 Juli 2026 00:00:00 WIB (UTC+7) - 31 Agustus 2026 23:59:59 WIB (UTC+7)
+// Batch 1: 21 Juli 2026 00:00:00 WIB (UTC+7) - 20 September 2026 23:59:59 WIB (UTC+7)
 export const MECHATURA_BATCH_1_START = new Date("2026-07-21T00:00:00+07:00");
-export const MECHATURA_BATCH_1_END = new Date("2026-08-31T23:59:59+07:00");
+export const MECHATURA_BATCH_1_END = new Date("2026-09-20T23:59:59+07:00");
 export const MECHATURA_BATCH_1_PRICE = 175000;
 
-// Batch 2: 1 September 2026 00:00:00 WIB (UTC+7) - 1 Oktober 2026 23:59:59 WIB (UTC+7)
-export const MECHATURA_BATCH_2_START = new Date("2026-09-01T00:00:00+07:00");
+// Batch 2: 21 September 2026 00:00:00 WIB (UTC+7) - 1 Oktober 2026 23:59:59 WIB (UTC+7)
+export const MECHATURA_BATCH_2_START = new Date("2026-09-21T00:00:00+07:00");
 export const MECHATURA_BATCH_2_END = new Date("2026-10-01T23:59:59+07:00");
 export const MECHATURA_BATCH_2_PRICE = 200000;
 
@@ -33,7 +33,7 @@ export function getMechaturaBatchInfo(date: Date = new Date()): MechaturaBatchIn
       batchName: "Batch 2",
       price: MECHATURA_BATCH_2_PRICE,
       formattedPrice: formatCurrency(MECHATURA_BATCH_2_PRICE),
-      periodLabel: "1 September – 1 Oktober 2026",
+      periodLabel: "21 September – 1 Oktober 2026",
       isActive: !isClosed,
       statusBadge: isClosed ? "Pendaftaran Batch 2 Telah Berakhir" : "Batch 2 Aktif",
     };
@@ -46,7 +46,7 @@ export function getMechaturaBatchInfo(date: Date = new Date()): MechaturaBatchIn
     batchName: "Batch 1",
     price: MECHATURA_BATCH_1_PRICE,
     formattedPrice: formatCurrency(MECHATURA_BATCH_1_PRICE),
-    periodLabel: "21 Juli – 31 Agustus 2026",
+    periodLabel: "21 Juli – 20 September 2026",
     isActive: true,
     statusBadge: isEarly ? "Batch 1 (Segera Dibuka 21 Juli 2026)" : "Batch 1 Aktif",
   };

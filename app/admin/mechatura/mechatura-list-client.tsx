@@ -8,6 +8,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -32,10 +33,12 @@ import {
     paymentFilters,
     submissionFilters,
     approvalFilters,
+    batchFilters,
     type MechaturaCategoryFilter,
     type MechaturaPaymentFilter,
     type MechaturaSubmissionFilter,
     type MechaturaApprovalFilter,
+    type MechaturaBatchFilter,
 } from "./_lib/mechatura-utils";
 
 type MechaturaListClientProps = {
@@ -45,6 +48,7 @@ type MechaturaListClientProps = {
     paymentFilter: MechaturaPaymentFilter;
     submissionFilter: MechaturaSubmissionFilter;
     approvalFilter: MechaturaApprovalFilter;
+    batchFilter: MechaturaBatchFilter;
     pageSize: number;
     pagination: {
         page: number;
@@ -129,13 +133,14 @@ export default function MechaturaListClient({
     paymentFilter,
     submissionFilter,
     approvalFilter,
+    batchFilter,
     pageSize,
     pagination,
     stats,
 }: MechaturaListClientProps) {
     const router = useRouter();
     const hasActiveFilters =
-        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || submissionFilter !== "all" || approvalFilter !== "all";
+        !!searchParam?.trim() || categoryFilter !== "all" || paymentFilter !== "all" || submissionFilter !== "all" || approvalFilter !== "all" || batchFilter !== "all";
 
     const [exportOpen, setExportOpen] = useState(false);
     const [exportFilterMode, setExportFilterMode] = useState<"all" | "filtered">(hasActiveFilters ? "filtered" : "all");
@@ -145,6 +150,7 @@ export default function MechaturaListClient({
         payment: paymentFilter,
         submission: submissionFilter,
         approval: approvalFilter,
+        batch: batchFilter,
     });
 
     const defaultCols = {
@@ -187,6 +193,7 @@ export default function MechaturaListClient({
             payment: paymentFilter,
             submission: submissionFilter,
             approval: approvalFilter,
+            batch: batchFilter,
         });
 
     const updateFilter = (key: string, value: string | undefined) => {
@@ -198,6 +205,7 @@ export default function MechaturaListClient({
             payment: key === "payment" ? (value as any) : paymentFilter,
             submission: key === "submission" ? (value as any) : submissionFilter,
             approval: key === "approval" ? (value as any) : approvalFilter,
+            batch: key === "batch" ? (value as any) : batchFilter,
         });
         router.push(newHref);
     };
@@ -247,6 +255,14 @@ export default function MechaturaListClient({
             onRemove: () => updateFilter("approval", "all")
         });
     }
+    if (batchFilter !== "all") {
+        const label = batchFilter === "batch1" ? "Batch 1" : "Batch 2";
+        activeFilterPills.push({
+            key: "batch",
+            label: `Batch: ${label}`,
+            onRemove: () => updateFilter("batch", "all")
+        });
+    }
 
     const teamData = registrations;
 
@@ -275,6 +291,7 @@ export default function MechaturaListClient({
                                 payment: paymentFilter,
                                 submission: submissionFilter,
                                 approval: approvalFilter,
+                                batch: batchFilter,
                             });
                             setCols(defaultCols);
                         }
@@ -406,6 +423,30 @@ export default function MechaturaListClient({
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-xs">Batch</Label>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
+                                                            <span className="truncate flex items-center gap-2 text-xs">
+                                                                <FileText className="h-3 w-3" />
+                                                                {localFilters.batch === "all" ? "Semua Batch" : 
+                                                                 localFilters.batch === "batch1" ? "Batch 1" : "Batch 2"}
+                                                            </span>
+                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="w-[200px]">
+                                                        {batchFilters.map((status) => (
+                                                            <DropdownMenuItem key={status} onSelect={() => setLocalFilters(f => ({ ...f, batch: status as MechaturaBatchFilter }))}>
+                                                                <FileText className="mr-2 h-4 w-4" />
+                                                                {status === "all" ? "Semua Batch" : 
+                                                                 status === "batch1" ? "Batch 1" : "Batch 2"}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -459,6 +500,7 @@ export default function MechaturaListClient({
                                         if (localFilters.category !== "all") query.set("category", localFilters.category);
                                         if (localFilters.submission !== "all") query.set("submission", localFilters.submission);
                                         if (localFilters.approval !== "all") query.set("approval", localFilters.approval);
+                                        if (localFilters.batch !== "all") query.set("batch", localFilters.batch);
                                     }
                                     
                                     const selectedCols = Object.entries(cols).filter(([_, v]) => v).map(([k]) => k);
@@ -614,7 +656,7 @@ export default function MechaturaListClient({
                         ))}
                         <button 
                             type="button"
-                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all", submission: "all", approval: "all" }))}
+                            onClick={() => router.push(buildMechaturaPageHref({ page: 1, pageSize, search: undefined, category: "all", payment: "all", submission: "all", approval: "all", batch: "all" }))}
                             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
                         >
                             Hapus semua
@@ -623,7 +665,21 @@ export default function MechaturaListClient({
                 )}
             </div>
 
-            <DataTable columns={getColumns(searchParam)} data={teamData} />
+            <Tabs 
+                value={batchFilter} 
+                onValueChange={(value) => updateFilter("batch", value)}
+                className="w-full"
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <TabsList>
+                        <TabsTrigger value="all">Semua Batch</TabsTrigger>
+                        <TabsTrigger value="batch1">Batch 1</TabsTrigger>
+                        <TabsTrigger value="batch2">Batch 2</TabsTrigger>
+                    </TabsList>
+                </div>
+                
+                <DataTable columns={getColumns(searchParam)} data={teamData} />
+            </Tabs>
 
             <div className="flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

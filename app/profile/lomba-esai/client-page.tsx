@@ -144,7 +144,7 @@ export function LombaEsaiClient({
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
   const [institutionType, setInstitutionType] = useState<InstitutionType>(
-    (registration.institution_category as InstitutionType) || "SD"
+    (registration.institution_category as InstitutionType) || "SMA"
   );
 
   const identityForm = useForm<IdentityValues>({
@@ -152,7 +152,7 @@ export function LombaEsaiClient({
     mode: "onChange",
     defaultValues: {
       full_name: registration.full_name || userName || "",
-      institution_category: registration.institution_category || "SD",
+      institution_category: registration.institution_category || "SMA",
       institution: registration.institution || "",
       city: registration.city || "",
       phone_number: registration.phone_number || "",
@@ -449,7 +449,7 @@ export function LombaEsaiClient({
                         <SelectValue placeholder="Pilih jenjang..." />
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
-                        {INSTITUTION_TYPE_OPTIONS.map((opt) => (
+                        {INSTITUTION_TYPE_OPTIONS.filter(opt => ["SMA", "SMK", "perguruan_tinggi"].includes(opt.value)).map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             <span className="font-medium">{opt.label}</span>
                             <span className="ml-1.5 text-muted-foreground text-xs">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -136,6 +136,32 @@ function UploadedFileDisplay({ path, onRemove, label, description }: { path: str
   );
 }
 
+function LocalImagePreview({ fileList }: { fileList?: any }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!fileList || fileList.length === 0) {
+      setPreviewUrl(null);
+      return;
+    }
+    const file = fileList[0] as File;
+    if (!file.type.startsWith("image/")) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [fileList]);
+
+  if (!previewUrl) return null;
+  return (
+    <div className="mt-3 relative w-full flex justify-center rounded-lg overflow-hidden border border-border bg-muted/30 p-2">
+      <img src={previewUrl} className="max-w-full max-h-48 object-contain rounded-md" alt="Preview" />
+    </div>
+  );
+}
+
 export function LombaEsaiClient({
   registration,
   userName,
@@ -181,6 +207,17 @@ export function LombaEsaiClient({
     mode: "onChange"
   });
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (identityForm.formState.isDirty || docsForm.formState.isDirty || paymentForm.formState.isDirty) {
+        e.preventDefault();
+        e.returnValue = "Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman ini?";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [identityForm.formState.isDirty, docsForm.formState.isDirty, paymentForm.formState.isDirty]);
+
   const { isValid: isIdentityValid } = identityForm.formState;
   const isIdentityComplete = Boolean(
     registration.full_name &&
@@ -191,6 +228,8 @@ export function LombaEsaiClient({
     registration.instagram_twibbon_url
   );
 
+  const twibbonWatch = identityForm.watch("twibbon");
+  const ktmWatch = identityForm.watch("ktm");
   const essayWatch = docsForm.watch("essay");
 
   const isDocsComplete = Boolean(
@@ -380,14 +419,17 @@ export function LombaEsaiClient({
                   description="Maksimal 3MB (JPG, PNG, PDF)"
                 />
                 {!isSubmitted && !registration.payment_proof_url && (
-                  <FormFileField
-                    name="payment"
-                    label="Bukti Pembayaran"
-                    accept="image/jpeg, image/png, application/pdf"
-                    disabled={isSavingPayment || isSubmittingFinal}
-                    maxSizeInBytes={3 * 1024 * 1024}
-                    variant="button"
-                  />
+                  <>
+                    <FormFileField
+                      name="payment"
+                      label="Bukti Pembayaran"
+                      accept="image/jpeg, image/png, application/pdf"
+                      disabled={isSavingPayment || isSubmittingFinal}
+                      maxSizeInBytes={3 * 1024 * 1024}
+                      variant="button"
+                    />
+                    <LocalImagePreview fileList={paymentWatch} />
+                  </>
                 )}
               </div>
               {!isSubmitted && !registration.payment_proof_url && (
@@ -532,14 +574,17 @@ export function LombaEsaiClient({
                       description="Maksimal 3MB (JPG, PNG, PDF)"
                     />
                     {!isSubmitted && !registration.instagram_twibbon_url && (
-                      <FormFileField
-                        name="twibbon"
-                        label="Bukti Twibbon"
-                        accept="image/jpeg, image/png, application/pdf"
-                        disabled={isSavingIdentity}
-                        maxSizeInBytes={3 * 1024 * 1024}
-                        variant="button"
-                      />
+                      <>
+                        <FormFileField
+                          name="twibbon"
+                          label="Bukti Twibbon"
+                          accept="image/jpeg, image/png, application/pdf"
+                          disabled={isSavingIdentity}
+                          maxSizeInBytes={3 * 1024 * 1024}
+                          variant="button"
+                        />
+                        <LocalImagePreview fileList={twibbonWatch} />
+                      </>
                     )}
                   </div>
 
@@ -552,14 +597,17 @@ export function LombaEsaiClient({
                       description="Maksimal 3MB (JPG, PNG, PDF)"
                     />
                     {!isSubmitted && !registration.identity_card_url && (
-                      <FormFileField
-                        name="ktm"
-                        label="KTM / Kartu Pelajar"
-                        accept="image/jpeg, image/png, application/pdf"
-                        disabled={isSavingIdentity}
-                        maxSizeInBytes={3 * 1024 * 1024}
-                        variant="button"
-                      />
+                      <>
+                        <FormFileField
+                          name="ktm"
+                          label="KTM / Kartu Pelajar"
+                          accept="image/jpeg, image/png, application/pdf"
+                          disabled={isSavingIdentity}
+                          maxSizeInBytes={3 * 1024 * 1024}
+                          variant="button"
+                        />
+                        <LocalImagePreview fileList={ktmWatch} />
+                      </>
                     )}
                   </div>
                 </div>

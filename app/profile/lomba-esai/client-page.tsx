@@ -568,7 +568,12 @@ export function LombaEsaiClient({
             <div>
               <h3 className="text-lg font-medium text-foreground flex items-center gap-2">Karya Esai</h3>
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
-                <p>Unggah Karya Esai Anda.</p>
+                <p>Silakan unggah dokumen naskah Karya Esai Anda. Pastikan karya yang dikumpulkan adalah <strong className="text-foreground">orisinal dan belum pernah dipublikasikan atau diikutsertakan dalam kompetisi lain.</strong></p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <a href="#" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                    Baca Booklet Resmi
+                  </a>
+                </div>
               </div>
             </div>
 

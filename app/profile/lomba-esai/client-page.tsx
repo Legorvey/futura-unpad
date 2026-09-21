@@ -40,7 +40,7 @@ const IdentitySchema = z.object({
   institution_category: z.string().optional(),
   institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().trim().min(2, "Kota minimal 2 karakter"),
-  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
+  phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit").regex(/^[0-9+ \-]+$/, "Nomor telepon tidak valid"),
   twibbon: z.any().optional(),
   ktm: z.any().optional(),
 }).superRefine((val, ctx) => {
@@ -98,7 +98,7 @@ type PaymentValues = z.infer<typeof PaymentSchema>;
 function UploadedFileDisplay({ path, onRemove, label, description }: { path: string | null; onRemove?: () => void; label?: string; description?: string }) {
   if (!path) return null;
   const rawFileName = path.split('/').pop() || "file_terunggah";
-  const fileName = decodeURIComponent(rawFileName);
+  const fileName = decodeURIComponent(rawFileName).replace(/^(twibbon|ktm|essay|payment)_\d+_/, '');
   return (
     <div className="flex flex-col gap-2 w-full mb-1">
       {label && <label className="text-sm font-medium leading-none">{label}</label>}
@@ -143,16 +143,17 @@ export function LombaEsaiClient({
   const [isSavingDocs, setIsSavingDocs] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
-  const [institutionType, setInstitutionType] = useState<InstitutionType>(
-    (registration.institution_category as InstitutionType) || "SMA"
-  );
+  const initialInstitutionType = (registration.institution_category && ["SMA", "SMK", "perguruan_tinggi"].includes(registration.institution_category)) 
+    ? registration.institution_category as InstitutionType 
+    : "SMA";
+  const [institutionType, setInstitutionType] = useState<InstitutionType>(initialInstitutionType);
 
   const identityForm = useForm<IdentityValues>({
     resolver: zodResolver(IdentitySchema),
     mode: "onChange",
     defaultValues: {
       full_name: registration.full_name || userName || "",
-      institution_category: registration.institution_category || "SMA",
+      institution_category: initialInstitutionType,
       institution: registration.institution || "",
       city: registration.city || "",
       phone_number: registration.phone_number || "",
@@ -226,11 +227,11 @@ export function LombaEsaiClient({
       const uploadPromises: Promise<string | null | undefined>[] = [];
 
       let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
-      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/${twibbonFile.name}`);
+      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/twibbon_${Date.now()}_${twibbonFile.name}`);
       uploadPromises.push(twibbonUrlPromise);
 
       let ktmUrlPromise = Promise.resolve(registration.identity_card_url);
-      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/${ktmFile.name}`);
+      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/ktm_${Date.now()}_${ktmFile.name}`);
       uploadPromises.push(ktmUrlPromise);
 
       const [twibbonUrl, ktmUrl] = await Promise.all(uploadPromises);
@@ -267,7 +268,7 @@ export function LombaEsaiClient({
 
       let essayUrl = registration.essay_paper_url;
       if (essayFile) {
-        essayUrl = await handleFileUpload(essayFile, `${userId}/${essayFile.name}`);
+        essayUrl = await handleFileUpload(essayFile, `${userId}/essay_${Date.now()}_${essayFile.name}`);
       }
 
       const submitValues = {
@@ -295,7 +296,7 @@ export function LombaEsaiClient({
 
       let paymentUrl = registration.payment_proof_url;
       if (paymentFile) {
-        paymentUrl = await handleFileUpload(paymentFile, `${userId}/${paymentFile.name}`);
+        paymentUrl = await handleFileUpload(paymentFile, `${userId}/payment_${Date.now()}_${paymentFile.name}`);
       }
 
       const submitValues = { payment_proof_url: paymentUrl };

@@ -13,6 +13,7 @@ import { updateEsaiRegistration } from "@/lib/essay/actions";
 
 import { Button } from "@/components/ui/button";
 import { FormTextField } from "@/components/form/form-text-field";
+import { FormFileField } from "@/components/form/form-file-field";
 import MechaturaProfileSidebar from "../mechatura/sidebar";
 import {
   Select,
@@ -107,11 +108,11 @@ function UploadedFileDisplay({ path, onRemove, label, description }: { path: str
           <p className="text-sm font-medium text-foreground truncate" title={fileName}>{fileName}</p>
         </div>
         {onRemove && (
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            onClick={onRemove} 
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
             className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-1.5" />
@@ -203,7 +204,7 @@ export function LombaEsaiClient({
       const pathToDelete = registration[field];
       const res = await updateEsaiRegistration(registration.id, { [field]: null });
       if (!res.success) throw new Error(res.error || "Gagal menghapus file.");
-      
+
       if (pathToDelete) {
         await supabase.storage.from("esai_documents").remove([pathToDelete]);
       }
@@ -359,20 +360,20 @@ export function LombaEsaiClient({
           <FormProvider {...paymentForm}>
             <form onSubmit={paymentForm.handleSubmit(onSavePayment)} className="space-y-4">
               <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                <UploadedFileDisplay 
-                  path={registration.payment_proof_url} 
-                  onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined} 
-                  label="Unggah Bukti Pembayaran" 
-                  description="Maksimal 3MB (JPG, PNG, PDF)" 
+                <UploadedFileDisplay
+                  path={registration.payment_proof_url}
+                  onRemove={!isSubmitted ? () => handleRemoveFile('payment_proof_url') : undefined}
+                  label="Bukti Pembayaran"
+                  description="Maksimal 3MB (JPG, PNG, PDF)"
                 />
                 {!isSubmitted && !registration.payment_proof_url && (
-                  <FormTextField
-                    type="file"
+                  <FormFileField
                     name="payment"
-                    label="Unggah Bukti Pembayaran"
+                    label="Bukti Pembayaran"
                     accept="image/jpeg, image/png, application/pdf"
                     disabled={isSavingPayment || isSubmittingFinal}
-                    description="Maksimal 3MB (JPG, PNG, PDF)"
+                    maxSizeInBytes={3 * 1024 * 1024}
+                    variant="button"
                   />
                 )}
               </div>
@@ -504,47 +505,47 @@ export function LombaEsaiClient({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormTextField name="city" label="Kota" disabled={isSubmitted} />
-                  <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} />
+                  <FormTextField name="city" label="Kota" disabled={isSubmitted} placeholder="Bandung, Jakarta..." />
+                  <FormTextField name="phone_number" label="Nomor WhatsApp" disabled={isSubmitted} placeholder="081234567890" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   {/* Twibbon Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay 
-                      path={registration.instagram_twibbon_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined} 
-                      label="Bukti Twibbon" 
-                      description="Maksimal 3MB (JPG, PNG, PDF)" 
+                    <UploadedFileDisplay
+                      path={registration.instagram_twibbon_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined}
+                      label="Bukti Twibbon"
+                      description="Maksimal 3MB (JPG, PNG, PDF)"
                     />
                     {!isSubmitted && !registration.instagram_twibbon_url && (
-                      <FormTextField
-                        type="file"
+                      <FormFileField
                         name="twibbon"
                         label="Bukti Twibbon"
                         accept="image/jpeg, image/png, application/pdf"
                         disabled={isSavingIdentity}
-                        description="Maksimal 3MB (JPG, PNG, PDF)"
+                        maxSizeInBytes={3 * 1024 * 1024}
+                        variant="button"
                       />
                     )}
                   </div>
 
                   {/* KTM Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay 
-                      path={registration.identity_card_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined} 
-                      label="KTM / Kartu Pelajar" 
-                      description="Maksimal 3MB (JPG, PNG, PDF)" 
+                    <UploadedFileDisplay
+                      path={registration.identity_card_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('identity_card_url') : undefined}
+                      label="KTM / Kartu Pelajar"
+                      description="Maksimal 3MB (JPG, PNG, PDF)"
                     />
                     {!isSubmitted && !registration.identity_card_url && (
-                      <FormTextField
-                        type="file"
+                      <FormFileField
                         name="ktm"
                         label="KTM / Kartu Pelajar"
                         accept="image/jpeg, image/png, application/pdf"
                         disabled={isSavingIdentity}
-                        description="Maksimal 3MB (JPG, PNG, PDF)"
+                        maxSizeInBytes={3 * 1024 * 1024}
+                        variant="button"
                       />
                     )}
                   </div>
@@ -576,20 +577,19 @@ export function LombaEsaiClient({
                 <div className="grid grid-cols-1 gap-6">
                   {/* Essay Paper Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay 
-                      path={registration.essay_paper_url} 
-                      onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined} 
-                      label="File Karya Esai" 
-                      description="Maksimal 2MB (Hanya PDF)" 
+                    <UploadedFileDisplay
+                      path={registration.essay_paper_url}
+                      onRemove={!isSubmitted ? () => handleRemoveFile('essay_paper_url') : undefined}
+                      label="File Karya Esai"
+                      description="Maksimal 2MB (Hanya PDF)"
                     />
                     {!isSubmitted && !registration.essay_paper_url && (
-                      <FormTextField
-                        type="file"
+                      <FormFileField
                         name="essay"
                         label="File Karya Esai"
                         accept="application/pdf"
                         disabled={isSavingDocs}
-                        description="Maksimal 2MB (Hanya PDF)"
+                        maxSizeInBytes={2 * 1024 * 1024}
                       />
                     )}
                   </div>

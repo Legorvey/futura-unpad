@@ -86,13 +86,13 @@ export default function LoginInfoHub() {
           </motion.div>
 
           <motion.div 
-            className="text-4xl md:text-6xl lg:text-[2.75rem] xl:text-[4rem] 2xl:text-[5.5rem] font-black text-white/90 tracking-widest uppercase italic drop-shadow-lg ml-8 lg:ml-8 xl:ml-16 2xl:ml-24 mt-[-2px] xl:mt-[-5px] 2xl:mt-[-10px] whitespace-nowrap"
+            className="text-4xl md:text-6xl lg:text-[2.75rem] xl:text-[4rem] 2xl:text-[5.5rem] font-black text-amber-300 tracking-widest uppercase italic drop-shadow-lg ml-8 lg:ml-8 xl:ml-16 2xl:ml-24 mt-[-2px] xl:mt-[-5px] 2xl:mt-[-10px] whitespace-nowrap"
             style={{
               x: useTransform(x, [-1, 1], [-25, 25]),
               y: useTransform(y, [-1, 1], [-20, 20]),
             }}
           >
-            Registration
+            2nd Batch
           </motion.div>
 
           <motion.div 

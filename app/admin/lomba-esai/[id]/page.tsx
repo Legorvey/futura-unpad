@@ -236,12 +236,40 @@ export default async function EsaiParticipantDetailPage({
                                     <dd className="text-sm font-medium truncate" title={participant.institution || undefined}>{participant.institution || "-"}</dd>
                                 </div>
                                 <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Kategori Instansi</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.institution_category || undefined}>{participant.institution_category || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Kota</dt>
+                                    <dd className="text-sm font-medium truncate" title={participant.city || undefined}>{participant.city || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">Email</dt>
                                     <dd className="text-sm font-medium truncate" title={participant.email || undefined}>{participant.email || "-"}</dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">No. Telepon / WA</dt>
                                     <dd className="text-sm font-medium truncate" title={participant.phone_number || undefined}>{participant.phone_number || "-"}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </section>
+
+                    <section className="overflow-hidden rounded-xl border border-border bg-card/90">
+                        <div className="border-b border-border bg-card p-6">
+                            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                                Data Karya Esai
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <dl className="grid grid-cols-1 gap-6">
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Judul Karya Esai</dt>
+                                    <dd className="text-sm font-medium" title={participant.paper_title || undefined}>{participant.paper_title || "-"}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-sm text-muted-foreground mb-1">Subtema</dt>
+                                    <dd className="text-sm font-medium">{participant.sub_theme || "-"}</dd>
                                 </div>
                             </dl>
                         </div>

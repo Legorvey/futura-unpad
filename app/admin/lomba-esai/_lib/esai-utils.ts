@@ -10,8 +10,12 @@ export const esaiRegistrationColumns = [
     "user_id",
     "full_name",
     "institution",
+    "institution_category",
+    "city",
     "email",
     "phone_number",
+    "paper_title",
+    "sub_theme",
     "submission_status",
     "created_at", "essay_paper_url", "identity_card_url", "instagram_twibbon_url", "payment_proof_url",
 ].join(",");
@@ -41,8 +45,12 @@ export type AdminEsaiRegistration = {
     user_id: string;
     full_name: string | null;
     institution: string | null;
+    institution_category: string | null;
+    city: string | null;
     email: string | null;
     phone_number: string | null;
+    paper_title: string | null;
+    sub_theme: string | null;
     payment_proof_url: string | null;
     submission_status: string | null;
     created_at: string; essay_paper_url: string | null; identity_card_url: string | null; instagram_twibbon_url: string | null;

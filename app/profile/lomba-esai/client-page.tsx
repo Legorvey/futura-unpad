@@ -570,7 +570,7 @@ export function LombaEsaiClient({
               <div className="text-sm text-muted-foreground mt-2 space-y-3">
                 <p>Silakan unggah dokumen naskah Karya Esai Anda. Pastikan karya yang dikumpulkan adalah <strong className="text-foreground">orisinal dan belum pernah dipublikasikan atau diikutsertakan dalam kompetisi lain.</strong></p>
                 <div className="flex flex-wrap gap-3 pt-2">
-                  <a href="/booklet-esai.pdf" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                  <a href="https://drive.google.com/file/d/1YOfJ3esuOJRetvg2dZTRCynaZoaVrl9b/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
                     Baca Booklet Resmi
                   </a>
                 </div>

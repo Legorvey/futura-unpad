@@ -87,12 +87,6 @@ export function HeroSection() {
             </p>
             
             <div className="flex flex-col items-center mt-8 gap-8">
-              <div className="flex flex-col items-center gap-4">
-                <span className="font-bold uppercase tracking-wide text-sm md:text-base">
-                  Countdown
-                </span>
-                <FlipCountdown targetDate={new Date(ESAI_REG_START_DATE).getTime()} />
-              </div>
               <div className="mx-auto flex flex-col md:flex-row items-center gap-4">
                 <EsaiRegistrationButton />
 

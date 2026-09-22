@@ -417,7 +417,7 @@ export function LombaEsaiClient({
                 <ul className="list-none space-y-2 text-xs opacity-90 border-l-2 border-primary/20 pl-3">
                   <li>
                     <span className="font-medium text-foreground">Student ID / Identitas:</span><br />
-                    Wajib mengunggah pindaian/foto KTM (mahasiswa), Kartu Pelajar, atau KTP resmi pada bagian ini.
+                    Wajib mengunggah pindaian/foto KTM (mahasiswa) atau Kartu Pelajar pada bagian ini.
                   </li>
                   <li>
                     <span className="font-medium text-foreground">Twibbon:</span><br />

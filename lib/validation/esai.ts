@@ -147,8 +147,12 @@ export const UpdateEsaiSchema = z.object({
   phone_number: z.string().trim().min(10).max(15).regex(/^[0-9+ \-]+$/).optional(),
   instagram_twibbon_url: z.string().max(1000).optional().nullable(),
   identity_card_url: z.string().max(1000).optional().nullable(),
-  paper_title: z.string().max(500).optional().nullable(),
-  sub_theme: z.string().max(500).optional().nullable(),
+  paper_title: z.string().trim().min(1).max(250).optional().nullable(),
+  sub_theme: z.enum([
+    "Transformasi Digital untuk Meningkatkan Daya Saing Industri Nasional",
+    "Inovasi Teknologi Berkelanjutan dalam Mewujudkan Industri Hijau",
+    "Pengembangan Talenta dan Ekosistem Inovasi sebagai Fondasi Industri 2030"
+  ]).optional().nullable(),
   essay_paper_url: z.string().max(1000).optional().nullable(),
   payment_proof_url: z.string().max(1000).optional().nullable(),
   submission_status: z.enum(["draft", "submitted"]).optional(),

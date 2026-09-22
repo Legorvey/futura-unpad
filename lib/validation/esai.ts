@@ -102,7 +102,13 @@ export type IdentityValues = z.infer<typeof IdentitySchema>;
 
 export const DocsSchema = z.object({
   judul: z.string().trim().min(1, "Judul karya tulis wajib diisi").max(250, "Judul terlalu panjang"),
-  subtema: z.string().min(1, "Subtema wajib dipilih"),
+  subtema: z.enum([
+    "Transformasi Digital untuk Meningkatkan Daya Saing Industri Nasional",
+    "Inovasi Teknologi Berkelanjutan dalam Mewujudkan Industri Hijau",
+    "Pengembangan Talenta dan Ekosistem Inovasi sebagai Fondasi Industri 2030"
+  ], {
+    message: "Pilih subtema yang valid"
+  }),
   essay: z.any().optional(),
 }).superRefine((val, ctx) => {
   if (val.essay && val.essay.length > 0) {

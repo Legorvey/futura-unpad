@@ -137,7 +137,11 @@ export function LombaEsaiClient({
 
   const docsForm = useForm<DocsValues>({
     resolver: zodResolver(DocsSchema),
-    mode: "onChange"
+    mode: "onChange",
+    defaultValues: {
+      judul: registration.paper_title || "",
+      subtema: registration.sub_theme || "",
+    }
   });
 
   const paymentForm = useForm<PaymentValues>({
@@ -172,10 +176,12 @@ export function LombaEsaiClient({
   const essayWatch = docsForm.watch("essay");
 
   const isDocsComplete = Boolean(
-    registration.essay_paper_url
+    registration.essay_paper_url &&
+    registration.paper_title &&
+    registration.sub_theme
   );
 
-  const isDocsValid = docsForm.formState.isValid && Boolean(essayWatch?.length > 0);
+  const isDocsValid = docsForm.formState.isValid && (Boolean(essayWatch?.length > 0) || Boolean(registration.essay_paper_url));
 
   const paymentWatch = paymentForm.watch("payment");
   const isPaymentComplete = Boolean(registration.payment_proof_url);
@@ -263,6 +269,8 @@ export function LombaEsaiClient({
 
       const submitValues = {
         essay_paper_url: essayUrl,
+        paper_title: values.judul,
+        sub_theme: values.subtema,
       };
 
       const res = await updateEsaiRegistration(registration.id, submitValues);
@@ -600,6 +608,36 @@ export function LombaEsaiClient({
             <FormProvider {...docsForm}>
               <form onSubmit={docsForm.handleSubmit(onSaveDocs)}>
                 <div className="grid grid-cols-1 gap-6">
+                  {/* Judul & Subtema (Side-by-side) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormTextField name="judul" label="Judul Karya Esai" disabled={isSubmitted} placeholder="Masukkan judul esai Anda" />
+                    
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium leading-snug">
+                        Subtema
+                      </label>
+                      <Select
+                        value={docsForm.watch("subtema")}
+                        onValueChange={(v) => docsForm.setValue("subtema", v, { shouldValidate: true })}
+                        disabled={isSubmitted}
+                      >
+                        <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">
+                          <SelectValue placeholder="Pilih subtema..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white dark:bg-white dark:text-slate-900">
+                          <SelectItem value="Transformasi Digital untuk Meningkatkan Daya Saing Industri Nasional">Transformasi Digital untuk Meningkatkan Daya Saing Industri Nasional</SelectItem>
+                          <SelectItem value="Inovasi Teknologi Berkelanjutan dalam Mewujudkan Industri Hijau">Inovasi Teknologi Berkelanjutan dalam Mewujudkan Industri Hijau</SelectItem>
+                          <SelectItem value="Pengembangan Talenta dan Ekosistem Inovasi sebagai Fondasi Industri 2030">Pengembangan Talenta dan Ekosistem Inovasi sebagai Fondasi Industri 2030</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {docsForm.formState.errors.subtema && (
+                        <div role="alert" className="text-sm font-normal text-destructive">
+                          {String(docsForm.formState.errors.subtema.message)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Essay Paper Upload */}
                   <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
                     <UploadedFileDisplay
@@ -620,7 +658,7 @@ export function LombaEsaiClient({
                   </div>
                 </div>
 
-                {!isSubmitted && !registration.essay_paper_url && (
+                {!isSubmitted && (
                   <Button type="submit" disabled={isSavingDocs || !isDocsValid} className="mt-6">
                     {isSavingDocs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Simpan Dokumen

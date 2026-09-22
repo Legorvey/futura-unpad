@@ -90,7 +90,7 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
     const checkData = { ...reg, ...validatedFields.data };
     const isComplete = checkData.full_name && checkData.institution_category && checkData.institution && checkData.city && checkData.phone_number &&
                        checkData.instagram_twibbon_url && checkData.identity_card_url &&
-                       checkData.essay_paper_url && checkData.payment_proof_url;
+                       checkData.essay_paper_url && checkData.payment_proof_url && checkData.paper_title && checkData.sub_theme;
     if (!isComplete) {
       return { success: false, error: "Data belum lengkap. Silakan lengkapi semua form dan dokumen." };
     }

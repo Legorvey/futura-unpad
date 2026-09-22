@@ -87,19 +87,11 @@ export function HeroSection() {
             </p>
             
             <div className="flex flex-col items-center mt-8 gap-8">
-              <div className="flex flex-col items-center gap-4">
-                <span className="font-bold uppercase tracking-wide text-sm md:text-base">
-                  Countdown
-                </span>
-                <FlipCountdown targetDate={new Date(ESAI_REG_START_DATE).getTime()} />
-              </div>
               <div className="mx-auto flex flex-col md:flex-row items-center gap-4">
-                {IS_ESAI_REGISTRATION_OPEN && (
-                  <EsaiRegistrationButton />
-                )}
+                <EsaiRegistrationButton />
 
                 <Button asChild className="rounded-full w-full md:w-fit py-6 md:py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
-                    <Link href="#">Lihat Booklet</Link>
+                    <Link href="https://drive.google.com/file/d/1YOfJ3esuOJRetvg2dZTRCynaZoaVrl9b/view?usp=sharing" target="_blank" rel="noopener noreferrer">Lihat Booklet</Link>
                 </Button>
               </div>
             </div>

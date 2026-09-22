@@ -76,6 +76,30 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
         }
     },
     {
+        accessorKey: "paper_title",
+        header: "Judul Esai",
+        cell: ({ row }) => (
+            <div className="text-[13px] font-medium text-foreground max-w-[200px] truncate" title={row.original.paper_title || undefined}>
+                {row.original.paper_title || <span className="text-muted-foreground italic">-</span>}
+            </div>
+        )
+    },
+    {
+        accessorKey: "sub_theme",
+        header: "Subtema",
+        cell: ({ row }) => {
+            const subTheme = row.original.sub_theme;
+            if (!subTheme) return <span className="text-xs text-muted-foreground italic">-</span>;
+            // Show a shortened label for readability
+            const shortLabel = subTheme.length > 40 ? subTheme.substring(0, 40) + "…" : subTheme;
+            return (
+                <div className="text-[13px] font-medium text-foreground max-w-[180px] truncate" title={subTheme}>
+                    {shortLabel}
+                </div>
+            );
+        }
+    },
+    {
         id: "essay_file",
         header: "File Esai",
         cell: ({ row }) => {

@@ -17,14 +17,14 @@ const esaiTimelineItems: GrandTimelineItem[] = [
   {
     category: "Lomba Esai",
     event: "Registrasi & Pengumpulan",
-    date: "20 September - 22 Oktober 2026",
+    date: "21 September - 31 Oktober 2026",
     description: "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
     location: "Online/Daring",
   },
   {
     category: "Lomba Esai",
     event: "Seleksi Naskah",
-    date: "23 Oktober - 2 November 2026",
+    date: "31 Oktober - 2 November 2026",
     description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
     location: "Oleh Panitia",
   },
@@ -41,13 +41,6 @@ const esaiTimelineItems: GrandTimelineItem[] = [
     date: "5 - 12 November 2026",
     description: "Finalis mengunggah video presentasi sesuai ketentuan dan regulasi panitia.",
     location: "Online/Daring",
-  },
-  {
-    category: "Lomba Esai",
-    event: "Seleksi Finalis",
-    date: "13 - 27 November 2026",
-    description: "Penilaian tahap akhir untuk menentukan karya terbaik dan pemenang Lomba Esai.",
-    location: "Oleh Panitia",
   },
   {
     category: "Lomba Esai",

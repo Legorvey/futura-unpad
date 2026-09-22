@@ -6,6 +6,11 @@ const contacts: ContactPerson[] = [
     name: "Luvian",
     phone: "6285899983097",
     initial: "L"
+  },
+  {
+    name: "Fahd",
+    phone: "628986838482",
+    initial: "F"
   }
 ];
 

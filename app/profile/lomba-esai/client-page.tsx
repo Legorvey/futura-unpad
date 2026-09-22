@@ -264,7 +264,12 @@ export function LombaEsaiClient({
 
       let essayUrl = registration.essay_paper_url;
       if (essayFile) {
-        essayUrl = await handleFileUpload(essayFile, `${userId}/essay_${Date.now()}_${essayFile.name}`);
+        const userNameRaw = registration.full_name || userName || "Peserta";
+        const cleanName = userNameRaw.replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+        const cleanTitle = values.judul.replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+        const finalFileName = `${cleanName}_${cleanTitle}_FuturaEssayCompetition.pdf`;
+        
+        essayUrl = await handleFileUpload(essayFile, `${userId}/essay_${Date.now()}_${finalFileName}`);
       }
 
       const submitValues = {
@@ -618,7 +623,7 @@ export function LombaEsaiClient({
                       </label>
                       <Select
                         value={docsForm.watch("subtema")}
-                        onValueChange={(v) => docsForm.setValue("subtema", v, { shouldValidate: true })}
+                        onValueChange={(v) => docsForm.setValue("subtema", v as DocsValues["subtema"], { shouldValidate: true })}
                         disabled={isSubmitted}
                       >
                         <SelectTrigger className="h-11 data-[size=default]:h-11 w-full rounded-[8px] bg-slate-100/50 dark:bg-input/30">

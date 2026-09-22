@@ -116,8 +116,8 @@ export function LombaEsaiClient({
   const [isSavingDocs, setIsSavingDocs] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
-  const initialInstitutionType = (registration.institution_category && ["SMA", "SMK", "perguruan_tinggi"].includes(registration.institution_category)) 
-    ? registration.institution_category as InstitutionType 
+  const initialInstitutionType = (registration.institution_category && ["SMA", "SMK", "perguruan_tinggi"].includes(registration.institution_category))
+    ? registration.institution_category as InstitutionType
     : "SMA";
   const [institutionType, setInstitutionType] = useState<InstitutionType>(initialInstitutionType);
 
@@ -132,6 +132,8 @@ export function LombaEsaiClient({
       phone_number: registration.phone_number || "",
     }
   });
+
+  const isTwibbonOpen = new Date() >= new Date("2026-10-05T00:00:00+07:00");
 
   const docsForm = useForm<DocsValues>({
     resolver: zodResolver(DocsSchema),
@@ -162,7 +164,7 @@ export function LombaEsaiClient({
     registration.city &&
     registration.phone_number &&
     registration.identity_card_url &&
-    registration.instagram_twibbon_url
+    (!isTwibbonOpen || registration.instagram_twibbon_url)
   );
 
   const twibbonWatch = identityForm.watch("twibbon");
@@ -305,6 +307,10 @@ export function LombaEsaiClient({
   const onFinalSubmit = async () => {
     setIsSubmittingFinal(true);
     try {
+      if (!isTwibbonOpen && !registration.instagram_twibbon_url) {
+        throw new Error("Anda baru dapat melakukan final submit pada 5 Oktober 2026.");
+      }
+
       if (!canSubmitFinal) {
         throw new Error("Mohon lengkapi dan simpan Data Diri, Dokumen, serta Bukti Pembayaran terlebih dahulu.");
       }
@@ -513,17 +519,31 @@ export function LombaEsaiClient({
                       description="Maksimal 3MB (JPG, PNG, PDF)"
                     />
                     {!isSubmitted && !registration.instagram_twibbon_url && (
-                      <>
-                        <FormFileField
-                          name="twibbon"
-                          label="Bukti Twibbon"
-                          accept="image/jpeg, image/png, application/pdf"
-                          disabled={isSavingIdentity}
-                          maxSizeInBytes={3 * 1024 * 1024}
-                          variant="button"
-                        />
-                        <LocalImagePreview fileList={twibbonWatch} />
-                      </>
+                      isTwibbonOpen ? (
+                        <>
+                          <FormFileField
+                            name="twibbon"
+                            label="Bukti Twibbon"
+                            accept="image/jpeg, image/png, application/pdf"
+                            disabled={isSavingIdentity}
+                            maxSizeInBytes={3 * 1024 * 1024}
+                            variant="button"
+                          />
+                          <LocalImagePreview fileList={twibbonWatch} />
+                        </>
+                      ) : (
+                        <div className="flex flex-col gap-2 h-full">
+                          <label className="text-sm font-medium leading-snug">
+                            Bukti Twibbon
+                          </label>
+                          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex flex-1 items-center justify-center">
+                            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium text-center text-balance">
+                              Template Twibbon sedang disiapkan oleh panitia. Anda baru dapat mengunggah Twibbon mulai 5 Oktober 2026.
+                            </p>
+                          </div>
+                          <div className="text-[0.8rem] text-muted-foreground mt-auto">Maksimal 3MB (JPG, PNG, PDF)</div>
+                        </div>
+                      )
                     )}
                   </div>
 

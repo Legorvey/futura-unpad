@@ -4,6 +4,7 @@ import { EsaiTimeline } from "@/components/esai/esai-timeline"
 import { EsaiFAQ } from "@/components/esai/esai-faq"
 import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 import { ContactSection } from "@/components/esai/contact-section"
+import { EsaiCTA } from "@/components/esai/cta-section"
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
 
 export const metadata: Metadata = {
@@ -63,6 +64,10 @@ export default function LombaEsai() {
                     
                     <ScrollReveal>
                         <EsaiTimeline />
+                    </ScrollReveal>
+
+                    <ScrollReveal>
+                        <EsaiCTA />
                     </ScrollReveal>
 
                     <ScrollReveal>

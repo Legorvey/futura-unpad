@@ -281,7 +281,11 @@ export function LombaEsaiClient({
       const res = await updateEsaiRegistration(registration.id, submitValues);
       if (!res.success) throw new Error(res.error || "Gagal menyimpan dokumen.");
 
-      docsForm.reset();
+      docsForm.reset({
+        judul: values.judul,
+        subtema: values.subtema,
+        essay: undefined,
+      });
       toast.success("Dokumen berhasil disimpan!");
       router.refresh();
     } catch (err: unknown) {

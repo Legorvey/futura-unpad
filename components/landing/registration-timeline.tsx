@@ -60,20 +60,20 @@ const timelineTabs = [
         date: "20 Juli - 20 September 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
-        location: "Online/Daring",
+        location: "Daring/Online",
       },
       {
         category: "Mechatura",
         event: "Registrasi Batch 2",
-        date: "21 September - 1 Oktober 2026",
+        date: "21 September - 20 Oktober 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
-        location: "Online/Daring",
+        location: "Daring/Online",
       },
       {
         category: "Mechatura",
         event: "Technical Meeting",
-        date: "TBA (To Be Announced)",
+        date: "22 Oktober 2026",
         description:
           "Sesi pengarahan teknis untuk peserta sebelum pelaksanaan lomba.",
         location: "Online/Daring",

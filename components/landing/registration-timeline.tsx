@@ -60,20 +60,20 @@ const timelineTabs = [
         date: "20 Juli - 20 September 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
-        location: "Online/Daring",
+        location: "Daring/Online",
       },
       {
         category: "Mechatura",
         event: "Registrasi Batch 2",
-        date: "21 September - 1 Oktober 2026",
+        date: "21 September - 20 Oktober 2026",
         description:
           "Mulai pendaftaran tim Mechatura dan pengumpulan data peserta.",
-        location: "Online/Daring",
+        location: "Daring/Online",
       },
       {
         category: "Mechatura",
         event: "Technical Meeting",
-        date: "TBA (To Be Announced)",
+        date: "22 Oktober 2026",
         description:
           "Sesi pengarahan teknis untuk peserta sebelum pelaksanaan lomba.",
         location: "Online/Daring",
@@ -94,39 +94,39 @@ const timelineTabs = [
       {
         category: "Lomba Esai",
         event: "Registrasi & Pengumpulan",
-        date: "21 September - 31 Oktober 2026",
+        date: "21 September - 7 November 2026",
         description:
           "Peserta melakukan registrasi sekaligus mengumpulkan naskah Esai.",
-        location: "Online/Daring",
+        location: "Daring/Online",
       },
       {
         category: "Lomba Esai",
         event: "Seleksi Naskah",
-        date: "31 Oktober - 2 November 2026",
+        date: "8 - 14 November 2026",
         description: "Tahap kurasi dan penilaian awal naskah Esai peserta.",
         location: "Oleh Panitia",
       },
       {
         category: "Lomba Esai",
         event: "Pengumuman Finalis",
-        date: "4 November 2026",
+        date: "14 November 2026",
         description: "Finalis Lomba Esai diumumkan secara resmi.",
         location: "By Email",
       },
       {
         category: "Lomba Esai",
         event: "Upload Video Presentasi Finalis",
-        date: "5 - 12 November 2026",
+        date: "15 - 20 November 2026",
         description:
           "Finalis mengunggah video presentasi sesuai ketentuan panitia.",
-        location: "TBA (To be Announced)",
+        location: "Daring/Online",
       },
       {
         category: "Lomba Esai",
-        event: "Pengumuman Juara",
+        event: "Awarding",
         date: "28 November 2026",
-        description: "Pengumuman dan apresiasi pemenang Lomba Esai.",
-        location: "Bale Rumawat",
+        description: "Pengumuman dan apresiasi pemenang Lomba Esai pada sesi awarding.",
+        location: "Bale Rumawat, Unpad Dipatiukur",
       },
     ],
   },

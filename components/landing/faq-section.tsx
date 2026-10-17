@@ -113,7 +113,7 @@ export const esaiFaqs: FAQ[] = [
   {
     question: "Kapan batas akhir pembayaran?",
     answer:
-      "Batas akhir pembayaran adalah bersamaan dengan penutupan pendaftaran dan pengumpulan karya, yaitu pada tanggal 31 Oktober 2026.",
+      "Batas akhir pembayaran adalah bersamaan dengan penutupan pendaftaran dan pengumpulan karya, yaitu pada tanggal 7 November 2026.",
   },
   {
     question: "Apakah saya bisa berpartisipasi secara online (daring)?",

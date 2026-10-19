@@ -10,7 +10,7 @@ const juknisSumoDoc = {
 const juknisTransporterDoc = {
   title: "Juknis Robot Transporter",
   shortTitle: "Juknis Robot Transporter",
-  url: "https://drive.google.com/file/d/1uPokIED16frMM7HlFlWoTrzti-tcnUh3/view?usp=sharing",
+  url: "https://drive.google.com/file/d/1ti16vSzBLSU_sgK9fMJlOL8cEYHWjs2k/view",
   description: "Regulasi lintasan, spesifikasi teknis, mekanisme poin & waktu Transporter.",
 };
 

@@ -13,7 +13,7 @@ const categories = [
     description: "Lomba robot manual yang mengadu dua robot saling dorong keluar dari arena bundar. Penilaian mempertimbangkan win time dan survive time jika skor imbang, dengan fokus pada kekuatan, kontrol, dan strategi duel langsung.",
     highlights_title: "Fokus Kompetisi",
     highlights: "Kekuatan, Kontrol, dan Strategi Duel Langsung",
-    juklak_url: "https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing",
+    juknis_url: "https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing",
     icon: Swords,
   },
   {
@@ -25,7 +25,7 @@ const categories = [
     description: "Lomba robot manual yang menguji kecepatan dan ketepatan saat memindahkan objek melewati rintangan tanpa fitur otomatis. Penilaian berfokus utama pada efisiensi gerak dan ketepatan waktu pemindahan objek.",
     highlights_title: "Fokus Kompetisi",
     highlights: "Kecepatan, Efisiensi Gerak, dan Ketepatan Pemindahan",
-    juklak_url: "https://drive.google.com/file/d/1uPokIED16frMM7HlFlWoTrzti-tcnUh3/view?usp=sharing",
+    juknis_url: "https://drive.google.com/file/d/1uPokIED16frMM7HlFlWoTrzti-tcnUh3/view?usp=sharing",
     icon: Boxes,
   },
 ];
@@ -102,7 +102,7 @@ function CategoryCard({ category }: { category: (typeof categories)[0] }) {
 
 
           <div className="flex justify-start">
-            <ButtonV2 text="Lihat Juklak" href={category.juklak_url} />
+            <ButtonV2 text="Lihat Juknis" href={category.juknis_url} />
           </div>
         </div>
       </div>

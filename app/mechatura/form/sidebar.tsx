@@ -211,7 +211,7 @@ export default function MechaturaFormSidebar({
               </p>
             </div>
 
-            {/* Documents & Juklak Info Card */}
+            {/* Documents & Juknis Info Card */}
             <div className="rounded-xl border p-4 space-y-2.5 text-xs text-muted-foreground bg-card/40">
               <div className="flex items-center gap-2 text-foreground font-semibold">
                 <FileText className="h-4 w-4 text-primary shrink-0" />
@@ -232,27 +232,27 @@ export default function MechaturaFormSidebar({
                 </a>
 
                 <a
-                  href={MECHATURA_DOCUMENTS.juklakSumo.url}
+                  href={MECHATURA_DOCUMENTS.juknisSumo.url}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-between p-2 rounded-lg bg-muted/40 hover:bg-muted/80 transition-colors group text-foreground font-medium"
                 >
                   <div className="flex items-center gap-2 min-w-0 pr-1">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="truncate">{MECHATURA_DOCUMENTS.juklakSumo.title}</span>
+                    <span className="truncate">{MECHATURA_DOCUMENTS.juknisSumo.title}</span>
                   </div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
                 </a>
 
                 <a
-                  href={MECHATURA_DOCUMENTS.juklakTransporter.url}
+                  href={MECHATURA_DOCUMENTS.juknisTransporter.url}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-between p-2 rounded-lg bg-muted/40 hover:bg-muted/80 transition-colors group text-foreground font-medium"
                 >
                   <div className="flex items-center gap-2 min-w-0 pr-1">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="truncate">{MECHATURA_DOCUMENTS.juklakTransporter.title}</span>
+                    <span className="truncate">{MECHATURA_DOCUMENTS.juknisTransporter.title}</span>
                   </div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
                 </a>

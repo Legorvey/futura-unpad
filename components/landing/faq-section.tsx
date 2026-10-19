@@ -62,7 +62,7 @@ export const nationalSeminarFaqs: FAQ[] = [
   {
     question: "Apakah saya bisa berpartisipasi secara online (daring)?",
     answer:
-      "Beberapa sesi seminar mungkin mendukung partisipasi daring. Untuk kompetisi, format pelaksanaannya mengacu pada petunjuk teknis (Juklak).",
+      "Beberapa sesi seminar mungkin mendukung partisipasi daring. Untuk kompetisi, format pelaksanaannya mengacu pada petunjuk teknis (Juknis).",
   },
   {
     question: "Apakah peserta akan mendapatkan sertifikat?",
@@ -75,17 +75,17 @@ export const mechaturaFaqs: FAQ[] = [
   {
     question: "Apakah robot harus dibuat sendiri?",
     answer:
-      "Ya. Robot yang digunakan merupakan hasil perancangan dan pengembangan tim peserta sesuai dengan peraturan yang tercantum dalam Juklak masing-masing kategori.",
+      "Ya. Robot yang digunakan merupakan hasil perancangan dan pengembangan tim peserta sesuai dengan peraturan yang tercantum dalam Juknis masing-masing kategori.",
   },
   {
     question: "Di mana saya dapat melihat peraturan dan spesifikasi lomba?",
     answer:
-      "Seluruh aturan, spesifikasi robot, sistem pertandingan, serta ketentuan teknis dapat diunduh melalui halaman Booklet dan Petunjuk Pelaksanaan (Juklak) pada website Mechatura 2026.",
+      "Seluruh aturan, spesifikasi robot, sistem pertandingan, serta ketentuan teknis dapat diunduh melalui halaman Booklet dan Petunjuk Teknis (Juknis) pada website Mechatura 2026.",
   },
   {
     question: "Apakah peserta boleh memodifikasi robot setelah pendaftaran?",
     answer:
-      "Boleh, selama modifikasi tetap memenuhi seluruh spesifikasi dan ketentuan yang telah ditetapkan dalam Juklak hingga proses technical meeting dan inspeksi robot.",
+      "Boleh, selama modifikasi tetap memenuhi seluruh spesifikasi dan ketentuan yang telah ditetapkan dalam Juknis hingga proses technical meeting dan inspeksi robot.",
   },
   {
     question: "Apakah akan diadakan Technical Meeting?",

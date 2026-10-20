@@ -132,9 +132,10 @@ export async function GET(request: NextRequest) {
         members.push(...(data ?? []));
     }
 
-    // Attempt to fetch emails for members
+    // Attempt to fetch emails and fallback names for members
     const uniqueUserIds = Array.from(new Set(members.map(m => m.user_id).filter(Boolean)));
     const emailsByUserId = new Map<string, string>();
+    const namesByUserId = new Map<string, string>();
     const adminSupabase = createAdminClient();
     let page = 1;
     let hasNextPage = true;
@@ -142,8 +143,16 @@ export async function GET(request: NextRequest) {
         const { data, error } = await adminSupabase.auth.admin.listUsers({ page, perPage: 1000 });
         if (error || !data.users.length) break;
         for (const u of data.users) {
-            if (u.email && uniqueUserIds.includes(u.id)) {
-                emailsByUserId.set(u.id, u.email);
+            if (uniqueUserIds.includes(u.id)) {
+                if (u.email) emailsByUserId.set(u.id, u.email);
+                const meta = u.user_metadata || {};
+                const name = meta.display_name?.trim() || 
+                             meta.username?.trim() || 
+                             u.email?.trim() || 
+                             meta.full_name?.trim() || 
+                             meta.name?.trim() || 
+                             "";
+                if (name) namesByUserId.set(u.id, name);
             }
         }
         hasNextPage = data.users.length === 1000;
@@ -183,8 +192,8 @@ export async function GET(request: NextRequest) {
     let maxMembers = 0;
     const teamsWithMembers = registrations.map((team) => {
         const teamMembers = membersByTeamId.get(team.id) ?? [];
-        const leader = teamMembers.find((m) => m.is_leader);
-        const membersOnly = teamMembers.filter((m) => !m.is_leader);
+        const leader = teamMembers.find((m) => m.is_leader) || teamMembers[0];
+        const membersOnly = teamMembers.filter((m) => m.id !== leader?.id);
         if (membersOnly.length > maxMembers) maxMembers = membersOnly.length;
         return { team, leader, membersOnly };
     });
@@ -217,7 +226,7 @@ export async function GET(request: NextRequest) {
         if (shouldExport("category")) baseRow.push(escapeCSV(formatCompetition(team.category)));
         if (shouldExport("pembina_name")) baseRow.push(escapeCSV(team.pembina_name));
         if (shouldExport("pembina_phone")) baseRow.push(escapeCSV(team.pembina_phone));
-        if (shouldExport("leader_name")) baseRow.push(escapeCSV(leader?.full_name));
+        if (shouldExport("leader_name")) baseRow.push(escapeCSV(leader?.full_name?.trim() || (leader?.user_id ? namesByUserId.get(leader.user_id) : "") || ""));
         if (shouldExport("leader_phone")) baseRow.push(escapeCSV(leader?.phone_number));
         if (shouldExport("leader_email")) baseRow.push(escapeCSV(leader?.email));
         if (shouldExport("leader_institution")) baseRow.push(escapeCSV(leader?.institution));
@@ -231,7 +240,7 @@ export async function GET(request: NextRequest) {
         const memberCols: string[] = [];
         for (let i = 0; i < maxMembers; i++) {
             const m = membersOnly[i];
-            if (shouldExport("member_name")) memberCols.push(escapeCSV(m?.full_name));
+            if (shouldExport("member_name")) memberCols.push(escapeCSV(m?.full_name?.trim() || (m?.user_id ? namesByUserId.get(m.user_id) : "") || ""));
             if (shouldExport("member_phone")) memberCols.push(escapeCSV(m?.phone_number));
             if (shouldExport("member_email")) memberCols.push(escapeCSV(m?.email));
             if (shouldExport("member_institution")) memberCols.push(escapeCSV(m?.institution));

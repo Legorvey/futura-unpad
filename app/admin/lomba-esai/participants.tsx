@@ -23,12 +23,15 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
             const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
             const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
             
-            const nameMatches = isMatch(row.original.full_name);
+            const participantName = row.original.full_name?.trim()
+                ? row.original.full_name.trim()
+                : (row.original.fallback_name?.trim() || "Tanpa Nama");
+            const nameMatches = isMatch(row.original.full_name) || isMatch(row.original.fallback_name);
             
             return (
                 <div className="min-w-0 flex flex-col gap-1 items-start">
                     <span className={`font-medium ${nameMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm" : ""}`}>
-                        {row.original.full_name || "Tanpa Nama"}
+                        {participantName}
                     </span>
                 </div>
             );
@@ -66,11 +69,12 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
         cell: ({ row }) => {
             const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
             const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
-            const emailMatches = isMatch(row.original.email);
+            const emailValue = row.original.email?.trim() || row.original.fallback_email?.trim() || null;
+            const emailMatches = isMatch(emailValue);
 
             return (
                 <div className={`text-[13px] text-muted-foreground ${emailMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm font-medium" : ""}`}>
-                    {row.original.email || "-"}
+                    {emailValue || "-"}
                 </div>
             );
         }

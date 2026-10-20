@@ -149,6 +149,32 @@ export default async function EsaiParticipantDetailPage({
         notFound();
     }
 
+    let fallback_name: string | null = null;
+    let fallback_email: string | null = null;
+    if (participant.user_id) {
+        try {
+            const { data: userData } = await adminSupabase.auth.admin.getUserById(participant.user_id);
+            if (userData?.user) {
+                const meta = userData.user.user_metadata || {};
+                fallback_name = meta.display_name?.trim() || 
+                               meta.username?.trim() || 
+                               userData.user.email?.trim() || 
+                               meta.full_name?.trim() || 
+                               meta.name?.trim() || 
+                               null;
+                fallback_email = userData.user.email || null;
+            }
+        } catch (e) {
+            // ignore error
+        }
+    }
+
+    const participantWithFallback: AdminEsaiRegistration = {
+        ...participant,
+        fallback_name,
+        fallback_email,
+    };
+
 
 
     const getSignedUrl = async (path: string | null) => {
@@ -200,7 +226,7 @@ export default async function EsaiParticipantDetailPage({
                             </div>
                             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                                 <AdminSidebarContent
-                                    participant={participant as AdminEsaiRegistration}
+                                    participant={participantWithFallback}
                                     
                                     paymentProofUrl={paymentProofUrl} twibbonUrl={twibbonUrl}
                                     ktmUrl={ktmUrl}
@@ -229,7 +255,9 @@ export default async function EsaiParticipantDetailPage({
                             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">Nama Lengkap</dt>
-                                    <dd className="text-sm font-medium truncate" title={participant.full_name || undefined}>{participant.full_name || "-"}</dd>
+                                    <dd className="text-sm font-medium truncate" title={participant.full_name?.trim() || fallback_name || undefined}>
+                                        {participant.full_name?.trim() || fallback_name || "-"}
+                                    </dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">Instansi / Sekolah</dt>
@@ -245,7 +273,9 @@ export default async function EsaiParticipantDetailPage({
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">Email</dt>
-                                    <dd className="text-sm font-medium truncate" title={participant.email || undefined}>{participant.email || "-"}</dd>
+                                    <dd className="text-sm font-medium truncate" title={participant.email?.trim() || fallback_email || undefined}>
+                                        {participant.email?.trim() || fallback_email || "-"}
+                                    </dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-sm text-muted-foreground mb-1">No. Telepon / WA</dt>
@@ -278,7 +308,7 @@ export default async function EsaiParticipantDetailPage({
 
                 <div className="hidden xl:block">
                     <AdminSidebarContent
-                        participant={participant as AdminEsaiRegistration}
+                        participant={participantWithFallback}
                         
                         paymentProofUrl={paymentProofUrl} twibbonUrl={twibbonUrl}
                         ktmUrl={ktmUrl}

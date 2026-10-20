@@ -149,7 +149,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                 if (!memberFieldsPreview[mId]) {
                     const m = team.mechatura_members?.find((mem: any) => mem.id === mId);
                     memberFieldsPreview[mId] = { 
-                        name: m?.full_name || m?.fallback_name || "Tanpa Nama",
+                        name: m?.full_name?.trim() || m?.fallback_name?.trim() || "Tanpa Nama",
                         fields: []
                     };
                 }
@@ -415,7 +415,7 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                                         <AccordionItem key={m.id} value={`member-${m.id}`} className="border rounded-lg px-4 bg-card shadow-sm data-[state=open]:pb-3 data-[state=closed]:pb-0">
                                             <AccordionTrigger className="hover:no-underline font-medium py-3 text-left">
                                                 <div className="flex items-center gap-2">
-                                                    {m.full_name || m.fallback_name || "Tanpa Nama"} 
+                                                    {m.full_name?.trim() || m.fallback_name?.trim() || "Tanpa Nama"} 
                                                     {m.is_leader && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Ketua</span>}
                                                 </div>
                                             </AccordionTrigger>
@@ -618,7 +618,7 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
         header: "Ketua",
         cell: ({ row }) => {
             const members = row.original.mechatura_members || [];
-            const leader = members.find((m: any) => m.is_leader);
+            const leader = members.find((m: any) => m.is_leader) || members[0];
             
             const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
             const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
@@ -627,7 +627,7 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
             const leaderPhoneMatches = isMatch(leader?.phone_number);
 
             // Find matching non-leader members
-            const matchedAnggotas = members.filter((m: any) => !m.is_leader && (
+            const matchedAnggotas = members.filter((m: any) => (m.id !== leader?.id) && (
                 isMatch(m.full_name) || 
                 isMatch(m.fallback_name) || 
                 isMatch(m.phone_number)
@@ -637,7 +637,7 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
                 <div className="min-w-0 flex flex-col gap-1 relative">
                     <div className="flex flex-col">
                         <span className={`font-medium text-[13px] leading-tight ${leaderNameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit' : ''}`}>
-                            {leader?.full_name || leader?.fallback_name || "Tanpa Nama"}
+                            {leader?.full_name?.trim() || leader?.fallback_name?.trim() || "Tanpa Nama"}
                         </span>
                         <span className={`text-[11px] text-muted-foreground mt-0.5 ${leaderPhoneMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit font-medium' : ''}`}>
                             {leader?.phone_number ?? "-"}

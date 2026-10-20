@@ -17,16 +17,16 @@ const mechaturaTimelineItems: GrandTimelineItem[] = [
   {
     category: "Mechatura",
     event: "Registrasi Batch 1",
-    date: "21 Juli - 20 September 2026",
+    date: "20 Juli - 20 September 2026",
     description: "Mulai pendaftaran tim Mechatura Batch 1 (Rp175.000) dan pengumpulan data berkas peserta.",
-    location: "Online/Daring",
+    location: "Daring/Online",
   },
   {
     category: "Mechatura",
     event: "Registrasi Batch 2",
-    date: "21 September - 1 Oktober 2026",
+    date: "21 September - 20 Oktober 2026",
     description: "Pendaftaran tim Mechatura Batch 2 (Rp200.000) dan pengumpulan data berkas peserta.",
-    location: "Online/Daring",
+    location: "Daring/Online",
   },
   {
     category: "Mechatura",

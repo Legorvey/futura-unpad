@@ -293,7 +293,12 @@ export default async function MechaturaRegistrationDetails({
                     const { data: userData } = await adminSupabase.auth.admin.getUserById(m.user_id);
                     if (userData?.user) {
                         const meta = userData.user.user_metadata || {};
-                        fallback_name = meta.display_name || meta.username || userData.user.email || null;
+                        fallback_name = meta.display_name?.trim() || 
+                                       meta.username?.trim() || 
+                                       userData.user.email?.trim() || 
+                                       meta.full_name?.trim() || 
+                                       meta.name?.trim() || 
+                                       null;
                     }
                 } catch (e) {
                     // ignore error
@@ -401,7 +406,7 @@ export default async function MechaturaRegistrationDetails({
                                             if (!memberFields[mId]) {
                                                 const m = enrichedMembers?.find(mem => mem.id === mId);
                                                 memberFields[mId] = { 
-                                                    name: m?.full_name || m?.fallback_name || "Anggota",
+                                                    name: m?.full_name?.trim() || m?.fallback_name?.trim() || "Anggota",
                                                     fields: []
                                                 };
                                             }
@@ -502,7 +507,7 @@ export default async function MechaturaRegistrationDetails({
                                             </TableCell>
                                             <TableCell className="px-4 py-3">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <span className="font-medium whitespace-nowrap text-foreground">{member.full_name || member.fallback_name || "Tanpa Nama"}</span>
+                                                    <span className="font-medium whitespace-nowrap text-foreground">{member.full_name?.trim() || member.fallback_name?.trim() || "Tanpa Nama"}</span>
                                                     <div>
                                                         <span
                                                             className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${member.is_leader
@@ -541,7 +546,7 @@ export default async function MechaturaRegistrationDetails({
                                                     )}
                                                     {member.instagram_username && (
                                                         <a
-                                                            href={`https://instagram.com/${member.instagram_username.replace("@", "")}`}
+                                                            href={member.instagram_username}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center text-blue-600 hover:underline text-sm font-medium"

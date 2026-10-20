@@ -93,11 +93,55 @@ async function EsaiAdminData({
         registrations = clampedPageData ?? [];
     }
 
+    // Batch fetch user data only for registrations missing full_name or email
+    const uniqueUserIds = Array.from(new Set(
+        registrations
+            .filter(r => !r.full_name?.trim() || !r.email?.trim())
+            .map(r => r.user_id)
+            .filter(Boolean)
+    ));
+
+    const fallbackInfoByUserId = new Map<string, { name: string | null; email: string | null }>();
+    const fetchBatchSize = 10;
+
+    for (let i = 0; i < uniqueUserIds.length; i += fetchBatchSize) {
+        const batch = uniqueUserIds.slice(i, i + fetchBatchSize);
+        await Promise.all(batch.map(async (userId) => {
+            try {
+                const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId as string);
+                if (userData?.user) {
+                    const meta = userData.user.user_metadata || {};
+                    const name = meta.display_name?.trim() || 
+                                 meta.username?.trim() || 
+                                 userData.user.email?.trim() || 
+                                 meta.full_name?.trim() || 
+                                 meta.name?.trim() || 
+                                 null;
+                    fallbackInfoByUserId.set(userId as string, {
+                        name,
+                        email: userData.user.email || null,
+                    });
+                }
+            } catch (e) {
+                // ignore
+            }
+        }));
+    }
+
+    const enrichedRegistrations = registrations.map((reg) => {
+        const fallback = reg.user_id ? fallbackInfoByUserId.get(reg.user_id) : undefined;
+        return {
+            ...reg,
+            fallback_name: fallback?.name ?? null,
+            fallback_email: fallback?.email ?? null,
+        };
+    });
+
     const from = (page - 1) * pageSize;
 
     return (
         <EsaiListClient
-            registrations={registrations}
+            registrations={enrichedRegistrations}
             searchParam={searchParam}
             submissionFilter={submissionFilter}
             pageSize={pageSize}

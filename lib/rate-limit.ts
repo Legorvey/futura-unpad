@@ -65,29 +65,27 @@ const rateLimitWithMemory = (
       count: 1,
       resetAt: now + options.windowSeconds * 1000,
     });
-
     return { success: true, retryAfter: options.windowSeconds };
   }
 
   existing.count += 1;
-
   return {
     success: existing.count <= options.limit,
     retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
   };
 };
 
-const rateLimitWithUpstash = async (
-  key: string,
-  options: RateLimitOptions
-): Promise<RateLimitResult | null> => {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token) {
-    return null;
-  }
-
+const rateLimitWithUpstash = async (                                                                                                             
+  key:string,                                                                                                                                  
+  options:RateLimitOptions                                                                                                                     
+): Promise<RateLimitResult | null> =>{                                                                                                          
+  const url = process.env.UPSTASH_REDIS_REST_URL;                                                                                               
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;                                                                                            
+                                                                                                                                              
+  if (!url || !token){                                                                                                                         
+    return null;                                                                                                                                
+  }   
+       
   try {
     const res = await fetch(`${url}/pipeline`, {
       method: "POST",

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, Clock, CheckCircle2, FileText, Send, User } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
@@ -48,18 +49,45 @@ type EsaiListClientProps = {
     stats: { totalParticipants: number; approvedDocuments: number; submittedDocuments: number; };
 };
 
+const COLUMN_LABELS: Record<string, string> = {
+    id: "ID Pendaftaran",
+    user_id: "User ID",
+    created_at: "Waktu Pendaftaran",
+    full_name: "Nama Lengkap",
+    institution: "Instansi",
+    institution_category: "Kategori Instansi",
+    city: "Kota",
+    email: "Email",
+    phone_number: "No. WA",
+    paper_title: "Judul Karya Esai",
+    sub_theme: "Subtema",
+    submission_status: "Status Pengumpulan",
+    essay_paper_url: "File Naskah Esai",
+    identity_card_url: "File KTM / Identitas",
+    instagram_twibbon_url: "File Bukti Twibbon",
+    payment_proof_url: "File Bukti Pembayaran",
+};
+
 const COLUMN_GROUPS = [
     {
         title: "Identitas Peserta",
-        keys: ["full_name", "institution", "city", "created_at"]
+        keys: ["id", "user_id", "full_name", "institution", "institution_category", "city", "created_at"]
     },
     {
         title: "Kontak",
         keys: ["email", "phone_number"]
     },
     {
+        title: "Karya Esai",
+        keys: ["paper_title", "sub_theme"]
+    },
+    {
         title: "Status Pendaftaran",
         keys: ["submission_status"]
+    },
+    {
+        title: "Dokumen Lampiran",
+        keys: ["essay_paper_url", "identity_card_url", "instagram_twibbon_url", "payment_proof_url"]
     }
 ];
 
@@ -82,15 +110,23 @@ export default function EsaiListClient({
         submission: submissionFilter,
     });
 
-    const defaultCols = {
-
+    const defaultCols: Record<string, boolean> = {
+        id: true,
+        user_id: true,
+        created_at: true,
         full_name: true,
         institution: true,
+        institution_category: true,
         city: true,
-        created_at: true,
         email: true,
         phone_number: true,
+        paper_title: true,
+        sub_theme: true,
         submission_status: true,
+        essay_paper_url: true,
+        identity_card_url: true,
+        instagram_twibbon_url: true,
+        payment_proof_url: true,
     };
     const [cols, setCols] = useState(defaultCols);
 
@@ -171,11 +207,11 @@ export default function EsaiListClient({
                                 Ekspor CSV
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Ekspor Data Lomba Esai</DialogTitle>
                                 <DialogDescription>
-                                    Pilih opsi untuk mengekspor data peserta Lomba Esai.
+                                    Pilih apakah Anda ingin mengekspor seluruh data peserta atau menggunakan filter. Anda juga dapat memilih kolom yang ingin diekspor.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-6 py-4">
@@ -184,17 +220,21 @@ export default function EsaiListClient({
                                     <RadioGroup 
                                         className="flex flex-col gap-3 mt-2" 
                                         value={exportFilterMode} 
-                                        onValueChange={(v: "all" | "filtered") => setExportFilterMode(v)}
+                                        onValueChange={(val) => setExportFilterMode(val as "all" | "filtered")}
                                     >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="r1" />
-                                            <Label htmlFor="r1" className="font-normal cursor-pointer">Semua Peserta ({stats.totalParticipants})</Label>
+                                        <div className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                                            <RadioGroupItem value="all" id="mode-all" className="mt-1" />
+                                            <label htmlFor="mode-all" className="flex flex-col cursor-pointer flex-1">
+                                                <span className="font-medium">Semua Data</span>
+                                                <span className="text-sm text-muted-foreground">Ekspor seluruh peserta terdaftar tanpa filter.</span>
+                                            </label>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="filtered" id="r2" disabled={!hasActiveFilters} />
-                                            <Label htmlFor="r2" className={`font-normal cursor-pointer ${!hasActiveFilters ? "text-muted-foreground" : ""}`}>
-                                                Hanya yang difilter ({pagination.totalItems})
-                                            </Label>
+                                        <div className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                                            <RadioGroupItem value="filtered" id="mode-filtered" className="mt-1" />
+                                            <label htmlFor="mode-filtered" className="flex flex-col cursor-pointer flex-1">
+                                                <span className="font-medium">Gunakan Filter</span>
+                                                <span className="text-sm text-muted-foreground">Ekspor hanya peserta yang sesuai dengan pencarian dan filter.</span>
+                                            </label>
                                         </div>
                                     </RadioGroup>
                                 </div>
@@ -202,7 +242,7 @@ export default function EsaiListClient({
                                 {exportFilterMode === "filtered" && (
                                     <div className="flex flex-col gap-3 p-4 border rounded-lg bg-muted/20">
                                         <Label className="font-semibold mb-1">Filter Ekspor</Label>
-                                        <div className="grid grid-cols-1 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-1.5">
                                                 <Label className="text-xs">Status Dokumen</Label>
                                                 <DropdownMenu>
@@ -256,17 +296,19 @@ export default function EsaiListClient({
                                                     {group.keys.map((key) => {
                                                         const k = key as keyof typeof cols;
                                                         return (
-                                                            <label key={key} className="flex items-center gap-2 cursor-pointer group/col">
-                                                                <div className="flex h-5 items-center">
-                                                                    <input 
-                                                                        type="checkbox" 
-                                                                        className="rounded border-gray-300 text-primary shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                                                        checked={cols[k]}
-                                                                        onChange={(e) => setCols(prev => ({ ...prev, [k]: e.target.checked }))}
-                                                                    />
-                                                                </div>
-                                                                <span className="text-sm text-foreground/90 group-hover/col:text-foreground">{key.replace(/_/g, " ")}</span>
-                                                            </label>
+                                                            <div key={k} className="flex items-center space-x-2">
+                                                                <Checkbox 
+                                                                    id={`col-${k}`} 
+                                                                    checked={cols[k]} 
+                                                                    onCheckedChange={(checked) => setCols(c => ({ ...c, [k]: !!checked }))}
+                                                                />
+                                                                <label
+                                                                    htmlFor={`col-${k}`}
+                                                                    className="text-sm font-medium leading-none cursor-pointer text-foreground/90 hover:text-foreground transition-colors"
+                                                                >
+                                                                    {COLUMN_LABELS[k] || k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                                </label>
+                                                            </div>
                                                         );
                                                     })}
                                                 </div>
@@ -292,7 +334,7 @@ export default function EsaiListClient({
                                     }
 
                                     const queryString = query.toString();
-                                    const url = `/api/admin/esai-registrations/export${queryString ? "?" + queryString : ""}`;
+                                    const url = `/api/admin/esai-registrations/export${queryString ? `?${queryString}` : ""}`;
                                     window.open(url, "_blank");
                                     setExportOpen(false);
                                 }}>

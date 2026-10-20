@@ -91,7 +91,7 @@ export function HeroSection() {
                 <EsaiRegistrationButton />
 
                 <Button asChild className="rounded-full w-full md:w-fit py-6 md:py-7 px-5 text-md md:text-lg bg-transparent border border-white text-white hover:text-amber-300 hover:border-amber-300 hover:bg-transparent">
-                    <Link href="https://drive.google.com/file/d/1YOfJ3esuOJRetvg2dZTRCynaZoaVrl9b/view?usp=sharing" target="_blank" rel="noopener noreferrer">Lihat Booklet</Link>
+                    <Link href="https://drive.google.com/file/d/1fbpHgGE6-wDmgZlQv1_JAIi0PzdJmQXT/view?usp=sharing" target="_blank" rel="noopener noreferrer">Lihat Booklet</Link>
                 </Button>
               </div>
             </div>

@@ -70,7 +70,7 @@ export function TeamDetailActions({ teamId, teamName, category, approvalStatus, 
                 if (!memberFieldsPreview[mId]) {
                     const m = members?.find((mem: any) => mem.id === mId);
                     memberFieldsPreview[mId] = { 
-                        name: m?.full_name || m?.fallback_name || "Tanpa Nama",
+                        name: m?.full_name?.trim() || m?.fallback_name?.trim() || "Tanpa Nama",
                         fields: []
                     };
                 }
@@ -279,7 +279,7 @@ export function TeamDetailActions({ teamId, teamName, category, approvalStatus, 
                                         <AccordionItem key={m.id} value={`member-${m.id}`} className="border rounded-lg px-4 bg-card shadow-sm data-[state=open]:pb-3 data-[state=closed]:pb-0">
                                             <AccordionTrigger className="hover:no-underline font-medium py-3 text-left">
                                                 <div className="flex items-center gap-2">
-                                                    {m.full_name || m.fallback_name || "Tanpa Nama"} 
+                                                    {m.full_name?.trim() || m.fallback_name?.trim() || "Tanpa Nama"} 
                                                     {m.is_leader && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Ketua</span>}
                                                 </div>
                                             </AccordionTrigger>

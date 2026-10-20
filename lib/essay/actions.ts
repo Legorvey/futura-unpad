@@ -18,6 +18,11 @@ export async function registerEsai() {
     return { success: false, error: "Silakan login terlebih dahulu untuk mendaftar." };
   }
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`esai_reg_${user.id}`);
+    if (!success) return { success: false, error: "Terlalu banyak permintaan. Coba lagi nanti." };
+  }
+
   const supabaseAdmin = createAdminClient();
 
   // Use upsert to atomically handle concurrent registration attempts.
@@ -48,6 +53,11 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
 
   if (!user) {
     return { success: false, error: "Unauthorized" };
+  }
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`esai_upd_${user.id}`);
+    if (!success) return { success: false, error: "Terlalu banyak permintaan. Coba lagi nanti." };
   }
 
   const validatedFields = UpdateEsaiSchema.safeParse(values);
@@ -117,6 +127,11 @@ export async function removeEsaiFile(registrationId: string, field: "instagram_t
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`esai_rm_${user.id}`);
+    if (!success) return { success: false, error: "Terlalu banyak permintaan. Coba lagi nanti." };
+  }
 
   const supabaseAdmin = createAdminClient();
 

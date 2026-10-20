@@ -151,7 +151,12 @@ async function MechaturaAdminData({
                 const { data: userData } = await adminSupabase.auth.admin.getUserById(userId as string);
                 if (userData?.user) {
                     const meta = userData.user.user_metadata || {};
-                    const name = meta.display_name || meta.username || userData.user.email || null;
+                    const name = meta.display_name?.trim() || 
+                                 meta.username?.trim() || 
+                                 userData.user.email?.trim() || 
+                                 meta.full_name?.trim() || 
+                                 meta.name?.trim() || 
+                                 null;
                     if (name) fallbackNamesByUserId.set(userId as string, name);
                 }
             } catch (e) {

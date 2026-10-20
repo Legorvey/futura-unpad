@@ -872,7 +872,7 @@ function TeamMembersSection({ allMembers, isLeader, isSubmitted, revisionFields 
             "full_name", "institution_category", "institution", "city", "phone_number", "instagram_username", "student_id_link"
           ].some(f => revisionFields.includes(`member_${m.id}_${f}`));
 
-          const isDataComplete = m.full_name && m.institution && m.city && m.phone_number && m.student_id_link;
+          const isDataComplete = m.full_name && m.institution && m.city && m.phone_number && m.instagram_username && m.student_id_link;
           const isActuallyComplete = isDataComplete && !hasRevision;
 
           return (
@@ -973,7 +973,7 @@ function RobotDocumentsSection({ team, isLeader, isSubmitted, revisionFields = [
               <span className="font-medium text-foreground">Sumo:</span> Dimensi maks 20x20 cm. Berat maks 3 kg.
             </li>
             <li>
-              <span className="font-medium text-foreground">Transporter:</span> Dimensi maks 20x20 cm (P x L). Tinggi & berat bebas. Dilarang menggunakan magnet.
+              <span className="font-medium text-foreground">Transporter:</span> Dimensi maks 25x25 cm (P x L). Tinggi & berat bebas. Dilarang menggunakan magnet.
             </li>
           </ul>
 
@@ -982,12 +982,12 @@ function RobotDocumentsSection({ team, isLeader, isSubmitted, revisionFields = [
               Baca Booklet Resmi
             </a>
             {team.category === "robot_sumo" ? (
-              <a href="https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
-                Baca Juklak Robot Sumo
+              <a href="https://drive.google.com/file/d/1DpgI4qJzu5sCV4GFugwRmoyVjucZKMwZ/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                Baca Juknis Robot Sumo
               </a>
             ) : (
-              <a href="https://drive.google.com/file/d/1uPokIED16frMM7HlFlWoTrzti-tcnUh3/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
-                Baca Juklak Robot Transporter
+              <a href="https://drive.google.com/file/d/1ti16vSzBLSU_sgK9fMJlOL8cEYHWjs2k/view" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                Baca Juknis Robot Transporter
               </a>
             )}
           </div>
@@ -1206,7 +1206,7 @@ function FinalizeSection({ team, isLeader, isSubmitted, allMembers }: any) {
   }
 
   const isComplete = team.payment_proof_link && team.robot_document_link && allMembers?.every((m: any) => 
-    m.full_name && m.institution && m.city && m.phone_number && m.student_id_link
+    m.full_name && m.institution && m.city && m.phone_number && m.instagram_username && m.student_id_link
   );
 
   const handleFinalize = async () => {

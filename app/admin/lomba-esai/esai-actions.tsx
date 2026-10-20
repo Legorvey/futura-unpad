@@ -211,7 +211,7 @@ export function EsaiActions({ participant }: { participant: AdminEsaiRegistratio
                     <DialogHeader>
                         <DialogTitle>Setujui Dokumen Esai?</DialogTitle>
                         <DialogDescription>
-                            Tindakan ini akan menandai dokumen peserta <strong>{participant.full_name || "Tanpa Nama"}</strong> sebagai disetujui.
+                            Tindakan ini akan menandai dokumen peserta <strong>{participant.full_name?.trim() || participant.fallback_name?.trim() || "Tanpa Nama"}</strong> sebagai disetujui.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -233,7 +233,7 @@ export function EsaiActions({ participant }: { participant: AdminEsaiRegistratio
                     <DialogHeader>
                         <DialogTitle>Buka Kunci Dokumen?</DialogTitle>
                         <DialogDescription>
-                            Tindakan ini akan mengubah status peserta <strong>{participant.full_name || "Tanpa Nama"}</strong> menjadi "Draft". Peserta akan dapat mengedit dan mengunggah ulang dokumen mereka.
+                            Tindakan ini akan mengubah status peserta <strong>{participant.full_name?.trim() || participant.fallback_name?.trim() || "Tanpa Nama"}</strong> menjadi "Draft". Peserta akan dapat mengedit dan mengunggah ulang dokumen mereka.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { ESAI_REG_START_DATE, IS_ESAI_REGISTRATION_OPEN } from "@/lib/landing/helper";
 import { z } from "zod";
 import { UpdateEsaiSchema } from "@/lib/validation/esai";
+import { formRatelimit } from "@/lib/ratelimit";
 
 export async function registerEsai() {
   if (!IS_ESAI_REGISTRATION_OPEN) {

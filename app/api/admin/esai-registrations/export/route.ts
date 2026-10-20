@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/http";
 import { toSearchPattern } from "@/app/admin/lomba-esai/_lib/esai-utils";
 
 export const dynamic = "force-dynamic";

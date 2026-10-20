@@ -31,6 +31,8 @@ function generateJoinCode() {
   return randomBytes(3).toString("hex").toUpperCase();
 }
 
+import { formRatelimit } from "@/lib/ratelimit";
+
 /**
  * Create a new team and add the current user as the leader.
  */
@@ -45,6 +47,11 @@ export async function createTeam(category: string, teamName: string) {
 
   if (authError || !user) {
     return { success: false, error: "You must be logged in to create a team." };
+  }
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_create_${user.id}`);
+    if (!success) return { success: false, error: "Terlalu banyak permintaan. Coba lagi nanti." };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -105,7 +112,7 @@ export async function createTeam(category: string, teamName: string) {
 export async function joinTeam(joinCode: string, selectedCategory: string) {
   const parsed = JoinTeamSchema.safeParse({ joinCode, selectedCategory });
   if (!parsed.success) {
-    return { success: false, error: "Data input tidak valid." };
+    return { success: false, error: "Input tidak valid." };
   }
 
   const supabase = await createClient();
@@ -113,6 +120,11 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
 
   if (authError || !user) {
     return { success: false, error: "You must be logged in to join a team." };
+  }
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_join_${user.id}`);
+    if (!success) return { success: false, error: "Terlalu banyak permintaan. Coba lagi nanti." };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -188,6 +200,11 @@ export async function updateMemberIdentity(memberId: string, data: IdentityData)
     throw new Error("Unauthorized");
   }
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_updateMemberIdentity_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
   const supabaseAdmin = createAdminClient();
 const parsedData = IdentityDataSchema.safeParse(data);
   if (!parsedData.success) {
@@ -236,6 +253,12 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) throw new Error("Unauthorized");
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_submitPaymentProof_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
 
   const supabaseAdmin = createAdminClient();
 // Authorization: check if user is leader
@@ -293,6 +316,12 @@ export async function updateRobotDocuments(teamId: string, robotDocumentLink: st
 
   if (authError || !user) throw new Error("Unauthorized");
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_updateRobotDocuments_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
+
   const supabaseAdmin = createAdminClient();
 // Authorization: check if user is leader
   const { data: membership } = await supabaseAdmin
@@ -343,6 +372,12 @@ export async function leaveTeam(teamId: string) {
 
   if (authError || !user) throw new Error("Unauthorized");
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_leaveTeam_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
+
   const supabaseAdmin = createAdminClient();
 const { data: membership } = await supabaseAdmin
     .from("mechatura_members")
@@ -389,6 +424,12 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) throw new Error("Unauthorized");
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_transferLeadership_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
 
   const supabaseAdmin = createAdminClient();
 // Verify current user is leader
@@ -464,6 +505,12 @@ export async function initiateTeamDeletion(teamId: string) {
 
   if (authError || !user) throw new Error("Unauthorized");
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_initiateTeamDeletion_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
+
   const supabaseAdmin = createAdminClient();
 // Verify leader using admin client to bypass any RLS errors
   const { data: membership } = await supabaseAdmin
@@ -508,6 +555,12 @@ export async function finalizeSubmission(teamId: string) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) throw new Error("Unauthorized");
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_finalizeSubmission_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
 
   const supabaseAdmin = createAdminClient();
 // Fetch the team and its members
@@ -570,6 +623,11 @@ export async function removeTeamMember(memberId: string) {
 
   if (authError || !user) {
     throw new Error("You must be logged in.");
+  }
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_removeTeamMember_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
   }
 
   const supabaseAdmin = createAdminClient();
@@ -663,6 +721,11 @@ export async function updatePembinaData(teamId: string, data: PembinaData) {
     throw new Error("Unauthorized");
   }
 
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_updatePembinaData_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
+  }
+
   if (!teamId || typeof teamId !== 'string') {
     throw new Error("Invalid team ID");
   }
@@ -701,6 +764,11 @@ export async function clearPembinaData(teamId: string) {
 
   if (authError || !user) {
     throw new Error("Unauthorized");
+  }
+
+  if (formRatelimit) {
+    const { success } = await formRatelimit.limit(`mech_clearPembinaData_${user.id}`);
+    if (!success) throw new Error("Terlalu banyak permintaan. Coba lagi nanti.");
   }
 
   if (!teamId || typeof teamId !== 'string') {

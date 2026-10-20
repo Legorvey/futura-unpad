@@ -15,10 +15,10 @@ export default function MechaturaRobotInfo({
     name: "competition_type",
   });
 
-  const activeJuklak =
+  const activeJuknis =
     competitionType === "transporter"
-      ? MECHATURA_DOCUMENTS.juklakTransporter
-      : MECHATURA_DOCUMENTS.juklakSumo;
+      ? MECHATURA_DOCUMENTS.juknisTransporter
+      : MECHATURA_DOCUMENTS.juknisSumo;
 
   const categoryName =
     competitionType === "transporter" ? "Robot Transporter" : "Robot Sumo";
@@ -38,11 +38,11 @@ export default function MechaturaRobotInfo({
           </p>
         </div>
 
-        {/* Juklak Callout (Clean, high-contrast neutral theme without icons) */}
+        {/* Juknis Callout (Clean, high-contrast neutral theme without icons) */}
         <div className="rounded-xl border border-border bg-muted/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div className="space-y-1">
             <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Petunjuk Pelaksanaan ({categoryName})
+              Petunjuk Teknis ({categoryName})
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Pelajari format lembar spesifikasi teknis dan regulasi lomba {categoryName}.
@@ -50,12 +50,12 @@ export default function MechaturaRobotInfo({
           </div>
           <div className="shrink-0">
             <a
-              href={activeJuklak.url}
+              href={activeJuknis.url}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors shadow-sm"
             >
-              Lihat {activeJuklak.shortTitle}
+              Lihat {activeJuknis.shortTitle}
             </a>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function MechaturaRobotInfo({
         <FormFileField<MechaturaFormValues>
           name="robot_document"
           title="Unggah Dokumen Robot (PDF)"
-          description={`Unggah 1 file PDF berisi lembar spesifikasi teknis dan foto robot ${categoryName} rakitan tim sesuai ketentuan ${activeJuklak.shortTitle}.`}
+          description={`Unggah 1 file PDF berisi lembar spesifikasi teknis dan foto robot ${categoryName} rakitan tim sesuai ketentuan ${activeJuknis.shortTitle}.`}
           accept="application/pdf"
           maxSizeInBytes={documentMaxSizeInBytes}
           required

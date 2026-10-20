@@ -982,12 +982,12 @@ function RobotDocumentsSection({ team, isLeader, isSubmitted, revisionFields = [
               Baca Booklet Resmi
             </a>
             {team.category === "robot_sumo" ? (
-              <a href="https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
-                Baca Juklak Robot Sumo
+              <a href="https://drive.google.com/file/d/1DpgI4qJzu5sCV4GFugwRmoyVjucZKMwZ/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                Baca Juknis Robot Sumo
               </a>
             ) : (
-              <a href="https://drive.google.com/file/d/1uPokIED16frMM7HlFlWoTrzti-tcnUh3/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
-                Baca Juklak Robot Transporter
+              <a href="https://drive.google.com/file/d/1ti16vSzBLSU_sgK9fMJlOL8cEYHWjs2k/view" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+                Baca Juknis Robot Transporter
               </a>
             )}
           </div>

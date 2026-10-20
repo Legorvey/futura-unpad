@@ -891,7 +891,7 @@ function RobotDocumentsSection({ team, isLeader, isSubmitted, revisionFields = [
               Baca Booklet Resmi
             </a>
             {team.category === "robot_sumo" ? (
-              <a href="https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
+              <a href="https://drive.google.com/file/d/1DpgI4qJzu5sCV4GFugwRmoyVjucZKMwZ/view?usp=sharing" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline underline-offset-4">
                 Baca Juknis Robot Sumo
               </a>
             ) : (

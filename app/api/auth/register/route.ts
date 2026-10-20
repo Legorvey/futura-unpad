@@ -83,24 +83,6 @@ export async function POST(request: Request) {
 
   if (error) {
     if (isExistingAccountError(error)) {
-      try {
-        let existingUser = null;
-        let page = 1;
-        while (true) {
-          const { data: { users }, error: listError } = await adminAuth.admin.listUsers({ page, perPage: 1000 });
-          if (listError || !users || users.length === 0) break;
-          existingUser = users.find(u => u.email === parsed.data.email);
-          if (existingUser) break;
-          page++;
-        }
-        
-        if (existingUser && !existingUser.email_confirmed_at) {
-          await adminAuth.admin.deleteUser(existingUser.id);
-          return NextResponse.json({ error: "Incomplete previous registration cleared. Please click Create Account again." }, { status: 400 });
-        }
-      } catch (err) {
-        console.error("Error during unverified account cleanup:", err);
-      }
       return NextResponse.json({ ok: true, authenticated: false });
     }
     return NextResponse.json({ error: error.message || "Registration failed" }, { status: 400 });

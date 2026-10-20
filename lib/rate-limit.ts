@@ -27,17 +27,31 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 const getClientIp = (request: Request) => {
-  const forwardedFor = request.headers.get("x-forwarded-for");
-
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() || "unknown";
+  // In Vercel deployments, x-vercel-forwarded-for is injected by edge proxies and cannot be forged by client
+  const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
+  if (vercelForwardedFor) {
+    return vercelForwardedFor.split(",")[0]?.trim() || "unknown";
   }
 
-  return request.headers.get("x-real-ip") ?? "unknown";
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    // Take the last hop appended by the trusted reverse proxy to avoid client-spoofed prefix
+    const parts = forwardedFor.split(",").map((p) => p.trim()).filter(Boolean);
+    return parts[parts.length - 1] || "unknown";
+  }
+
+  return "unknown";
 };
 
-const getRateLimitKey = (request: Request, key: string) =>
-  `rate-limit:${key}:${getClientIp(request)}`;
+const getRateLimitKey = (target: Request | string, key: string) => {
+  const targetId = typeof target === "string" ? target : getClientIp(target);
+  return `rate-limit:${key}:${targetId}`;
+};
 
 const rateLimitWithMemory = (
   key: string,
@@ -74,37 +88,42 @@ const rateLimitWithUpstash = async (
     return null;
   }
 
-  const res = await fetch(`${url}/pipeline`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify([
-      ["INCR", key],
-      ["EXPIRE", key, options.windowSeconds],
-    ]),
-    cache: "no-store",
-  });
+  try {
+    const res = await fetch(`${url}/pipeline`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([
+        ["INCR", key],
+        ["EXPIRE", key, options.windowSeconds, "NX"],
+      ]),
+      cache: "no-store",
+    });
 
-  if (!res.ok) {
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = (await res.json()) as Array<{ result?: unknown }>;
+    const count = Number(data[0]?.result ?? 0);
+
+    return {
+      success: count <= options.limit,
+      retryAfter: options.windowSeconds,
+    };
+  } catch (error) {
+    console.error("Upstash rate limit error:", error);
     return null;
   }
-
-  const data = (await res.json()) as Array<{ result?: unknown }>;
-  const count = Number(data[0]?.result ?? 0);
-
-  return {
-    success: count <= options.limit,
-    retryAfter: options.windowSeconds,
-  };
 };
 
 export const rateLimit = async (
-  request: Request,
+  target: Request | string,
   options: RateLimitOptions
 ): Promise<RateLimitResult> => {
-  const key = getRateLimitKey(request, options.key);
+  const key = getRateLimitKey(target, options.key);
   const upstashResult = await rateLimitWithUpstash(key, options);
 
   if (upstashResult) {

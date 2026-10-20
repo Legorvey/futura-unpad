@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { invalidRequest, readJsonBody, serverError } from "@/lib/http"
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http"
+import { rateLimit } from "@/lib/rate-limit"
 import { z } from "zod"
 
 const toggleSchema = z.object({
@@ -11,6 +12,16 @@ const toggleSchema = z.object({
 })
 
 export async function POST(request: Request) {
+    const limit = await rateLimit(request, {
+        key: "admin-toggle-attendance",
+        limit: 60,
+        windowSeconds: 60,
+    })
+
+    if (!limit.success) {
+        return rateLimited(limit.retryAfter)
+    }
+
     const { user, adminAccess } = await requireAdmin()
 
     if (!user) {

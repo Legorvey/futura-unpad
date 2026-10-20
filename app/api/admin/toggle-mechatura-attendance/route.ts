@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth";
-import { invalidRequest, readJsonBody, serverError } from "@/lib/http";
-import { createClient } from "@/utils/supabase/server";
+import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
+import { rateLimit } from "@/lib/rate-limit";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 const toggleMechaturaAttendanceSchema = z.object({
   registration_id: z.uuid(),
@@ -11,6 +12,16 @@ const toggleMechaturaAttendanceSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limit = await rateLimit(request, {
+    key: "admin-toggle-mechatura-attendance",
+    limit: 60,
+    windowSeconds: 60,
+  });
+
+  if (!limit.success) {
+    return rateLimited(limit.retryAfter);
+  }
+
   const { user, adminAccess } = await requireAdmin();
 
   if (!user) {
@@ -33,7 +44,7 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { registration_id, attended } = parsed.data;
 
   const { data: updatedRegistration, error } = await supabase

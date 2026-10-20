@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { randomBytes } from "crypto";
+import { rateLimit } from "@/lib/rate-limit";
 
 const IdentityDataSchema = z.object({
   full_name: z.string().min(2).max(255),
@@ -48,7 +49,8 @@ export async function createTeam(category: string, teamName: string) {
   }
 
   const supabaseAdmin = createAdminClient();
-// Check if user is already in a team
+
+  // Check if user is already in a team
   const { data: existingMembership } = await supabaseAdmin
     .from("mechatura_members")
     .select("id")
@@ -115,8 +117,24 @@ export async function joinTeam(joinCode: string, selectedCategory: string) {
     return { success: false, error: "You must be logged in to join a team." };
   }
 
+  // Rate limiting to prevent join code brute-forcing
+  const limit = await rateLimit(`mechatura-join:${user.id}`, {
+    key: "mechatura-join-team",
+    limit: 5,
+    windowSeconds: 600,
+  });
+
+  if (!limit.success) {
+    const minutes = Math.max(1, Math.ceil((limit.retryAfter ?? 600) / 60));
+    return {
+      success: false,
+      error: `Terlalu banyak percobaan bergabung dengan tim. Silakan coba lagi dalam ${minutes} menit.`,
+    };
+  }
+
   const supabaseAdmin = createAdminClient();
-// Check if user is already in a team
+
+  // Check if user is already in a team
   const { data: existingMembership } = await supabaseAdmin
     .from("mechatura_members")
     .select("id")
@@ -189,7 +207,8 @@ export async function updateMemberIdentity(memberId: string, data: IdentityData)
   }
 
   const supabaseAdmin = createAdminClient();
-const parsedData = IdentityDataSchema.safeParse(data);
+
+  const parsedData = IdentityDataSchema.safeParse(data);
   if (!parsedData.success) {
     throw new Error("Invalid input data: " + parsedData.error.message);
   }
@@ -238,7 +257,8 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-// Authorization: check if user is leader
+
+  // Authorization: check if user is leader
   const { data: membership } = await supabaseAdmin
     .from("mechatura_members")
     .select("is_leader")
@@ -294,7 +314,8 @@ export async function updateRobotDocuments(teamId: string, robotDocumentLink: st
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-// Authorization: check if user is leader
+
+  // Authorization: check if user is leader
   const { data: membership } = await supabaseAdmin
     .from("mechatura_members")
     .select("is_leader")
@@ -344,7 +365,8 @@ export async function leaveTeam(teamId: string) {
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-const { data: membership } = await supabaseAdmin
+
+  const { data: membership } = await supabaseAdmin
     .from("mechatura_members")
     .select("is_leader")
     .eq("user_id", user.id)
@@ -391,7 +413,8 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-// Verify current user is leader
+
+  // Verify current user is leader
   const { data: currentMembership } = await supabaseAdmin
     .from("mechatura_members")
     .select("is_leader")
@@ -425,7 +448,7 @@ export async function transferLeadership(teamId: string, newLeaderId: string) {
     throw new Error("Pendaftaran sudah disubmit. Tidak dapat mentransfer kepemimpinan.");
   }
 
-// Update current leader to false
+  // Update current leader to false
   const { error: err1 } = await supabaseAdmin
     .from("mechatura_members")
     .update({ is_leader: false })
@@ -465,7 +488,8 @@ export async function initiateTeamDeletion(teamId: string) {
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-// Verify leader using admin client to bypass any RLS errors
+
+  // Verify leader
   const { data: membership } = await supabaseAdmin
     .from("mechatura_members")
     .select("is_leader")
@@ -487,8 +511,6 @@ export async function initiateTeamDeletion(teamId: string) {
     throw new Error("Pendaftaran sudah disubmit. Tim tidak dapat dihapus lagi. Silakan hubungi panitia.");
   }
 
-  // Delete team using admin client to bypass RLS recursion error 
-  // caused by deleted consent tables. Security is enforced by the manual check above.
   const { error: delError } = await supabaseAdmin
     .from("mechatura_teams")
     .delete()
@@ -510,7 +532,8 @@ export async function finalizeSubmission(teamId: string) {
   if (authError || !user) throw new Error("Unauthorized");
 
   const supabaseAdmin = createAdminClient();
-// Fetch the team and its members
+
+  // Fetch the team and its members
   const { data: teamData, error: teamError } = await supabaseAdmin
     .from("mechatura_teams")
     .select("*, mechatura_members(*)")
@@ -633,8 +656,8 @@ const PembinaDataSchema = z.object({
 
 export type PembinaData = z.infer<typeof PembinaDataSchema>;
 
-async function verifyLeaderAndDraftStatus(supabase: any, teamId: string, userId: string, actionName: string = "mengubah data pembina") {
-  const { data: leaderCheck, error: leaderError } = await supabase
+async function verifyLeaderAndDraftStatus(supabaseAdmin: any, teamId: string, userId: string, actionName: string = "mengubah data pembina") {
+  const { data: leaderCheck, error: leaderError } = await supabaseAdmin
     .from("mechatura_members")
     .select("id, mechatura_teams(submission_status)")
     .eq("team_id", teamId)
@@ -673,11 +696,13 @@ export async function updatePembinaData(teamId: string, data: PembinaData) {
     throw new Error("Invalid input data: " + parsedData.error.message);
   }
 
-  await verifyLeaderAndDraftStatus(supabase, teamId, user.id, "mengubah data pembina");
+  const supabaseAdmin = createAdminClient();
+
+  await verifyLeaderAndDraftStatus(supabaseAdmin, teamId, user.id, "mengubah data pembina");
 
   const { pembina_institution_category, ...payload } = parsedData.data;
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("mechatura_teams")
     .update(payload)
     .eq("id", teamId)
@@ -707,9 +732,11 @@ export async function clearPembinaData(teamId: string) {
     throw new Error("Invalid team ID");
   }
 
-  await verifyLeaderAndDraftStatus(supabase, teamId, user.id, "menghapus data pembina");
+  const supabaseAdmin = createAdminClient();
 
-  const { error } = await supabase
+  await verifyLeaderAndDraftStatus(supabaseAdmin, teamId, user.id, "menghapus data pembina");
+
+  const { error } = await supabaseAdmin
     .from("mechatura_teams")
     .update({
       pembina_name: null,

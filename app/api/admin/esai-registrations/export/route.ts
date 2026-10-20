@@ -1,9 +1,43 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/http";
+
+export const dynamic = "force-dynamic";
+
+const escapeCSV = (field: unknown) => {
+    if (field === null || field === undefined) return "";
+    let stringField = String(field);
+
+    // Prevent CSV Formula Injection
+    if (/^[=+\-@\t\r]/.test(stringField.trimStart())) {
+        stringField = "'" + stringField;
+    }
+
+    if (
+        stringField.includes(",") ||
+        stringField.includes('"') ||
+        stringField.includes("\n") ||
+        stringField.includes("\r")
+    ) {
+        return `"${stringField.replace(/"/g, '""')}"`;
+    }
+    return stringField;
+};
 
 export async function GET(request: Request) {
     try {
+        const limit = await rateLimit(request, {
+            key: "admin-export-esai",
+            limit: 15,
+            windowSeconds: 60,
+        });
+
+        if (!limit.success) {
+            return rateLimited(limit.retryAfter);
+        }
+
         const { adminAccess } = await requireAdmin(); 
         if (!adminAccess) return new NextResponse("Unauthorized", { status: 401 });
 
@@ -38,20 +72,11 @@ export async function GET(request: Request) {
         // CSV Header
         const selectedCols = cols ? cols.split(",") : ["id", "full_name", "institution", "submission_status"];
         
-        let csvContent = selectedCols.join(",") + "\n";
+        let csvContent = selectedCols.map(c => escapeCSV(c)).join(",") + "\n";
 
         // CSV Rows
         data.forEach(row => {
-            const rowData = selectedCols.map(col => {
-                let val = row[col] ?? "";
-                if (typeof val === "string") {
-                    val = val.replace(/"/g, '""');
-                    if (val.includes(",") || val.includes('"') || val.includes("\n")) {
-                        val = `"${val}"`;
-                    }
-                }
-                return val;
-            });
+            const rowData = selectedCols.map(col => escapeCSV(row[col] ?? ""));
             csvContent += rowData.join(",") + "\n";
         });
 

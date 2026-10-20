@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http";
 import { isCompletedPaymentStatus } from "@/lib/payment";
 import { rateLimit } from "@/lib/rate-limit";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 const verifyMechaturaTeamSchema = z.object({
   registration_id: z.uuid(),
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: registration, error: fetchError } = await supabase
     .from("mechatura_registrations")
     .select("id,team_name,payment_status,attended")
@@ -105,20 +105,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { count, error: countError } = await supabase
-    .from("mechatura_members")
-    .select("id", { count: "exact", head: true })
-    .eq("registration_id", registration.id);
-
-  if (countError) {
-    console.error("Mechatura member count failed", countError.message);
-  }
-
   return NextResponse.json({
     ok: true,
-    team: {
-      team_name: updatedRegistration.team_name ?? "Mechatura Team",
-      member_count: count ?? 0,
+    data: {
+      teamName: updatedRegistration.team_name ?? "Tim Mechatura",
+      checkInTime,
     },
   });
 }

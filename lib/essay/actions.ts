@@ -3,6 +3,8 @@
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { ESAI_REG_START_DATE, IS_ESAI_REGISTRATION_OPEN } from "@/lib/landing/helper";
+import { z } from "zod";
+import { UpdateEsaiSchema } from "@/lib/validation/esai";
 
 export async function registerEsai() {
   if (!IS_ESAI_REGISTRATION_OPEN) {
@@ -36,10 +38,6 @@ export async function registerEsai() {
   return { success: true };
 }
 
-import { z } from "zod";
-
-import { UpdateEsaiSchema } from "@/lib/validation/esai";
-
 export async function updateEsaiRegistration(registrationId: string, values: z.infer<typeof UpdateEsaiSchema>) {
   if (!IS_ESAI_REGISTRATION_OPEN) {
     return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
@@ -60,13 +58,13 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
   const supabaseAdmin = createAdminClient();
 
   // Ensure the user owns this registration and it is not locked
-  const { data: reg } = await supabaseAdmin
+  const { data: reg, error: fetchError } = await supabaseAdmin
     .from("esai_registrations")
     .select("*")
     .eq("id", registrationId)
     .single();
 
-  if (!reg || reg.user_id !== user.id) {
+  if (fetchError || !reg || reg.user_id !== user.id) {
     return { success: false, error: "Unauthorized" };
   }
 
@@ -121,10 +119,15 @@ export async function removeEsaiFile(registrationId: string, field: "instagram_t
   if (!user) return { success: false, error: "Unauthorized" };
 
   const supabaseAdmin = createAdminClient();
-  
+
   // Verify ownership
-  const { data: reg } = await supabaseAdmin.from("esai_registrations").select("*").eq("id", registrationId).single();
-  if (!reg || reg.user_id !== user.id) return { success: false, error: "Unauthorized" };
+  const { data: reg, error: fetchError } = await supabaseAdmin
+    .from("esai_registrations")
+    .select("*")
+    .eq("id", registrationId)
+    .single();
+
+  if (fetchError || !reg || reg.user_id !== user.id) return { success: false, error: "Unauthorized" };
 
   if (reg.submission_status === "submitted" || reg.submission_status === "approved") {
     return { success: false, error: "Pendaftaran sudah disubmit, file tidak dapat dihapus." };
@@ -139,7 +142,16 @@ export async function removeEsaiFile(registrationId: string, field: "instagram_t
     await supabaseAdmin.storage.from("esai_documents").remove([filePath]);
   }
   
-  await supabaseAdmin.from("esai_registrations").update({ [field]: null }).eq("id", registrationId);
+  const { error: updateError } = await supabaseAdmin
+    .from("esai_registrations")
+    .update({ [field]: null })
+    .eq("id", registrationId);
+
+  if (updateError) {
+    console.error("Esai remove file error:", updateError);
+    return { success: false, error: "Gagal menghapus file." };
+  }
+
   revalidatePath("/profile", "layout");
   return { success: true };
 }

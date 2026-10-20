@@ -13,7 +13,7 @@ const categories = [
     description: "Lomba robot manual yang mengadu dua robot saling dorong keluar dari arena bundar. Penilaian mempertimbangkan win time dan survive time jika skor imbang, dengan fokus pada kekuatan, kontrol, dan strategi duel langsung.",
     highlights_title: "Fokus Kompetisi",
     highlights: "Kekuatan, Kontrol, dan Strategi Duel Langsung",
-    juknis_url: "https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing",
+    juknis_url: "https://drive.google.com/file/d/1DpgI4qJzu5sCV4GFugwRmoyVjucZKMwZ/view?usp=sharing",
     icon: Swords,
   },
   {

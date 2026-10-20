@@ -3,7 +3,7 @@ import type { MechaturaCompetitionType } from "@/lib/payment";
 const juknisSumoDoc = {
   title: "Juknis Robot Sumo",
   shortTitle: "Juknis Robot Sumo",
-  url: "https://drive.google.com/file/d/1Zz5PUCJeUzT4mAvQmtyfP6tVSQFobZ3B/view?usp=sharing",
+  url: "https://drive.google.com/file/d/1DpgI4qJzu5sCV4GFugwRmoyVjucZKMwZ/view?usp=sharing",
   description: "Regulasi arena, dimensi robot, sistem pertandingan, dan teknis Sumo.",
 };
 

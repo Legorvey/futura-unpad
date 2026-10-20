@@ -1,6 +1,3 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
 type RateLimitOptions = {
   key: string;
   limit: number;
@@ -29,16 +26,32 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-export const getClientIp = (request: Request | { headers: Headers }) => {
+const getClientIp = (request: Request) => {
+  // In Vercel deployments, x-vercel-forwarded-for is injected by edge proxies and cannot be forged by client
+  const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
+  if (vercelForwardedFor) {
+    return vercelForwardedFor.split(",")[0]?.trim() || "unknown";
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() || "unknown";
+    // Take the last hop appended by the trusted reverse proxy to avoid client-spoofed prefix
+    const parts = forwardedFor.split(",").map((p) => p.trim()).filter(Boolean);
+    return parts[parts.length - 1] || "unknown";
   }
-  return request.headers.get("x-real-ip") ?? "unknown";
+
+  return "unknown";
 };
 
-const getRateLimitKey = (request: Request | { headers: Headers }, key: string) =>
-  `rate-limit:${key}:${getClientIp(request)}`;
+const getRateLimitKey = (target: Request | string, key: string) => {
+  const targetId = typeof target === "string" ? target : getClientIp(target);
+  return `rate-limit:${key}:${targetId}`;
+};
 
 const rateLimitWithMemory = (
   key: string,
@@ -62,43 +75,57 @@ const rateLimitWithMemory = (
   };
 };
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
+const rateLimitWithUpstash = async (                                                                                                             
+  key:string,                                                                                                                                  
+  options:RateLimitOptions                                                                                                                     
+): Promise<RateLimitResult | null> =>{                                                                                                          
+  const url = process.env.UPSTASH_REDIS_REST_URL;                                                                                               
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;                                                                                            
+                                                                                                                                              
+  if (!url || !token){                                                                                                                         
+    return null;                                                                                                                                
+  }   
+       
+  try {
+    const res = await fetch(`${url}/pipeline`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([
+        ["INCR", key],
+        ["EXPIRE", key, options.windowSeconds, "NX"],
+      ]),
+      cache: "no-store",
+    });
 
-// Cache instances to avoid recreating them
-const limiterCache = new Map<string, Ratelimit>();
+    if (!res.ok) {
+      return null;
+    }
 
-const getUpstashLimiter = (limit: number, windowSeconds: number) => {
-  const cacheKey = `${limit}:${windowSeconds}`;
-  if (limiterCache.has(cacheKey)) {
-    return limiterCache.get(cacheKey)!;
+    const data = (await res.json()) as Array<{ result?: unknown }>;
+    const count = Number(data[0]?.result ?? 0);
+
+    return {
+      success: count <= options.limit,
+      retryAfter: options.windowSeconds,
+    };
+  } catch (error) {
+    console.error("Upstash rate limit error:", error);
+    return null;
   }
-  if (!redis) return null;
-
-  const limiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
-    analytics: true,
-    prefix: "@upstash/ratelimit:api",
-  });
-  limiterCache.set(cacheKey, limiter);
-  return limiter;
 };
 
 export const rateLimit = async (
-  request: Request | { headers: Headers },
+  target: Request | string,
   options: RateLimitOptions
 ): Promise<RateLimitResult> => {
-  const key = getRateLimitKey(request, options.key);
-  
-  const limiter = getUpstashLimiter(options.limit, options.windowSeconds);
-  if (limiter) {
-    const { success, reset } = await limiter.limit(key);
-    return {
-      success,
-      retryAfter: Math.max(1, Math.ceil((reset - Date.now()) / 1000)),
-    };
+  const key = getRateLimitKey(target, options.key);
+  const upstashResult = await rateLimitWithUpstash(key, options);
+
+  if (upstashResult) {
+    return upstashResult;
   }
 
   return rateLimitWithMemory(key, options);

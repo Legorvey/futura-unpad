@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { invalidRequest, rateLimited, serverError } from "@/lib/http";
 import { deleteMechaturaRegistration } from "@/lib/mechatura/registration";
 import { rateLimit } from "@/lib/rate-limit";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { idParamSchema } from "@/lib/validation";
 
 type DeleteParams = Promise<{
@@ -41,7 +41,7 @@ export async function DELETE(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const result = await deleteMechaturaRegistration(
         supabase,
         parsed.data.id,
@@ -59,11 +59,15 @@ export async function DELETE(
     if (!result.success) {
         if (result.reason === "is_paid") {
             return NextResponse.json(
-                { error: "Cannot delete a completed/paid registration" },
-                { status: 400 }
+                { error: "Cannot delete a paid Mechatura registration" },
+                { status: 409 }
             );
         }
-        return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+
+        return NextResponse.json(
+            { error: "Mechatura registration not found" },
+            { status: 404 }
+        );
     }
 
     return NextResponse.json({ ok: true });

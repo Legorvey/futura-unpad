@@ -1,9 +1,7 @@
 import { getCachedAuth } from "@/lib/auth";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { redirect } from "next/navigation";
 import { LombaEsaiClient } from "./client-page";
-
-import { createAdminClient } from "@/lib/supabase-admin";
 
 export default async function LombaEsaiProfilePage() {
   const { user } = await getCachedAuth();

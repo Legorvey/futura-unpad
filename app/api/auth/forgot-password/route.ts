@@ -26,8 +26,9 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  const emailLimit = await rateLimit(request, {
-    key: `auth-forgot-password:${parsed.data.email}`,
+  const normalizedEmail = parsed.data.email.toLowerCase().trim();
+  const emailLimit = await rateLimit(normalizedEmail, {
+    key: "auth-forgot-password-account",
     limit: 3,
     windowSeconds: 300,
   });

@@ -21,8 +21,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Email and token are required" }, { status: 400 });
         }
 
-        const emailLimit = await rateLimit(request, {
-            key: `auth-verify-otp:${email}`,
+        const normalizedEmail = email.toLowerCase().trim();
+        const emailLimit = await rateLimit(normalizedEmail, {
+            key: "auth-verify-otp-account",
             limit: 10,
             windowSeconds: 300,
         });
@@ -63,7 +64,8 @@ export async function POST(request: Request) {
         }
 
         // For recovery, we want them to stay signed in so they can access /reset-password
-        const response = NextResponse.json({ ok: true, session: data.session });
+        // Do not expose raw tokens/session in JSON response body
+        const response = NextResponse.json({ ok: true });
         
         if (type === "recovery") {
             const { PASSWORD_RECOVERY_COOKIE, PASSWORD_RECOVERY_MAX_AGE_SECONDS, passwordRecoveryCookieOptions } = await import("@/lib/password-recovery");

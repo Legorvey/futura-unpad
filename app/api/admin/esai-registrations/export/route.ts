@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/http";
 import { toSearchPattern } from "@/app/admin/lomba-esai/_lib/esai-utils";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +59,16 @@ const COLUMN_HEADERS: Record<string, string> = {
 
 export async function GET(request: Request) {
     try {
+        const limit = await rateLimit(request, {
+            key: "admin-export-esai",
+            limit: 15,
+            windowSeconds: 60,
+        });
+
+        if (!limit.success) {
+            return rateLimited(limit.retryAfter);
+        }
+
         const { adminAccess } = await requireAdmin(); 
         if (!adminAccess) return new NextResponse("Unauthorized", { status: 401 });
 

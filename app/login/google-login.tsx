@@ -34,10 +34,11 @@ export default function GoogleLoginButton({
 
         setIsLoading(true)
 
+        const secureFlag = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
         if (!keepSignedIn) {
-            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=${SESSION_AUTH_PERSISTENCE}; path=/; max-age=2592000; SameSite=Lax`;
+            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=${SESSION_AUTH_PERSISTENCE}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
         } else {
-            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            document.cookie = `${AUTH_PERSISTENCE_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
         }
 
         try {

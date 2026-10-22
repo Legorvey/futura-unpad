@@ -21,7 +21,7 @@ export default function GoogleLoginButton({
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
-    const handleSuccess = async (credentialResponse: any) => {
+    const handleSuccess = async (credentialResponse: { credential?: string }) => {
         if (onBeforeLogin && !onBeforeLogin()) {
             return
         }
@@ -54,11 +54,35 @@ export default function GoogleLoginButton({
                 return
             }
 
-            // On success, manually redirect the user since we aren't using the server-side callback anymore
-            const currentUrl = new URL(window.location.href)
-            const nextPath = getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile")
-            
-            // Use router.replace to safely navigate without triggering duplicate route refresh race conditions
+            const currentUrl = new URL(window.location.href);
+            const rawNext = currentUrl.searchParams.get("next");
+
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                const [{ data: adminRecord }, { data: aalData }] = await Promise.all([
+                    supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle(),
+                    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+                ]);
+
+                if (adminRecord) {
+                    const adminDestination = getSafeRedirectPath(rawNext, "/admin");
+                    if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+                        router.replace(`/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`);
+                        return;
+                    }
+
+                    if (aalData?.nextLevel !== "aal2") {
+                        router.replace("/login/mfa-enroll");
+                        return;
+                    }
+
+                    router.replace(adminDestination);
+                    return;
+                }
+            }
+
+            const nextPath = getSafeRedirectPath(rawNext, "/profile");
             router.replace(nextPath);
 
         } catch (error) {

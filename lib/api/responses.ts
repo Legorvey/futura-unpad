@@ -6,6 +6,8 @@ export const okResponseSchema = z.object({
 
 export const authLoginResponseSchema = okResponseSchema.extend({
   adminAccess: z.boolean(),
+  requiresMfa: z.boolean().optional(),
+  requiresMfaEnrollment: z.boolean().optional(),
 });
 
 export const authRegisterResponseSchema = okResponseSchema.extend({

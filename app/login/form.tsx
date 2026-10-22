@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 
-import { useAuth } from "@/components/auth-provider";
 import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
@@ -59,6 +58,18 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
             toast.error("Gagal masuk", { 
                 description: error instanceof Error ? error.message : "Silakan periksa kredensial Anda dan coba lagi." 
             });
+            return;
+        }
+
+        if (result.requiresMfa) {
+            const destination = safeNext?.startsWith("/admin") ? safeNext : "/admin";
+            router.replace(`/login/mfa-verify?next=${encodeURIComponent(destination)}`);
+            return;
+        }
+
+        if (result.requiresMfaEnrollment) {
+            const destination = safeNext?.startsWith("/admin") ? safeNext : "/admin";
+            router.replace(`/login/mfa-enroll?next=${encodeURIComponent(destination)}`);
             return;
         }
 

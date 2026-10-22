@@ -106,14 +106,28 @@ export async function GET(request: Request) {
 
     let finalNextUrl = safeNextUrl
     if (user && !isPasswordRecoveryRedirect) {
-        const { data: adminData } = await supabase
-            .from("admin_users")
-            .select("user_id")
-            .eq("user_id", user.id)
-            .maybeSingle()
-            
-        if (adminData && (!safeNextUrl || safeNextUrl === "/profile")) {
-            finalNextUrl = "/admin"
+        const [{ data: adminData }, { data: aalData }] = await Promise.all([
+            supabase
+                .from("admin_users")
+                .select("user_id")
+                .eq("user_id", user.id)
+                .maybeSingle(),
+            supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+        ])
+
+        if (adminData) {
+            const adminDestination =
+                safeNextUrl && safeNextUrl.startsWith("/admin")
+                    ? safeNextUrl
+                    : "/admin"
+
+            if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+                finalNextUrl = `/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`
+            } else if (aalData?.nextLevel !== "aal2") {
+                finalNextUrl = `/login/mfa-enroll?next=${encodeURIComponent(adminDestination)}`
+            } else {
+                finalNextUrl = adminDestination
+            }
         }
     }
 

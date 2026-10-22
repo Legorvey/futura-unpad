@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const escapeCSV = (field: string | number | null | undefined) => {
     if (field === null || field === undefined) return "";
     let stringField = String(field);
-    if (/^[=+\-@\t\r]/.test(stringField.trimStart())) {
+    if (/^[=+\-@\t\r|]/.test(stringField.trimStart())) {
         stringField = "'" + stringField;
     }
     if (stringField.includes(",") || stringField.includes('"') || stringField.includes("\n") || stringField.includes("\r")) {
@@ -218,7 +218,7 @@ export async function GET(request: Request) {
             csvContent += rowData.join(",") + "\n";
         });
 
-        return new NextResponse(csvContent, {
+        return new NextResponse("\uFEFF" + csvContent, {
             headers: {
                 "Content-Type": "text/csv; charset=utf-8",
                 "Content-Disposition": `attachment; filename="data-peserta-esai-${new Date().toISOString().split("T")[0]}.csv"`

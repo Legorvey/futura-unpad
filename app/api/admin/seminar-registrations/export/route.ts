@@ -44,7 +44,7 @@ const escapeCSV = (field: string | null | undefined) => {
     let stringField = String(field)
 
     // Prevent CSV Formula Injection
-    if (/^[=+\-@]/.test(stringField.trimStart())) {
+    if (/^[=+\-@\t\r|]/.test(stringField.trimStart())) {
         stringField = "'" + stringField
     }
 
@@ -177,7 +177,7 @@ export async function GET() {
 
     const csvContent = [headers.join(","), ...rows].join("\n")
 
-    return new NextResponse(csvContent, {
+    return new NextResponse("\uFEFF" + csvContent, {
         headers: {
             "Content-Type": "text/csv; charset=utf-8",
             "Content-Disposition": `attachment; filename="seminar-registrations-${new Date().toISOString().split('T')[0]}.csv"`,

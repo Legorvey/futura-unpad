@@ -62,8 +62,13 @@ export const normalizePositiveInt = (value: string | undefined, fallback: number
 };
 
 export const toSearchPattern = (value: string) => {
-    const sanitized = value.replace(/[,%()]/g, " ").trim();
-    return sanitized ? `%${sanitized}%` : "";
+    const trimmed = (value ?? "").trim();
+    if (!trimmed) return "";
+    const escaped = trimmed
+        .replace(/\\/g, "\\\\")
+        .replace(/[%_]/g, "\\$&")
+        .replace(/"/g, '\\"');
+    return `"%${escaped}%"`;
 };
 
 export const isGroupRegistration = (participant: Participants) =>

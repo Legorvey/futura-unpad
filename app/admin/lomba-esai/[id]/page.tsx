@@ -1,3 +1,4 @@
+import { getSafeUrl } from "@/lib/url";
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
@@ -84,7 +85,7 @@ const AdminSidebarContent = ({
                     <div className="shrink-0 self-start sm:self-auto">
                         {document.href ? (
                             <Button variant="secondary" size="sm" className="rounded-full shadow-sm h-8 w-full sm:w-auto" asChild>
-                                <a href={document.href} target="_blank" rel="noreferrer">
+                                <a href={getSafeUrl(document.href) ?? "#"} target="_blank" rel="noreferrer">
                                     Buka
                                     <ExternalLink className="ml-1.5 h-3 w-3" />
                                 </a>

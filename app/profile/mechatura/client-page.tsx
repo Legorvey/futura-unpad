@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHttpUrlSchema } from "@/lib/url";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
@@ -55,12 +56,12 @@ const identitySchema = z.object({
   institution: z.string().trim().min(3, "Nama institusi minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   city: z.string().trim().min(2, "Kota minimal 2 karakter"),
   phone_number: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
-  instagram_username: z.string().trim().url("Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
-  student_id_link: z.string().trim().url("Link Google Drive tidak valid")
+  instagram_username: safeHttpUrlSchema(500, "Link post Instagram Twibbon tidak valid").optional().or(z.literal("")),
+  student_id_link: safeHttpUrlSchema(1000, "Link Google Drive tidak valid")
 });
 
 const paymentSchema = z.object({
-  paymentLink: z.string().trim().url("Link bukti pembayaran tidak valid")
+  paymentLink: safeHttpUrlSchema(1000, "Link bukti pembayaran tidak valid")
 });
 
 const pembinaSchema = z.object({
@@ -69,12 +70,12 @@ const pembinaSchema = z.object({
   pembina_institution: z.string().trim().min(3, "Asal institusi/sekolah minimal 3 karakter").max(255, "Nama institusi terlalu panjang"),
   pembina_city: z.string().trim().min(2, "Kota minimal 2 karakter"),
   pembina_phone: z.string().trim().min(10, "Nomor telepon minimal 10 digit").max(15, "Nomor telepon maksimal 15 digit"),
-  pembina_id_link: z.string().trim().url("Link Google Drive tidak valid"),
+  pembina_id_link: safeHttpUrlSchema(1000, "Link Google Drive tidak valid"),
   pembina_relationship: z.string().trim().min(2, "Hubungan dengan tim minimal 2 karakter"),
 });
 
 const robotSchema = z.object({
-  robotLink: z.string().trim().url("Link dokumen robot tidak valid")
+  robotLink: safeHttpUrlSchema(1000, "Link dokumen robot tidak valid")
 });
 
 type IdentityValues = z.infer<typeof identitySchema>;

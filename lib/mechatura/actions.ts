@@ -1,5 +1,6 @@
 "use server";
 
+import { safeHttpUrlSchema } from "@/lib/url";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -12,8 +13,8 @@ const IdentityDataSchema = z.object({
   institution: z.string().min(3).max(255),
   city: z.string().min(2).max(255),
   phone_number: z.string().min(10).max(50),
-  instagram_username: z.string().url().max(500).optional().or(z.literal("")),
-  student_id_link: z.string().url().max(1000),
+  instagram_username: safeHttpUrlSchema(500).optional().or(z.literal("")),
+  student_id_link: safeHttpUrlSchema(1000),
 });
 
 export type IdentityData = z.infer<typeof IdentityDataSchema>;
@@ -303,7 +304,7 @@ export async function submitPaymentProof(teamId: string, paymentProofLink: strin
     throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah bukti pembayaran lagi.");
   }
   
-  const parsedLink = z.string().url().safeParse(paymentProofLink);
+  const parsedLink = safeHttpUrlSchema(1000).safeParse(paymentProofLink);
   if (!parsedLink.success) throw new Error("Invalid URL for payment proof");
 
   const { error } = await supabaseAdmin
@@ -361,7 +362,7 @@ export async function updateRobotDocuments(teamId: string, robotDocumentLink: st
     throw new Error("Pendaftaran sudah disubmit. Anda tidak dapat mengubah dokumen robot lagi.");
   }
 
-  const parsedLink = z.string().url().safeParse(robotDocumentLink);
+  const parsedLink = safeHttpUrlSchema(1000).safeParse(robotDocumentLink);
   if (!parsedLink.success) throw new Error("Invalid URL for robot document");
 
   const { error } = await supabaseAdmin
@@ -600,14 +601,14 @@ export async function finalizeSubmission(teamId: string) {
 
   // Validation Schemas
   const FinalizeSchema = z.object({
-    payment_proof_link: z.string().url(),
-    robot_document_link: z.string().url(),
+    payment_proof_link: safeHttpUrlSchema(1000),
+    robot_document_link: safeHttpUrlSchema(1000),
     mechatura_members: z.array(z.object({
       full_name: z.string().min(1),
       institution: z.string().min(1),
       city: z.string().min(1),
       phone_number: z.string().min(1),
-      student_id_link: z.string().url(),
+      student_id_link: safeHttpUrlSchema(1000),
     })).min(1),
   });
 
@@ -703,7 +704,7 @@ const PembinaDataSchema = z.object({
   pembina_institution: z.string().min(3, "Asal institusi/sekolah minimal 3 karakter"),
   pembina_city: z.string().min(2, "Kota minimal 2 karakter"),
   pembina_phone: z.string().min(10, "Nomor WhatsApp minimal 10 karakter"),
-  pembina_id_link: z.string().url("Link dokumen identitas tidak valid"),
+  pembina_id_link: safeHttpUrlSchema(1000, "Link dokumen identitas tidak valid"),
   pembina_relationship: z.string().min(2, "Hubungan dengan tim minimal 2 karakter"),
 });
 

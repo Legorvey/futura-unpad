@@ -7,6 +7,21 @@ import { z } from "zod";
 import { UpdateEsaiSchema } from "@/lib/validation/esai";
 import { formRatelimit } from "@/lib/ratelimit";
 
+
+function isValidUserFilePath(filePath: string, userId: string, isEssay = false): boolean {
+  if (!filePath || typeof filePath !== "string") return false;
+  if (filePath.includes("..") || filePath.includes("\\")) return false;
+  const parts = filePath.split("/");
+  if (parts.length !== 2 || parts[0] !== userId) return false;
+  const fileName = parts[1];
+  if (!fileName || fileName.startsWith(".")) return false;
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  if (isEssay) {
+    return ext === "pdf";
+  }
+  return ["pdf", "jpg", "jpeg", "png"].includes(ext || "");
+}
+
 export async function registerEsai() {
   if (!IS_ESAI_REGISTRATION_OPEN) {
     return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
@@ -83,12 +98,12 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
     return { success: false, error: "Pendaftaran sudah disubmit dan tidak dapat diubah." };
   }
 
-  // FIX #2: Enforce that all submitted file URLs belong to the user's own storage directory
+  // Enforce that all submitted file paths belong strictly to the user's directory and have valid extensions
   const fileFields = ["instagram_twibbon_url", "identity_card_url", "essay_paper_url", "payment_proof_url"] as const;
   for (const field of fileFields) {
     const url = validatedFields.data[field];
-    if (url && !url.startsWith(`${user.id}/`)) {
-      return { success: false, error: "File URL tidak valid atau bukan milik Anda." };
+    if (url && !isValidUserFilePath(url, user.id, field === "essay_paper_url")) {
+      return { success: false, error: "File path tidak valid, memiliki ekstensi tidak didukung, atau bukan milik Anda." };
     }
   }
 
@@ -151,8 +166,8 @@ export async function removeEsaiFile(registrationId: string, field: "instagram_t
 
   const filePath = reg[field];
   if (filePath) {
-    // FIX #1: Ensure the file path belongs to the requesting user before deleting
-    if (!filePath.startsWith(`${user.id}/`)) {
+    // Ensure the file path strictly belongs to the requesting user without directory traversal
+    if (!isValidUserFilePath(filePath, user.id)) {
       return { success: false, error: "Unauthorized file access." };
     }
     await supabaseAdmin.storage.from("esai_documents").remove([filePath]);

@@ -546,7 +546,7 @@ export default async function MechaturaRegistrationDetails({
                                                     )}
                                                     {member.instagram_username && (
                                                         <a
-                                                            href={member.instagram_username}
+                                                            href={getSafeUrl(member.instagram_username) ?? "#"}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center text-blue-600 hover:underline text-sm font-medium"

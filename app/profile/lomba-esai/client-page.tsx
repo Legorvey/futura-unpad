@@ -98,6 +98,15 @@ function LocalImagePreview({ fileList }: { fileList?: any }) {
   );
 }
 
+
+const getSafeStoragePath = (userId: string, prefix: string, file: File) => {
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const uniqueSuffix = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" 
+    ? crypto.randomUUID() 
+    : Math.random().toString(36).substring(2);
+  return `${userId}/${prefix}_${Date.now()}_${uniqueSuffix}.${ext}`;
+};
+
 export function LombaEsaiClient({
   registration,
   userName,
@@ -216,11 +225,11 @@ export function LombaEsaiClient({
       const uploadPromises: Promise<string | null | undefined>[] = [];
 
       let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
-      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/twibbon_${Date.now()}_${twibbonFile.name}`);
+      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, getSafeStoragePath(userId, "twibbon", twibbonFile));
       uploadPromises.push(twibbonUrlPromise);
 
       let ktmUrlPromise = Promise.resolve(registration.identity_card_url);
-      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/ktm_${Date.now()}_${ktmFile.name}`);
+      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, getSafeStoragePath(userId, "ktm", ktmFile));
       uploadPromises.push(ktmUrlPromise);
 
       const [twibbonUrl, ktmUrl] = await Promise.all(uploadPromises);
@@ -303,7 +312,7 @@ export function LombaEsaiClient({
 
       let paymentUrl = registration.payment_proof_url;
       if (paymentFile) {
-        paymentUrl = await handleFileUpload(paymentFile, `${userId}/payment_${Date.now()}_${paymentFile.name}`);
+        paymentUrl = await handleFileUpload(paymentFile, getSafeStoragePath(userId, "payment", paymentFile));
       }
 
       const submitValues = { payment_proof_url: paymentUrl };

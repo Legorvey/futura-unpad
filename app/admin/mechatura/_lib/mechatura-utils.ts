@@ -63,24 +63,16 @@ export const normalizePageSize = (value: string | undefined) => {
         : defaultPageSize;
 };
 
-export function getSafeUrl(url: string | null | undefined): string | undefined {
-    if (!url) return undefined;
-    try {
-        const parsed = new URL(url);
-        if (['http:', 'https:'].includes(parsed.protocol)) {
-            return parsed.toString();
-        }
-    } catch {
-        // Invalid URL
-    }
-    return undefined;
-}
+export { getSafeUrl } from "@/lib/url";
 
 export const toSearchPattern = (value: string) => {
-    const sanitized = value.replace(/[,%()]/g, " ").trim();
-    if (!sanitized) return "";
-    const wildcarded = sanitized.replace(/\s+/g, "%");
-    return `%${wildcarded}%`;
+    const trimmed = (value ?? "").trim();
+    if (!trimmed) return "";
+    const escaped = trimmed
+        .replace(/\\/g, "\\\\")
+        .replace(/[%_]/g, "\\$&")
+        .replace(/"/g, '\\"');
+    return `"%${escaped}%"`;
 };
 
 export const toInList = (values: string[]) => `(${values.join(",")})`;

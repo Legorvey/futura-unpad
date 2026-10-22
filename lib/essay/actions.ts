@@ -8,13 +8,22 @@ import { UpdateEsaiSchema } from "@/lib/validation/esai";
 import { formRatelimit } from "@/lib/ratelimit";
 
 
+const ALLOWED_FILE_FIELDS = [
+  "instagram_twibbon_url",
+  "identity_card_url",
+  "essay_paper_url",
+  "payment_proof_url",
+] as const;
+
 function isValidUserFilePath(filePath: string, userId: string, isEssay = false): boolean {
   if (!filePath || typeof filePath !== "string") return false;
-  if (filePath.includes("..") || filePath.includes("\\")) return false;
+  // Disallow path traversal, backslashes, and URL-encoded sequences (%2e, %2f, %5c, etc.)
+  if (filePath.includes("..") || filePath.includes("\\") || /%[0-9a-fA-F]{2}/.test(filePath)) return false;
   const parts = filePath.split("/");
   if (parts.length !== 2 || parts[0] !== userId) return false;
   const fileName = parts[1];
-  if (!fileName || fileName.startsWith(".")) return false;
+  // Filename must not be a dotfile and must match safe filename characters
+  if (!fileName || fileName.startsWith(".") || !/^[a-zA-Z0-9_.-]+$/.test(fileName)) return false;
   const ext = fileName.split(".").pop()?.toLowerCase();
   if (isEssay) {
     return ext === "pdf";
@@ -140,6 +149,10 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
 }
 
 export async function removeEsaiFile(registrationId: string, field: "instagram_twibbon_url" | "identity_card_url" | "essay_paper_url" | "payment_proof_url") {
+  if (!ALLOWED_FILE_FIELDS.includes(field as any)) {
+    return { success: false, error: "Field tidak valid." };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };

@@ -364,10 +364,29 @@ Instagram: @futuraunpad.hmte
 #PowerOnTheFuture
 #UniversitasPadjadjaran`;
 
-  const copyCaption = () => {
-    navigator.clipboard.writeText(captionText);
-    setIsCaptionCopied(true);
-    setTimeout(() => setIsCaptionCopied(false), 2000);
+  const copyCaption = async () => {
+    try {
+      if (navigator?.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(captionText);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = captionText;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.setAttribute("readonly", "");
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setIsCaptionCopied(true);
+      toast.success("Caption berhasil disalin ke clipboard!");
+      setTimeout(() => setIsCaptionCopied(false), 2000);
+    } catch {
+      toast.error("Gagal menyalin caption secara otomatis. Silakan salin teks secara manual.");
+    }
   };
 
   const getLabelWithRevision = (fieldName: string, defaultLabel: string) => {
@@ -553,11 +572,21 @@ Instagram: @futuraunpad.hmte
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2 mt-1">
              <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium leading-snug">Nama Tim</label>
-                <Input className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30" value={captionTeamName} onChange={e => setCaptionTeamName(e.target.value)} />
+                <Input
+                  className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30"
+                  maxLength={100}
+                  value={captionTeamName}
+                  onChange={(e) => setCaptionTeamName(e.target.value.replace(/[\r\n]+/g, " "))}
+                />
              </div>
              <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium leading-snug">Asal Institusi</label>
-                <Input className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30" value={captionInstitution} onChange={e => setCaptionInstitution(e.target.value)} />
+                <Input
+                  className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30"
+                  maxLength={150}
+                  value={captionInstitution}
+                  onChange={(e) => setCaptionInstitution(e.target.value.replace(/[\r\n]+/g, " "))}
+                />
              </div>
           </div>
 

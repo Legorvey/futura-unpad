@@ -4,10 +4,23 @@ import { redirect } from "next/navigation";
 import { LombaEsaiClient } from "./client-page";
 
 export default async function LombaEsaiProfilePage() {
-  const { user } = await getCachedAuth();
+  const { user, adminAccess, needsMfaVerification, needsMfaEnrollment } =
+    await getCachedAuth();
 
   if (!user) {
     redirect("/login?next=/profile/lomba-esai");
+  }
+
+  if (needsMfaVerification) {
+    redirect("/login/mfa-verify?next=/admin");
+  }
+
+  if (needsMfaEnrollment) {
+    redirect("/login/mfa-enroll");
+  }
+
+  if (adminAccess) {
+    redirect("/admin");
   }
 
   const supabase = createAdminClient();

@@ -39,13 +39,15 @@ export async function POST(request: Request) {
 
   const appOrigin = process.env.NEXT_PUBLIC_APP_URL;
   if (!appOrigin) {
-    return NextResponse.json({ error: "Server configuration error: NEXT_PUBLIC_APP_URL is not set" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server configuration error: NEXT_PUBLIC_APP_URL is not set" },
+      { status: 500 }
+    );
   }
 
   const redirectUrl = new URL("/auth/callback?next=/reset-password", appOrigin);
 
-  const { createClient, createAdminClient } = await import("@/utils/supabase/server");
-  const supabase = await createClient();
+  const { createAdminClient } = await import("@/utils/supabase/server");
   const adminAuth = createAdminClient().auth;
 
   const { data, error } = await adminAuth.admin.generateLink({
@@ -53,18 +55,22 @@ export async function POST(request: Request) {
     email: parsed.data.email,
     options: {
       redirectTo: redirectUrl.toString(),
-    }
+    },
   });
 
   if (error) {
-    if (error.message.includes("User not found") || error.status === 404) {
-      // Prevent user enumeration by silently returning success
-      return NextResponse.json({ ok: true });
+    if (!error.message.includes("User not found") && error.status !== 404) {
+      console.error("Forgot password link generation notice:", error.message);
     }
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    // Always return uniform success to prevent email enumeration (including on 60s GoTrue cooldowns)
+    return NextResponse.json({ ok: true });
   }
 
-  const properties = (data as any).properties;
+  const properties = (
+    data as {
+      properties?: { email_otp?: string; hashed_token?: string };
+    } | null
+  )?.properties;
   if (properties && properties.email_otp && properties.hashed_token) {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);

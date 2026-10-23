@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { ArrowLeft } from "lucide-react";
@@ -34,7 +34,11 @@ const getPasswordStrength = (pwd: string) => {
   return score;
 };
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm({
+  requiresMfa = false,
+}: {
+  requiresMfa?: boolean;
+}) {
   const resetPassword = useResetPasswordMutation();
   const [submitError, setSubmitError] = useState("");
 
@@ -49,19 +53,31 @@ export default function ResetPasswordForm() {
     defaultValues: {
       password: "",
       confirmPassword: "",
+      mfaCode: "",
     },
   });
 
-  const { handleSubmit, watch } = form;
-  const passwordValue = watch("password");
+  const { handleSubmit } = form;
+  const passwordValue = useWatch({
+    control: form.control,
+    name: "password",
+    defaultValue: "",
+  });
   const passwordStrength = getPasswordStrength(passwordValue);
 
   const onSubmit = async (values: ResetPasswordFormValues) => {
     setSubmitError("");
+    if (requiresMfa && (!values.mfaCode || !/^\d{6}$/.test(values.mfaCode))) {
+      const msg = "Masukkan 6 digit kode Google Authenticator Anda.";
+      setSubmitError(msg);
+      toast.error("Kode MFA diperlukan", { description: msg });
+      return;
+    }
+
     try {
       await resetPassword.mutateAsync(values);
       toast.success("Kata sandi berhasil diperbarui! Silakan masuk kembali.");
-      window.location.href = "/login?reset=success";
+      window.location.replace("/login?reset=success");
     } catch (error) {
       const msg =
         error instanceof Error
@@ -201,6 +217,18 @@ export default function ResetPasswordForm() {
                     placeholder="Konfirmasi kata sandi baru Anda"
                     autoComplete="new-password"
                   />
+
+                  {requiresMfa && (
+                    <FormTextField<ResetPasswordFormValues>
+                      name="mfaCode"
+                      label="Kode Google Authenticator (6 Digit)"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="000000"
+                    />
+                  )}
 
                   <Field className="gap-2 pt-2">
                     <Button

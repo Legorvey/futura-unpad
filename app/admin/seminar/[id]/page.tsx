@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Info, Users, Clock, Fingerprint } from "lucide-react"
+import { requireAdminOrRedirect } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
 import { Button } from "@/components/ui/button"
 import {
@@ -103,7 +104,7 @@ const DetailItem = ({ label, value, wide }: { label: React.ReactNode; value: Rea
     </div>
 );
 
-const AdminSidebarContent = ({ registration, isGroup, formattedDate }: { registration: any, isGroup: boolean, formattedDate: string }) => (
+const AdminSidebarContent = ({ registration, isGroup, formattedDate }: { registration: Participants, isGroup: boolean, formattedDate: string }) => (
     <div className="space-y-6">
         <section className="rounded-xl border border-border bg-card p-5 flex flex-col">
             <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
@@ -137,6 +138,8 @@ export default async function SeminarRegistrationDetails({
     params: Promise<{ id: string }>
     searchParams: DetailSearchParams
 }) {
+    await requireAdminOrRedirect()
+
     const { id } = await params
     const query = await searchParams
     const requestedPage = normalizePositiveInt(firstParam(query.page), 1)

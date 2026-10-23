@@ -5,7 +5,7 @@ export function isInternalAppHref(href: string | undefined): href is string {
 
   // Don't treat hash-only links as internal (next/link) so they render as standard <a> tags
   // This allows Lenis to handle the smooth scrolling naturally without conflicts.
-  return (href.startsWith("/") && !href.startsWith("//"));
+  return href.startsWith("/") && !href.startsWith("//");
 }
 
 export function toInternalAppHref(href: string, origin: string) {
@@ -37,30 +37,68 @@ export function getSafeAdminRedirectPath(
 ): string {
   const target = Array.isArray(value) ? value[0] : value;
   if (
-    target &&
-    target.startsWith("/admin") &&
-    !target.startsWith("/admin/..")
+    !target ||
+    !target.startsWith("/") ||
+    target.startsWith("//") ||
+    target.includes("\\")
   ) {
-    return target;
+    return defaultPath;
   }
+
+  try {
+    const parsed = new URL(target, "http://n");
+    if (parsed.origin !== "http://n") {
+      return defaultPath;
+    }
+
+    if (
+      parsed.pathname === "/admin" ||
+      parsed.pathname.startsWith("/admin/")
+    ) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    return defaultPath;
+  }
+
   return defaultPath;
 }
 
-export function getSafeRedirectPath(value: string | string[] | null | undefined, defaultPath = "/profile"): string {
+export function getSafeRedirectPath(
+  value: string | string[] | null | undefined,
+  defaultPath = "/profile"
+): string {
   const next = Array.isArray(value) ? value[0] : value;
 
   if (
     !next ||
     !next.startsWith("/") ||
     next.startsWith("//") ||
-    next.startsWith("/\\") ||
-    next.startsWith("/login") ||
-    next === "/register" ||
-    next.startsWith("/register?") ||
-    next.startsWith("/auth/callback")
+    next.includes("\\")
   ) {
     return defaultPath;
   }
 
-  return next;
+  try {
+    const parsed = new URL(next, "http://n");
+    if (parsed.origin !== "http://n") {
+      return defaultPath;
+    }
+
+    const pathname = parsed.pathname;
+    if (
+      pathname === "/login" ||
+      pathname.startsWith("/login/") ||
+      pathname === "/register" ||
+      pathname.startsWith("/register/") ||
+      pathname === "/auth/callback" ||
+      pathname.startsWith("/auth/callback/")
+    ) {
+      return defaultPath;
+    }
+
+    return `${pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return defaultPath;
+  }
 }

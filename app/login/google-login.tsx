@@ -3,9 +3,10 @@
 import { createClient } from "@/utils/supabase/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { getSafeRedirectPath } from "@/lib/navigation"
+import { getSafeRedirectPath, getSafeAdminRedirectPath } from "@/lib/navigation"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
 import { AUTH_PERSISTENCE_COOKIE, SESSION_AUTH_PERSISTENCE } from "@/utils/supabase/auth-cookies"
+import { toast } from "sonner"
 
 // Ensure this environment variable is set
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
@@ -28,7 +29,7 @@ export default function GoogleLoginButton({
 
         if (!credentialResponse.credential) {
             console.error("No credential received from Google")
-            alert("Google login failed. Please try again.")
+            toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
             return
         }
 
@@ -49,7 +50,7 @@ export default function GoogleLoginButton({
 
             if (error) {
                 console.error("Supabase auth error:", error)
-                alert("Google login failed. Please try again.")
+                toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
                 setIsLoading(false)
                 return
             }
@@ -66,14 +67,14 @@ export default function GoogleLoginButton({
                 ]);
 
                 if (adminRecord) {
-                    const adminDestination = getSafeRedirectPath(rawNext, "/admin");
+                    const adminDestination = getSafeAdminRedirectPath(rawNext, "/admin");
                     if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
                         router.replace(`/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`);
                         return;
                     }
 
                     if (aalData?.nextLevel !== "aal2") {
-                        router.replace("/login/mfa-enroll");
+                        router.replace(`/login/mfa-enroll?next=${encodeURIComponent(adminDestination)}`);
                         return;
                     }
 
@@ -87,7 +88,7 @@ export default function GoogleLoginButton({
 
         } catch (error) {
             console.error("Unexpected error during Google login:", error)
-            alert("Google login failed. Please try again.")
+            toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
             setIsLoading(false)
         }
     }
@@ -107,7 +108,7 @@ export default function GoogleLoginButton({
                     onSuccess={handleSuccess}
                     onError={() => {
                         console.error("Google popup closed or failed")
-                        alert("Google login failed. Please try again.")
+                        toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
                     }}
                     theme="outline"
                     size="large"

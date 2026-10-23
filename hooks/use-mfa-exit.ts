@@ -16,7 +16,8 @@ import { createClient } from "@/utils/supabase/client";
  * On confirmed exit, performs a fail-secure four-layer session teardown:
  *   1. BroadcastChannel: notify all open tabs to clear their auth state.
  *   2. TanStack Query: clear cache and set session to null immediately.
- *   3. Server: POST /api/auth/logout (GoTrue revocation + cookie eradication).
+ *   3. Server: POST /api/auth/logout (GoTrue revocation + cookie eradication)
+ *      executed BEFORE client signOut so the request still carries auth cookies.
  *   4. Client: wipe sb-* and futura-* cookies from document.cookie as a fallback.
  *
  * The redirect to /login uses window.location.replace() (not Next.js router) to
@@ -69,19 +70,23 @@ export function useMfaExit() {
         adminAccess: false,
       });
 
-      // 3. Fire both the Supabase client-side signOut and the server revocation
-      //    endpoint in parallel. We use Promise.allSettled so a network failure
-      //    in one leg does not block the other or throw.
-      //    keepalive: true ensures the fetch survives if the user navigates away
-      //    immediately after clicking confirm.
-      await Promise.allSettled([
-        supabaseRef.current.auth.signOut({ scope: "local" }),
-        fetch("/api/auth/logout", {
+      // 3a. Revoke the session on the server FIRST while browser cookies are still intact.
+      try {
+        await fetch("/api/auth/logout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           keepalive: true,
-        }),
-      ]);
+        });
+      } catch {
+        // Ignore network error; client-side signOut and cookie wipe below will still execute
+      }
+
+      // 3b. Clear client-side Supabase session state.
+      try {
+        await supabaseRef.current.auth.signOut({ scope: "local" });
+      } catch {
+        // Ignore client signOut error
+      }
     } finally {
       // 4. Fail-secure client-side cookie wipe. This runs even if the network
       //    calls above fail, ensuring no auth cookies linger in the browser.

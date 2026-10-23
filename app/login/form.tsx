@@ -4,8 +4,8 @@ import Link from "next/link";
 import GoogleLoginButton from "./google-login";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "nextjs-toploader/app";;
-import { FormProvider, useForm } from "react-hook-form";
+import { useRouter } from "nextjs-toploader/app";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +15,7 @@ import { useLoginMutation } from "@/hooks/mutations/use-auth-mutations";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { FormTextField } from "@/components/form/form-text-field";
-import { getSafeRedirectPath } from "@/lib/navigation";
+import { getSafeRedirectPath, getSafeAdminRedirectPath } from "@/lib/navigation";
 
 export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
     const router = useRouter();
@@ -40,11 +40,17 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
         }
     }, [isVerified]);
 
-    const keepSignedIn = form.watch("keepSignedIn");
+    const keepSignedIn = useWatch({
+        control: form.control,
+        name: "keepSignedIn",
+        defaultValue: true,
+    });
     const setKeepSignedIn = (value: boolean) => form.setValue("keepSignedIn", value);
     const { handleSubmit } = form;
 
-    const safeNext = getSafeRedirectPath(searchParams.get("next"), "");
+    const rawNext = searchParams.get("next");
+    const safeNext = getSafeRedirectPath(rawNext, "");
+    const safeAdminNext = getSafeAdminRedirectPath(rawNext, "/admin");
 
     const onSubmit = async (values: LoginFormValues) => {
         setSubmitError("");
@@ -62,19 +68,17 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
         }
 
         if (result.requiresMfa) {
-            const destination = safeNext?.startsWith("/admin") ? safeNext : "/admin";
-            router.replace(`/login/mfa-verify?next=${encodeURIComponent(destination)}`);
+            router.replace(`/login/mfa-verify?next=${encodeURIComponent(safeAdminNext)}`);
             return;
         }
 
         if (result.requiresMfaEnrollment) {
-            const destination = safeNext?.startsWith("/admin") ? safeNext : "/admin";
-            router.replace(`/login/mfa-enroll?next=${encodeURIComponent(destination)}`);
+            router.replace(`/login/mfa-enroll?next=${encodeURIComponent(safeAdminNext)}`);
             return;
         }
 
         const nextUrl = result.adminAccess
-            ? (safeNext?.startsWith("/admin") ? safeNext : "/admin")
+            ? safeAdminNext
             : (safeNext || "/profile");
             
         router.replace(nextUrl);
@@ -146,7 +150,7 @@ export default function LoginForm({ isVerified }: { isVerified?: boolean }) {
                         <Link
                             href={
                                 safeNext
-                                    ? `/register?next=${safeNext}`
+                                    ? `/register?next=${encodeURIComponent(safeNext)}`
                                     : "/register"
                             }
                             prefetch={false}

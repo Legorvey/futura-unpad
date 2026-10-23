@@ -26,6 +26,26 @@ export function toInternalAppHref(href: string, origin: string) {
   }
 }
 
+/**
+ * Restricts a redirect destination to within the /admin subtree only.
+ * Used by the MFA verification flow to ensure admin redirects never steer
+ * users to participant-facing surfaces (e.g. /profile, /seminar-nasional).
+ */
+export function getSafeAdminRedirectPath(
+  value: string | string[] | null | undefined,
+  defaultPath = "/admin"
+): string {
+  const target = Array.isArray(value) ? value[0] : value;
+  if (
+    target &&
+    target.startsWith("/admin") &&
+    !target.startsWith("/admin/..")
+  ) {
+    return target;
+  }
+  return defaultPath;
+}
+
 export function getSafeRedirectPath(value: string | string[] | null | undefined, defaultPath = "/profile"): string {
   const next = Array.isArray(value) ? value[0] : value;
 

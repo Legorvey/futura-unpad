@@ -93,10 +93,20 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const { user, adminAccess } = await getCachedAuth()
+  const { user, adminAccess, needsMfaVerification, needsMfaEnrollment } = await getCachedAuth()
 
   if (!user) {
     redirect("/login?next=/profile")
+  }
+
+  // Admin accounts must never access participant surfaces without completing MFA.
+  // An AAL1 admin navigating here would see the participant dashboard - block it.
+  if (needsMfaVerification) {
+    redirect("/login/mfa-verify?next=/admin")
+  }
+
+  if (needsMfaEnrollment) {
+    redirect("/login/mfa-enroll")
   }
 
   if (adminAccess) {

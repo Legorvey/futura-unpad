@@ -1,6 +1,9 @@
 import type { Metadata } from "next"
 import { requireAdminOrRedirect } from "@/lib/auth"
+import { createClient } from "@/utils/supabase/server"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
+import { MfaProfileCard } from "@/components/admin/mfa-profile-card"
+
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -17,6 +20,13 @@ export const metadata: Metadata = {
 
 export default async function AdminProfilePage() {
     const { user } = await requireAdminOrRedirect()
+    const supabase = await createClient()
+    const { data: factors } = await supabase.auth.mfa.listFactors()
+    const verifiedTotp = factors?.totp?.find((f) => f.status === "verified")
+
+    const isPasswordUser =
+        user.app_metadata?.provider === "email" ||
+        user.identities?.some((id) => id.provider === "email")
 
     return (
         <div className="mx-auto w-full max-w-3xl space-y-8">
@@ -79,7 +89,14 @@ export default async function AdminProfilePage() {
                     </div>
                 </div>
 
-
+                {/* MFA Security Information */}
+                <MfaProfileCard
+                    isEnrolled={!!verifiedTotp}
+                    factorId={verifiedTotp?.id || null}
+                    friendlyName={verifiedTotp?.friendly_name}
+                    createdAt={verifiedTotp?.created_at ? formatDate(verifiedTotp.created_at) : null}
+                    isPasswordUser={!!isPasswordUser}
+                />
             </div>
         </div>
     )

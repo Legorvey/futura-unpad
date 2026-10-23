@@ -1,18 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, FileText, Trash2 } from "lucide-react";
+import { Loader2, CheckCircle2, FileText, Trash2, Copy, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { updateEsaiRegistration, removeEsaiFile } from "@/lib/essay/actions";
 import { IdentitySchema, DocsSchema, PaymentSchema, type IdentityValues, type DocsValues, type PaymentValues } from "@/lib/validation/esai";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FormTextField } from "@/components/form/form-text-field";
 import { FormFileField } from "@/components/form/form-file-field";
 import MechaturaProfileSidebar from "../mechatura/sidebar";
@@ -41,6 +50,36 @@ import {
   SEARCHABLE_TYPES,
   type InstitutionType,
 } from "@/components/school-combobox";
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  if (navigator?.clipboard?.writeText && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to fallback
+    }
+  }
+
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    textArea.setAttribute("readonly", "");
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textArea);
+    return successful;
+  } catch {
+    return false;
+  }
+}
 
 function UploadedFileDisplay({ path, onRemove, label, description }: { path: string | null; onRemove?: () => void; label?: string; description?: string }) {
   if (!path) return null;
@@ -98,6 +137,15 @@ function LocalImagePreview({ fileList }: { fileList?: any }) {
   );
 }
 
+
+const getSafeStoragePath = (userId: string, prefix: string, file: File) => {
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const uniqueSuffix = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" 
+    ? crypto.randomUUID() 
+    : Math.random().toString(36).substring(2);
+  return `${userId}/${prefix}_${Date.now()}_${uniqueSuffix}.${ext}`;
+};
+
 export function LombaEsaiClient({
   registration,
   userName,
@@ -134,6 +182,67 @@ export function LombaEsaiClient({
   });
 
   const isTwibbonOpen = new Date() >= new Date("2026-10-05T00:00:00+07:00");
+
+  const [isCaptionOpen, setIsCaptionOpen] = useState(false);
+  const [isCaptionCopied, setIsCaptionCopied] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const formFullName = identityForm.watch("full_name");
+  const formInstitution = identityForm.watch("institution");
+
+  const defaultName = formFullName || registration.full_name || userName || "";
+  const defaultInstitution = formInstitution || registration.institution || "";
+
+  const [captionName, setCaptionName] = useState(defaultName || "[Nama]");
+  const [captionInstitution, setCaptionInstitution] = useState(defaultInstitution || "[Nama institusi]");
+
+  useEffect(() => {
+    if (isCaptionOpen) {
+      setCaptionName(defaultName || "[Nama]");
+      setCaptionInstitution(defaultInstitution || "[Nama institusi]");
+    }
+  }, [isCaptionOpen, defaultName, defaultInstitution]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
+  const cleanName = captionName.trim() || "[Nama]";
+  const cleanInstitution = captionInstitution.trim() || "[Nama institusi]";
+
+  const captionText = `Halo semuanya! 👋 🔥
+Saya ${cleanName}  dari ${cleanInstitution} siap menuangkan ide dan gagasan dalam Essay Competition FUTURA 2026! 🚀 ✨
+
+Ide hebat berawal dari keberanian untuk berpikir, menulis, dan menciptakan perubahan! 💡 📝 Melalui kompetisi esai ini, kami siap menuangkan gagasan inovatif, mengasah pola pikir kritis, dan mengeksplorasi bagaimana teknologi dapat menjadi bagian dari solusi untuk masa depan yang lebih baik. 🌏 ⚙️
+
+Bukan sekadar kata-kata, tetapi gagasan yang membawa makna dan perubahan! 💥
+
+🔥 Think creatively. Write passionately. Innovate for the future!
+
+Stay tuned for more updates!
+Instagram: @futuraunpad.hmte
+
+#FUTURA2026
+#PowerOnTheFuture
+#UniversitasPadjadjaran
+#FuturaEssayCompetition
+#MECHATURAFUTURA2026
+
+*tag @futuraunpad.hmte dan pada postingan anda`;
+
+  const handleCopyCaption = async () => {
+    const success = await copyToClipboard(captionText);
+    if (success) {
+      setIsCaptionCopied(true);
+      toast.success("Caption berhasil disalin ke clipboard!");
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setIsCaptionCopied(false), 2000);
+    } else {
+      toast.error("Gagal menyalin caption secara otomatis. Silakan salin teks secara manual.");
+    }
+  };
 
   const docsForm = useForm<DocsValues>({
     resolver: zodResolver(DocsSchema),
@@ -216,11 +325,11 @@ export function LombaEsaiClient({
       const uploadPromises: Promise<string | null | undefined>[] = [];
 
       let twibbonUrlPromise = Promise.resolve(registration.instagram_twibbon_url);
-      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, `${userId}/twibbon_${Date.now()}_${twibbonFile.name}`);
+      if (twibbonFile) twibbonUrlPromise = handleFileUpload(twibbonFile, getSafeStoragePath(userId, "twibbon", twibbonFile));
       uploadPromises.push(twibbonUrlPromise);
 
       let ktmUrlPromise = Promise.resolve(registration.identity_card_url);
-      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, `${userId}/ktm_${Date.now()}_${ktmFile.name}`);
+      if (ktmFile) ktmUrlPromise = handleFileUpload(ktmFile, getSafeStoragePath(userId, "ktm", ktmFile));
       uploadPromises.push(ktmUrlPromise);
 
       const [twibbonUrl, ktmUrl] = await Promise.all(uploadPromises);
@@ -303,7 +412,7 @@ export function LombaEsaiClient({
 
       let paymentUrl = registration.payment_proof_url;
       if (paymentFile) {
-        paymentUrl = await handleFileUpload(paymentFile, `${userId}/payment_${Date.now()}_${paymentFile.name}`);
+        paymentUrl = await handleFileUpload(paymentFile, getSafeStoragePath(userId, "payment", paymentFile));
       }
 
       const submitValues = { payment_proof_url: paymentUrl };
@@ -438,7 +547,7 @@ export function LombaEsaiClient({
                   </li>
                   <li>
                     <span className="font-medium text-foreground">Twibbon:</span><br />
-                    Wajib mengunggah <b>screenshot</b> bukti post twibbon di Instagram pada bagian ini.
+                    Wajib mengunggah <b>screenshot</b> bukti post twibbon di Instagram publik pada bagian ini & follow <a href="https://instagram.com/futuraunpad.hmte" target="_blank" rel="noreferrer" className="text-primary hover:underline">@futuraunpad.hmte</a>.
                   </li>
                 </ul>
               </div>
@@ -528,40 +637,52 @@ export function LombaEsaiClient({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   {/* Twibbon Upload */}
-                  <div className="space-y-2 p-4 border rounded-xl bg-muted/30">
-                    <UploadedFileDisplay
-                      path={registration.instagram_twibbon_url}
-                      onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined}
-                      label="Bukti Twibbon"
-                      description="Maksimal 3MB (JPG, PNG, PDF)"
-                    />
-                    {!isSubmitted && !registration.instagram_twibbon_url && (
-                      isTwibbonOpen ? (
-                        <>
-                          <FormFileField
-                            name="twibbon"
-                            label="Bukti Twibbon"
-                            accept="image/jpeg, image/png, application/pdf"
-                            disabled={isSavingIdentity}
-                            maxSizeInBytes={3 * 1024 * 1024}
-                            variant="button"
-                          />
-                          <LocalImagePreview fileList={twibbonWatch} />
-                        </>
-                      ) : (
-                        <div className="flex flex-col gap-2 h-full">
-                          <label className="text-sm font-medium leading-snug">
-                            Bukti Twibbon
-                          </label>
-                          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex flex-1 items-center justify-center">
-                            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium text-center text-balance">
-                              Template Twibbon sedang disiapkan oleh panitia. Anda baru dapat mengunggah Twibbon mulai 5 Oktober 2026.
-                            </p>
+                  <div className="space-y-3 p-4 border rounded-xl bg-muted/30 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <UploadedFileDisplay
+                        path={registration.instagram_twibbon_url}
+                        onRemove={!isSubmitted ? () => handleRemoveFile('instagram_twibbon_url') : undefined}
+                        label="Bukti Twibbon"
+                        description="Maksimal 3MB (JPG, PNG, PDF)"
+                      />
+                      {!isSubmitted && !registration.instagram_twibbon_url && (
+                        isTwibbonOpen ? (
+                          <>
+                            <FormFileField
+                              name="twibbon"
+                              label="Bukti Twibbon"
+                              accept="image/jpeg, image/png, application/pdf"
+                              disabled={isSavingIdentity}
+                              maxSizeInBytes={3 * 1024 * 1024}
+                              variant="button"
+                            />
+                            <LocalImagePreview fileList={twibbonWatch} />
+                          </>
+                        ) : (
+                          <div className="flex flex-col gap-2 h-full">
+                            <label className="text-sm font-medium leading-snug">
+                              Bukti Twibbon
+                            </label>
+                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex flex-1 items-center justify-center">
+                              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium text-center text-balance">
+                                Template Twibbon sedang disiapkan oleh panitia. Anda baru dapat mengunggah Twibbon mulai 5 Oktober 2026.
+                              </p>
+                            </div>
+                            <div className="text-[0.8rem] text-muted-foreground mt-auto">Maksimal 3MB (JPG, PNG, PDF)</div>
                           </div>
-                          <div className="text-[0.8rem] text-muted-foreground mt-auto">Maksimal 3MB (JPG, PNG, PDF)</div>
-                        </div>
-                      )
-                    )}
+                        )
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <a href="/esai/twibbon-esai-competition.png" download="twibbon-esai-competition.png">
+                          Download Twibbon
+                        </a>
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setIsCaptionOpen(true)}>
+                        Lihat Caption
+                      </Button>
+                    </div>
                   </div>
 
                   {/* KTM Upload */}
@@ -723,6 +844,61 @@ export function LombaEsaiClient({
         )}
 
       </section>
+
+      <Dialog open={isCaptionOpen} onOpenChange={setIsCaptionOpen}>
+        <DialogContent className="sm:max-w-[500px] esai-wrapper bg-card border-border z-[60]">
+          <DialogHeader>
+            <DialogTitle>Caption Twibbon</DialogTitle>
+            <DialogDescription>
+              Jika nama atau instansi kurang tepat, Anda bisa mengubahnya di bawah.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2 mt-1">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="caption-name" className="text-sm font-medium leading-snug">Nama Lengkap</label>
+              <Input
+                id="caption-name"
+                className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30"
+                maxLength={100}
+                value={captionName}
+                onChange={(e) => setCaptionName(e.target.value.replace(/[\r\n]+/g, " "))}
+                placeholder="Nama Lengkap"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="caption-institution" className="text-sm font-medium leading-snug">Asal Institusi</label>
+              <Input
+                id="caption-institution"
+                className="h-11 rounded-[8px] bg-slate-100/50 dark:bg-input/30"
+                maxLength={150}
+                value={captionInstitution}
+                onChange={(e) => setCaptionInstitution(e.target.value.replace(/[\r\n]+/g, " "))}
+                placeholder="Asal Institusi / Sekolah"
+              />
+            </div>
+          </div>
+
+          <div className="bg-muted/60 p-4 rounded-md text-sm whitespace-pre-wrap font-mono leading-relaxed max-h-[40vh] overflow-y-auto border border-border/50 select-all">
+            {captionText}
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleCopyCaption} className="w-full sm:w-auto">
+              {isCaptionCopied ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Tersalin
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Salin Caption
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

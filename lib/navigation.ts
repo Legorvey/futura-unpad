@@ -20,6 +20,10 @@ export function toInternalAppHref(href: string, origin: string) {
       return null;
     }
 
+    if (url.pathname.startsWith("//")) {
+      return null;
+    }
+
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return null;
@@ -86,6 +90,13 @@ export function getSafeRedirectPath(
     }
 
     const pathname = parsed.pathname;
+
+    // Normalization above (e.g. "/.//evil.com" -> "//evil.com") can produce a
+    // protocol-relative reference, which must never leave this helper.
+    if (pathname.startsWith("//")) {
+      return defaultPath;
+    }
+
     if (
       pathname === "/login" ||
       pathname.startsWith("/login/") ||

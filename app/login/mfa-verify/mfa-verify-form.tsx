@@ -9,31 +9,44 @@ import { toast } from "sonner";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { getSafeAdminRedirectPath } from "@/lib/navigation";
 
-export default function MfaVerifyForm() {
+type MfaVerifyFormProps = {
+  initialFactorId?: string | null;
+};
+
+export default function MfaVerifyForm({
+  initialFactorId = null,
+}: MfaVerifyFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawNext = searchParams.get("next");
   const nextUrl = getSafeAdminRedirectPath(rawNext, "/admin");
   const supabase = createClient();
 
-  const [factorId, setFactorId] = useState<string | null>(null);
+  const [factorId, setFactorId] = useState<string | null>(initialFactorId);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [initLoading, setInitLoading] = useState(true);
+  const [initLoading, setInitLoading] = useState(!initialFactorId);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (initialFactorId) {
+      return;
+    }
+
     let isMounted = true;
 
     async function loadFactors() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
           router.replace("/login");
           return;
         }
 
-        const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+        const { data: factors, error: factorsError } =
+          await supabase.auth.mfa.listFactors();
         if (factorsError || !factors?.totp) {
           throw new Error("Gagal mengambil data faktor MFA");
         }
@@ -50,7 +63,8 @@ export default function MfaVerifyForm() {
         }
       } catch (err: unknown) {
         if (isMounted) {
-          const message = err instanceof Error ? err.message : "Gagal memuat faktor MFA";
+          const message =
+            err instanceof Error ? err.message : "Gagal memuat faktor MFA";
           setErrorMessage(message);
         }
       } finally {
@@ -65,7 +79,7 @@ export default function MfaVerifyForm() {
     return () => {
       isMounted = false;
     };
-  }, [router, supabase, nextUrl]);
+  }, [initialFactorId, router, supabase, nextUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +98,9 @@ export default function MfaVerifyForm() {
       const result = await response.json();
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Kode verifikasi salah atau telah kedaluwarsa");
+        throw new Error(
+          result.error || "Kode verifikasi salah atau telah kedaluwarsa"
+        );
       }
 
       toast.success("Verifikasi berhasil");
@@ -93,7 +109,8 @@ export default function MfaVerifyForm() {
       // Use window.location.href to guarantee full browser navigation with newly minted AAL2 cookies
       window.location.href = nextUrl;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Kode verifikasi salah";
+      const message =
+        err instanceof Error ? err.message : "Kode verifikasi salah";
       setErrorMessage(message);
       toast.error("Verifikasi Gagal", {
         description: message,
@@ -122,12 +139,17 @@ export default function MfaVerifyForm() {
           Verifikasi Dua Langkah
         </h1>
         <p className="text-sm text-zinc-500 leading-relaxed text-balance">
-          Masukkan 6 digit angka dari aplikasi <strong>Google Authenticator</strong> pada perangkat Anda.
+          Masukkan 6 digit angka dari aplikasi{" "}
+          <strong>Google Authenticator</strong> pada perangkat Anda.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <label htmlFor="mfa-verify-code" className="sr-only">
+          Kode Verifikasi 6 Digit
+        </label>
         <Input
+          id="mfa-verify-code"
           autoFocus
           type="text"
           inputMode="numeric"
@@ -143,7 +165,7 @@ export default function MfaVerifyForm() {
         />
 
         {errorMessage && (
-          <p className="text-xs text-red-600 font-medium text-center">
+          <p className="text-xs text-red-600 font-medium text-center" role="alert">
             {errorMessage}
           </p>
         )}

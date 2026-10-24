@@ -9,6 +9,10 @@ import {
   SESSION_AUTH_PERSISTENCE,
 } from "@/utils/supabase/auth-cookies";
 
+const noCacheHeaders = {
+  "Cache-Control": "no-store, max-age=0",
+};
+
 const verifyMfaSchema = z.object({
   factorId: z.string().uuid("ID faktor tidak valid"),
   challengeId: z.string().uuid("ID challenge tidak valid").optional(),
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
       { error: "Sesi tidak valid atau telah berakhir" },
       {
         status: 401,
-        headers: { "Cache-Control": "no-store, max-age=0" },
+        headers: noCacheHeaders,
       }
     );
   }
@@ -72,17 +76,35 @@ export async function POST(request: Request) {
     return rateLimited(accountLimit.retryAfter);
   }
 
+  // Verify the user is an authorized administrator
+  const { data: adminRecord, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (adminError || !adminRecord) {
+    return NextResponse.json(
+      { error: "Akses ditolak" },
+      {
+        status: 403,
+        headers: noCacheHeaders,
+      }
+    );
+  }
+
   let challengeId = parsed.data.challengeId;
   if (!challengeId) {
     const challenge = await supabase.auth.mfa.challenge({
       factorId: parsed.data.factorId,
     });
     if (challenge.error) {
+      console.error("MFA challenge failed:", challenge.error.message);
       return NextResponse.json(
-        { error: challenge.error.message },
+        { error: "Gagal membuat tantangan verifikasi MFA" },
         {
           status: 400,
-          headers: { "Cache-Control": "no-store, max-age=0" },
+          headers: noCacheHeaders,
         }
       );
     }
@@ -97,16 +119,16 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { error: error.message || "Kode verifikasi tidak valid" },
+      { error: "Kode verifikasi salah atau telah kedaluwarsa" },
       {
         status: 401,
-        headers: { "Cache-Control": "no-store, max-age=0" },
+        headers: noCacheHeaders,
       }
     );
   }
 
   return NextResponse.json(
     { ok: true, data },
-    { headers: { "Cache-Control": "no-store, max-age=0" } }
+    { headers: noCacheHeaders }
   );
 }

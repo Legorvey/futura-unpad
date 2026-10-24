@@ -131,10 +131,14 @@ export default function MfaEnrollForm({
         <form onSubmit={handleStartEnroll} className="space-y-4 pt-2">
           {isPasswordUser && (
             <div className="space-y-2 text-left">
-              <label className="text-xs font-semibold text-zinc-700 block">
+              <label
+                htmlFor="mfa-enroll-password"
+                className="text-xs font-semibold text-zinc-700 block"
+              >
                 Kata Sandi Akun
               </label>
               <Input
+                id="mfa-enroll-password"
                 autoFocus
                 type="password"
                 placeholder="Masukkan kata sandi akun"
@@ -150,7 +154,7 @@ export default function MfaEnrollForm({
           )}
 
           {errorMsg && (
-            <p className="text-xs text-red-600 font-medium text-center">
+            <p className="text-xs text-red-600 font-medium text-center" role="alert">
               {errorMsg}
             </p>
           )}
@@ -201,6 +205,7 @@ export default function MfaEnrollForm({
                   onClick={() => setShowSecret(!showSecret)}
                   className="p-1 hover:text-black text-zinc-400 transition"
                   title={showSecret ? "Sembunyikan kunci" : "Lihat kunci"}
+                  aria-label={showSecret ? "Sembunyikan kunci cadangan" : "Lihat kunci cadangan"}
                 >
                   {showSecret ? (
                     <EyeOff className="w-4 h-4" />
@@ -213,6 +218,7 @@ export default function MfaEnrollForm({
                   onClick={handleCopySecret}
                   className="p-1 hover:text-black text-zinc-400 transition"
                   title="Salin kunci"
+                  aria-label="Salin kunci cadangan"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-emerald-600" />
@@ -227,10 +233,14 @@ export default function MfaEnrollForm({
           {/* Verification input */}
           <form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2 text-center">
-              <label className="text-xs font-semibold text-zinc-700 block">
+              <label
+                htmlFor="mfa-enroll-code"
+                className="text-xs font-semibold text-zinc-700 block"
+              >
                 Masukkan 6-digit kode verifikasi dari aplikasi:
               </label>
               <Input
+                id="mfa-enroll-code"
                 autoFocus
                 type="text"
                 inputMode="numeric"
@@ -247,7 +257,7 @@ export default function MfaEnrollForm({
             </div>
 
             {errorMsg && (
-              <p className="text-xs text-red-600 font-medium text-center">
+              <p className="text-xs text-red-600 font-medium text-center" role="alert">
                 {errorMsg}
               </p>
             )}

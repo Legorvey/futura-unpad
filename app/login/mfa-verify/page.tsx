@@ -50,8 +50,8 @@ export default async function MfaVerifyPage({
   }
 
   // If no verified factor exists, redirect to enrollment
-  const hasVerifiedFactor = factors?.totp?.some((f) => f.status === "verified");
-  if (!hasVerifiedFactor) {
+  const verifiedTotp = factors?.totp?.find((f) => f.status === "verified");
+  if (!verifiedTotp) {
     redirect(`/login/mfa-enroll?next=${encodeURIComponent(targetAdminPath)}`);
   }
 
@@ -68,7 +68,7 @@ export default async function MfaVerifyPage({
           </div>
         }
       >
-        <MfaVerifyForm />
+        <MfaVerifyForm initialFactorId={verifiedTotp.id} />
       </Suspense>
     </main>
   );

@@ -33,6 +33,7 @@ export function MfaProfileCard({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -48,7 +49,9 @@ export function MfaProfileCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          isPasswordUser ? { factorId, password } : { factorId }
+          isPasswordUser
+            ? { factorId, password }
+            : { factorId, code: totpCode }
         ),
       });
 
@@ -107,10 +110,14 @@ export function MfaProfileCard({
               <form onSubmit={handleResetMfa} className="space-y-4 pt-2">
                 {isPasswordUser ? (
                   <div className="space-y-2 text-left">
-                    <label className="text-xs font-semibold text-zinc-700 block">
+                    <label
+                      htmlFor="mfa-reset-password"
+                      className="text-xs font-semibold text-zinc-700 block"
+                    >
                       Masukkan Kata Sandi Akun untuk Konfirmasi:
                     </label>
                     <Input
+                      id="mfa-reset-password"
                       type="password"
                       placeholder="Kata sandi akun"
                       value={password}
@@ -123,13 +130,33 @@ export function MfaProfileCard({
                     />
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-600">
-                    Konfirmasi untuk mengatur ulang Google Authenticator pada akun administrator Anda.
-                  </p>
+                  <div className="space-y-2 text-left">
+                    <label
+                      htmlFor="mfa-reset-code"
+                      className="text-xs font-semibold text-zinc-700 block"
+                    >
+                      Masukkan 6 Digit Kode Google Authenticator Saat Ini:
+                    </label>
+                    <Input
+                      id="mfa-reset-code"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={totpCode}
+                      onChange={(e) => {
+                        setErrorMsg("");
+                        setTotpCode(e.target.value.replace(/\D/g, ""));
+                      }}
+                      className="h-10 text-sm font-mono tracking-widest text-center"
+                      required
+                    />
+                  </div>
                 )}
 
                 {errorMsg && (
-                  <p className="text-xs text-red-600 font-medium">
+                  <p className="text-xs text-red-600 font-medium" role="alert">
                     {errorMsg}
                   </p>
                 )}
@@ -146,7 +173,10 @@ export function MfaProfileCard({
                   </Button>
                   <Button
                     type="submit"
-                    disabled={loading || (isPasswordUser && !password)}
+                    disabled={
+                      loading ||
+                      (isPasswordUser ? !password : totpCode.length !== 6)
+                    }
                     className="h-9 text-xs bg-red-600 hover:bg-red-700 text-white"
                   >
                     {loading ? (

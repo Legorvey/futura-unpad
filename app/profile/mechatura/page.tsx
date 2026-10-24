@@ -5,10 +5,23 @@ import { redirect } from "next/navigation";
 import { MechaturaProfileClient } from "./client-page";
 
 export default async function MechaturaProfilePage() {
-  const { user } = await getCachedAuth();
+  const { user, adminAccess, needsMfaVerification, needsMfaEnrollment } =
+    await getCachedAuth();
 
   if (!user) {
     redirect("/login?next=/profile/mechatura");
+  }
+
+  if (needsMfaVerification) {
+    redirect("/login/mfa-verify?next=/admin");
+  }
+
+  if (needsMfaEnrollment) {
+    redirect("/login/mfa-enroll");
+  }
+
+  if (adminAccess) {
+    redirect("/admin");
   }
 
   const supabase = await createClient();

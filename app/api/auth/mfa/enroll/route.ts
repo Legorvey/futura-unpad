@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
+import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
 import { rateLimit } from "@/lib/rate-limit";
-import { createClient, createAdminClient } from "@/utils/supabase/server";
+import {
+  createClient,
+  createAdminClient,
+  createStatelessClient,
+} from "@/utils/supabase/server";
 import { z } from "zod";
 
 const noCacheHeaders = {
@@ -9,10 +15,32 @@ const noCacheHeaders = {
 };
 
 const enrollMfaSchema = z.object({
-  password: z.string().min(1).optional(),
+  password: z.string().min(1).max(128).optional(),
 });
 
 export async function POST(request: Request) {
+  // IP-level rate limiting against flood attacks
+  const ipLimit = await rateLimit(request, {
+    key: "auth-mfa-enroll-ip",
+    limit: 10,
+    windowSeconds: 300,
+  });
+
+  if (!ipLimit.success) {
+    return rateLimited(ipLimit.retryAfter);
+  }
+
+  const cookieStore = await cookies();
+  if (cookieStore.has(PASSWORD_RECOVERY_COOKIE)) {
+    return NextResponse.json(
+      {
+        error:
+          "Pendaftaran MFA tidak diizinkan selama sesi pemulihan kata sandi.",
+      },
+      { status: 403, headers: noCacheHeaders }
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,15 +53,15 @@ export async function POST(request: Request) {
     );
   }
 
-  // Compound rate limiting bound to user ID
-  const limit = await rateLimit(request, {
-    key: `auth-mfa-enroll:${user.id}`,
+  // Account-level rate limiting bound strictly to user ID (anti-distributed brute force)
+  const accountLimit = await rateLimit(user.id, {
+    key: "auth-mfa-enroll-account",
     limit: 5,
     windowSeconds: 300,
   });
 
-  if (!limit.success) {
-    return rateLimited(limit.retryAfter);
+  if (!accountLimit.success) {
+    return rateLimited(accountLimit.retryAfter);
   }
 
   const body = await readJsonBody(request);
@@ -76,6 +104,7 @@ export async function POST(request: Request) {
   }
 
   // If user signed up/logs in with password, require password re-authentication
+  // using an isolated stateless client so active session cookies are not overwritten.
   const isPasswordUser =
     user.app_metadata?.provider === "email" ||
     user.identities?.some((id) => id.provider === "email");
@@ -91,10 +120,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: parsed.data.password,
-    });
+    const statelessSupabase = createStatelessClient();
+    const { error: reauthError } =
+      await statelessSupabase.auth.signInWithPassword({
+        email: user.email,
+        password: parsed.data.password,
+      });
 
     if (reauthError) {
       return NextResponse.json(
@@ -123,7 +154,10 @@ export async function POST(request: Request) {
       }
     }
   } catch (cleanUpError) {
-    console.error("Error cleaning up previous unverified MFA factors:", cleanUpError);
+    console.error(
+      "Error cleaning up previous unverified MFA factors:",
+      cleanUpError
+    );
   }
 
   // Enroll new TOTP factor
@@ -134,8 +168,9 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    console.error("MFA enrollment failed:", error.message);
     return NextResponse.json(
-      { error: error.message },
+      { error: "Gagal memulai pendaftaran MFA. Silakan coba lagi." },
       { status: 400, headers: noCacheHeaders }
     );
   }

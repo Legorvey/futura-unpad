@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { NextResponse } from "next/server"
 import {
     PASSWORD_RECOVERY_COOKIE,
@@ -11,15 +10,15 @@ import {
     authPersistenceCookieOptions,
     getAuthCookiePersistence,
 } from "@/utils/supabase/auth-cookies"
+import { getSafeAdminRedirectPath } from "@/lib/navigation"
 import { createClient } from "@/utils/supabase/server"
-import { cookies } from "next/headers"
 
 const safeRedirectPath = (value: string | null) => {
     if (
         !value ||
         !value.startsWith("/") ||
         value.startsWith("//") ||
-        value.startsWith("/\\") ||
+        value.includes("\\") ||
         value.startsWith("/auth/callback")
     ) {
         return "/"
@@ -38,7 +37,13 @@ export async function GET(request: Request) {
         new URL(safeNextUrl, requestUrl.origin).pathname === "/reset-password"
 
     const token_hash = requestUrl.searchParams.get("token_hash")
-    const type = requestUrl.searchParams.get("type") as any
+    const type = requestUrl.searchParams.get("type") as
+        | "signup"
+        | "recovery"
+        | "email_change"
+        | "magiclink"
+        | "invite"
+        | null
 
     const supabase = await createClient({
         authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
@@ -116,10 +121,7 @@ export async function GET(request: Request) {
         ])
 
         if (adminData) {
-            const adminDestination =
-                safeNextUrl && safeNextUrl.startsWith("/admin")
-                    ? safeNextUrl
-                    : "/admin"
+            const adminDestination = getSafeAdminRedirectPath(safeNextUrl, "/admin")
 
             if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
                 finalNextUrl = `/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`

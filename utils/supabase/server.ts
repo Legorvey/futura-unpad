@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import type { AuthCookiePersistence } from "@/utils/supabase/auth-cookies";
+import {
+  AUTH_PERSISTENCE_COOKIE,
+  isSessionAuthPersistence,
+  type AuthCookiePersistence,
+} from "@/utils/supabase/auth-cookies";
+
+export { createAdminClient } from "@/lib/supabase-admin";
 
 // Environment variables read dynamically inside the function
 
@@ -10,10 +17,14 @@ type CreateClientOptions = {
 
 export const createClient = async (options: CreateClientOptions = {}) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const cookieStore = await cookies();
-  const sessionOnly = options.authCookiePersistence === "session";
+  const sessionOnly = options.authCookiePersistence
+    ? options.authCookiePersistence === "session"
+    : isSessionAuthPersistence(cookieStore.get(AUTH_PERSISTENCE_COOKIE)?.value);
 
   return createServerClient(supabaseUrl!, supabaseKey!, {
     cookies: {
@@ -42,14 +53,27 @@ export const createClient = async (options: CreateClientOptions = {}) => {
   });
 };
 
-export const createAdminClient = () => {
+/**
+ * Creates an isolated, stateless Supabase client that never reads or writes
+ * cookies. Use this for step-up password verification (`signInWithPassword`)
+ * so an active AAL2 session cookie is never downgraded to AAL1 or have its
+ * persistence attributes overwritten.
+ */
+export const createStatelessClient = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  return createServerClient(supabaseUrl!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return [];
-      },
-      setAll() {},
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase URL and anon key must be configured");
+  }
+
+  return createSupabaseJsClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 };

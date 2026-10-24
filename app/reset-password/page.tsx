@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
+import { createClient } from "@/utils/supabase/server";
 import { ArrowLeft } from "lucide-react";
 import ResetPasswordForm from "./reset-password-form";
 
@@ -100,5 +101,11 @@ export default async function ResetPasswordPage({
     return <ExpiredResetLink />;
   }
 
-  return <ResetPasswordForm />;
+  const supabase = await createClient();
+  const { data: aalData } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  const requiresMfa =
+    aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2";
+
+  return <ResetPasswordForm requiresMfa={requiresMfa} />;
 }

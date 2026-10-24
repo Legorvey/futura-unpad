@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { getSafeAdminRedirectPath } from "@/lib/navigation";
 import { MfaBackButton } from "@/components/auth/mfa-back-button";
 import MfaEnrollForm from "./mfa-enroll-form";
 
@@ -9,8 +10,16 @@ export const metadata: Metadata = {
   title: "Setup Google Authenticator - Futura",
 };
 
-export default async function MfaEnrollPage() {
-  const supabase = await createClient();
+type MfaEnrollSearchParams = Promise<
+  Record<string, string | string[] | undefined>
+>;
+
+export default async function MfaEnrollPage({
+  searchParams,
+}: {
+  searchParams: MfaEnrollSearchParams;
+}) {
+  const [params, supabase] = await Promise.all([searchParams, createClient()]);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -30,16 +39,19 @@ export default async function MfaEnrollPage() {
     notFound();
   }
 
-  // Only redirect if they actually have an active verified factor AND are at AAL2.
-  // This prevents trapped redirect loops if an admin just reset/unenrolled their factor.
   const [{ data: aalData }, { data: factors }] = await Promise.all([
     supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
     supabase.auth.mfa.listFactors(),
   ]);
 
+  const targetAdminPath = getSafeAdminRedirectPath(params.next, "/admin");
   const hasVerifiedFactor = factors?.totp?.some((f) => f.status === "verified");
-  if (hasVerifiedFactor && aalData?.currentLevel === "aal2") {
-    redirect("/admin");
+
+  if (hasVerifiedFactor) {
+    if (aalData?.currentLevel === "aal2") {
+      redirect(targetAdminPath);
+    }
+    redirect(`/login/mfa-verify?next=${encodeURIComponent(targetAdminPath)}`);
   }
 
   const isPasswordUser =

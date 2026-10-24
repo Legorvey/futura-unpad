@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { useRouter } from "nextjs-toploader/app";;
+import { useRouter } from "nextjs-toploader/app";
 import { buildLoginRedirectHref, isAuthRequiredPath } from "@/lib/auth-routes";
 
 import {
@@ -33,8 +33,20 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const supabase = createClient();
 
-const toAuthUser = (user: { id: string; email?: string | null; user_metadata?: AuthUser["user_metadata"] } | null) =>
-  user ? { id: user.id, email: user.email ?? null, user_metadata: user.user_metadata } : null;
+const toAuthUser = (
+  user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: AuthUser["user_metadata"];
+  } | null
+) =>
+  user
+    ? {
+        id: user.id,
+        email: user.email ?? null,
+        user_metadata: user.user_metadata,
+      }
+    : null;
 
 export function AuthProvider({
   children,
@@ -46,7 +58,9 @@ export function AuthProvider({
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
-  const authSession = useAuthSessionQuery({ initialData: initialSession ?? undefined });
+  const authSession = useAuthSessionQuery({
+    initialData: initialSession ?? undefined,
+  });
   const [isMutatingAuth, setIsMutatingAuth] = useState(false);
   const user = authSession.data?.user ?? null;
   const adminAccess = authSession.data?.adminAccess ?? false;
@@ -67,6 +81,12 @@ export function AuthProvider({
       return { error };
     }
 
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      const channel = new BroadcastChannel("auth-sync");
+      channel.postMessage({ type: "LOGOUT" });
+      channel.close();
+    }
+
     queryClient.clear();
     setCachedSession({ user: null, adminAccess: false });
     setIsMutatingAuth(false);
@@ -75,10 +95,48 @@ export function AuthProvider({
   }, [setCachedSession, queryClient]);
 
   useEffect(() => {
-    if (!authSession.isPending && !authSession.isFetching && !isMutatingAuth && !user && isAuthRequiredPath(pathname)) {
+    if (
+      !authSession.isPending &&
+      !authSession.isFetching &&
+      !isMutatingAuth &&
+      !user &&
+      isAuthRequiredPath(pathname)
+    ) {
       router.replace(buildLoginRedirectHref(pathname));
     }
-  }, [authSession.isPending, authSession.isFetching, isMutatingAuth, user, pathname, router]);
+  }, [
+    authSession.isPending,
+    authSession.isFetching,
+    isMutatingAuth,
+    user,
+    pathname,
+    router,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("BroadcastChannel" in window)) {
+      return;
+    }
+
+    const channel = new BroadcastChannel("auth-sync");
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data;
+      if (
+        data === "logout" ||
+        (typeof data === "object" && data !== null && data.type === "LOGOUT")
+      ) {
+        queryClient.clear();
+        setCachedSession({ user: null, adminAccess: false });
+        router.refresh();
+      }
+    };
+
+    channel.addEventListener("message", handleMessage);
+    return () => {
+      channel.removeEventListener("message", handleMessage);
+      channel.close();
+    };
+  }, [queryClient, router, setCachedSession]);
 
   useEffect(() => {
     let isMounted = true;
@@ -87,20 +145,22 @@ export function AuthProvider({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUser = toAuthUser(session?.user ?? null);
-      const currentSession = queryClient.getQueryData<AuthSession>(queryKeys.auth.session);
+      const currentSession = queryClient.getQueryData<AuthSession>(
+        queryKeys.auth.session
+      );
 
       if (!isMounted) {
         return;
       }
 
-      if (event === 'INITIAL_SESSION') {
+      if (event === "INITIAL_SESSION") {
         return;
       }
 
       const isSameUser = currentSession?.user?.id === nextUser?.id;
 
       // Only refresh the router if the user explicitly changed or metadata updated.
-      // We explicitly avoid calling refresh on redundant SIGNED_IN events for the 
+      // We explicitly avoid calling refresh on redundant SIGNED_IN events for the
       // same user (often fired on focus) or TOKEN_REFRESHED.
       if (
         event === "SIGNED_OUT" ||
@@ -118,7 +178,9 @@ export function AuthProvider({
         return;
       }
 
-      const adminAccess = isSameUser ? (currentSession?.adminAccess ?? false) : false;
+      const adminAccess = isSameUser
+        ? (currentSession?.adminAccess ?? false)
+        : false;
 
       // Update the cache directly without invalidating to avoid an immediate background network request.
       setCachedSession({ user: nextUser, adminAccess });

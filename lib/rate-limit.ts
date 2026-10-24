@@ -1,10 +1,10 @@
-type RateLimitOptions = {
+export type RateLimitOptions = {
   key: string;
   limit: number;
   windowSeconds: number;
 };
 
-type RateLimitResult = {
+export type RateLimitResult = {
   success: boolean;
   retryAfter: number;
 };
@@ -135,4 +135,42 @@ export const rateLimit = async (
   }
 
   return rateLimitWithMemory(key, options);
+};
+
+export const peekRateLimit = async (
+  target: Request | string,
+  options: RateLimitOptions
+): Promise<{ blocked: boolean; retryAfter: number }> => {
+  const key = getRateLimitKey(target, options.key);
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (url && token) {
+    try {
+      const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { result?: unknown };
+        const count = Number(data.result ?? 0);
+        return { blocked: count >= options.limit, retryAfter: options.windowSeconds };
+      }
+    } catch (error) {
+      console.error("Upstash rate limit peek error:", error);
+    }
+  }
+
+  const existing = memoryStore.get(key);
+  const now = Date.now();
+
+  if (!existing || existing.resetAt <= now) {
+    return { blocked: false, retryAfter: 0 };
+  }
+
+  return {
+    blocked: existing.count >= options.limit,
+    retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
+  };
 };

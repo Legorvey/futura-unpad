@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  verifyPasswordRecoveryToken,
+} from "@/lib/password-recovery";
 import { rateLimit } from "@/lib/rate-limit";
 import { resetPasswordSchema } from "@/lib/validation";
 import {
@@ -35,14 +38,7 @@ export async function POST(request: Request) {
   }
 
   const cookieStore = await cookies();
-  const hasRecoveryContext = cookieStore.has(PASSWORD_RECOVERY_COOKIE);
-
-  if (!hasRecoveryContext) {
-    return NextResponse.json(
-      { error: "Reset link is invalid or expired" },
-      { status: 403 }
-    );
-  }
+  const recoveryCookie = cookieStore.get(PASSWORD_RECOVERY_COOKIE)?.value;
 
   const supabase = await createClient();
   const {
@@ -56,6 +52,53 @@ export async function POST(request: Request) {
     );
     response.cookies.delete(PASSWORD_RECOVERY_COOKIE);
     return response;
+  }
+
+  // SECURE USER-BOUND RECOVERY VALIDATION:
+  // Validate the recovery cookie against an unforgeable, user-bound HMAC token.
+  // A forged client-side cookie or mismatched user ID is strictly rejected.
+  if (!verifyPasswordRecoveryToken(recoveryCookie, user.id)) {
+    const response = NextResponse.json(
+      { error: "Reset link is invalid or expired" },
+      { status: 403 }
+    );
+    response.cookies.delete(PASSWORD_RECOVERY_COOKIE);
+    return response;
+  }
+
+  // STEP-UP REQUIRED BEFORE PASSWORD CHANGE AND FACTOR EVICTION:
+  // Control of the mailbox (or of the password alone) is not proof of possession of
+  // the enrolled authenticator. Without a live second-factor proof here, knowledge of
+  // the password would be enough to strip MFA and bind an attacker-controlled device.
+  const { data: factorsList } = await supabase.auth.mfa.listFactors();
+  const verifiedFactors =
+    factorsList?.all?.filter((factor) => factor.status === "verified") ?? [];
+
+  if (verifiedFactors.length > 0) {
+    const mfaCode = parsed.data.mfaCode;
+
+    if (!mfaCode) {
+      return NextResponse.json(
+        { error: "Kode autentikator wajib diisi", requiresMfa: true },
+        { status: 401 }
+      );
+    }
+
+    const { error: mfaVerifyError } =
+      await supabase.auth.mfa.challengeAndVerify({
+        factorId: verifiedFactors[0].id,
+        code: mfaCode,
+      });
+
+    if (mfaVerifyError) {
+      return NextResponse.json(
+        {
+          error: "Kode autentikator salah atau telah kedaluwarsa",
+          requiresMfa: true,
+        },
+        { status: 403 }
+      );
+    }
   }
 
   // Update password using the authenticated recovery session
@@ -72,10 +115,8 @@ export async function POST(request: Request) {
   }
 
   // SELF-SERVICE RECOVERY & FACTOR RESET:
-  // If an account had MFA factors bound (which may be a lost device or an attacker-bound factor),
-  // resetting the password via verified email recovery deletes existing factors.
-  // This restores the owner's self-service recovery path and forces fresh enrollment
-  // upon the next login, ensuring an attacker cannot hold an account permanently hostage.
+  // Reached only after the caller has proven possession of the enrolled authenticator,
+  // so an attacker holding the password alone can never evict MFA and re-enroll.
   const adminClient = createAdminClient();
   try {
     const { data: factorsData } = await adminClient.auth.admin.mfa.listFactors({
@@ -110,7 +151,7 @@ export async function POST(request: Request) {
     to: user.email,
     subject: "Peringatan Keamanan: Kata Sandi Futura Berhasil Direset",
     title: "Kata Sandi Berhasil Direset",
-    message: `Kata sandi akun Anda (${user.email}) telah berhasil diperbarui melalui tautan pemulihan email. Semua sesi aktif dan autentikator MFA sebelumnya telah direset untuk keamanan. Silakan masuk kembali dan konfigurasikan MFA baru.`,
+    message: `Kata sandi akun Anda (${user.email}) telah berhasil diperbarui melalui tautan pemulihan email. Semua sesi aktif telah direset untuk keamanan. Silakan masuk kembali dengan kata sandi baru Anda.`,
     actionText: "Masuk ke Futura",
     actionUrl: `${appOrigin}/login`,
   }).catch((err) => console.error("Error sending password reset alert email:", err));

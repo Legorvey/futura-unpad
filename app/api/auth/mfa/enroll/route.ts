@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  verifyPasswordRecoveryToken,
+} from "@/lib/password-recovery";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   createClient,
@@ -30,17 +33,6 @@ export async function POST(request: Request) {
     return rateLimited(ipLimit.retryAfter);
   }
 
-  const cookieStore = await cookies();
-  if (cookieStore.has(PASSWORD_RECOVERY_COOKIE)) {
-    return NextResponse.json(
-      {
-        error:
-          "Pendaftaran MFA tidak diizinkan selama sesi pemulihan kata sandi.",
-      },
-      { status: 403, headers: noCacheHeaders }
-    );
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -50,6 +42,18 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Sesi tidak valid atau telah berakhir" },
       { status: 401, headers: noCacheHeaders }
+    );
+  }
+
+  const cookieStore = await cookies();
+  const recoveryCookie = cookieStore.get(PASSWORD_RECOVERY_COOKIE)?.value;
+  if (verifyPasswordRecoveryToken(recoveryCookie, user.id)) {
+    return NextResponse.json(
+      {
+        error:
+          "Pendaftaran MFA tidak diizinkan selama sesi pemulihan kata sandi.",
+      },
+      { status: 403, headers: noCacheHeaders }
     );
   }
 

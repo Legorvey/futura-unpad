@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { rateLimit } from "@/lib/rate-limit";
+import { peekRateLimit, rateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/validation";
 import {
   AUTH_PERSISTENCE_COOKIE,
@@ -35,15 +35,25 @@ export async function POST(request: Request) {
   }
 
   // Account-level throttling (anti-bruteforce across distributed IPs/proxies).
-  // A slot is consumed only when credentials are rejected, so an attacker cannot
-  // deny a legitimate user access to their own account.
+  // The identifier budget is checked BEFORE any credential verification, otherwise
+  // the throttle state never prevents a guess from being evaluated. A slot is still
+  // consumed only when credentials are rejected, so a successful sign-in is never
+  // penalised by earlier typos.
   const normalizedIdentifier = parsed.data.identifier.toLowerCase().trim();
+  const identifierThrottle = {
+    key: "auth-login-identifier",
+    limit: 5,
+    windowSeconds: 300,
+  };
+
+  const identifierStatus = await peekRateLimit(normalizedIdentifier, identifierThrottle);
+
+  if (identifierStatus.blocked) {
+    return rateLimited(identifierStatus.retryAfter);
+  }
+
   const consumeIdentifierFailure = () =>
-    rateLimit(normalizedIdentifier, {
-      key: "auth-login-identifier",
-      limit: 5,
-      windowSeconds: 300,
-    });
+    rateLimit(normalizedIdentifier, identifierThrottle);
 
   const keepSignedIn = parsed.data.keepSignedIn ?? true;
 

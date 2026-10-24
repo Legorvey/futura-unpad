@@ -3,6 +3,7 @@ import {
     PASSWORD_RECOVERY_COOKIE,
     PASSWORD_RECOVERY_MAX_AGE_SECONDS,
     passwordRecoveryCookieOptions,
+    createPasswordRecoveryToken,
 } from "@/lib/password-recovery"
 import {
     AUTH_PERSISTENCE_COOKIE,
@@ -158,8 +159,9 @@ export async function GET(request: Request) {
         )
     }
 
-    if (isPasswordRecoveryRedirect) {
-        response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {
+    if (isPasswordRecoveryRedirect && user) {
+        const recoveryToken = createPasswordRecoveryToken(user.id)
+        response.cookies.set(PASSWORD_RECOVERY_COOKIE, recoveryToken, {
             ...passwordRecoveryCookieOptions,
             maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
         })

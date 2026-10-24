@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { emailSchema } from "@/lib/validation";
 import { z } from "zod";
+import { createClient } from "@/utils/supabase/server";
 
 const verifyOtpSchema = z.object({
-  email: emailSchema,
-  token: z.string().trim().min(1).max(32),
-  type: z.enum(["signup", "recovery", "email_change"]).optional().default("signup"),
+  email: z.string().email(),
+  token: z.string().length(6),
+  type: z.enum(["signup", "recovery", "invite", "magiclink", "email_change"]),
 });
 
 export async function POST(request: Request) {
+  // IP-level rate limiting
   const limit = await rateLimit(request, {
     key: "auth-verify-otp",
     limit: 10,
-    windowSeconds: 300,
+    windowSeconds: 60,
   });
 
   if (!limit.success) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       email,
       token,
       type,
@@ -88,11 +88,17 @@ export async function POST(request: Request) {
         PASSWORD_RECOVERY_COOKIE,
         PASSWORD_RECOVERY_MAX_AGE_SECONDS,
         passwordRecoveryCookieOptions,
+        createPasswordRecoveryToken,
       } = await import("@/lib/password-recovery");
-      response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {
-        ...passwordRecoveryCookieOptions,
-        maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
-      });
+
+      const verifiedUser = data?.user;
+      if (verifiedUser) {
+        const recoveryToken = createPasswordRecoveryToken(verifiedUser.id);
+        response.cookies.set(PASSWORD_RECOVERY_COOKIE, recoveryToken, {
+          ...passwordRecoveryCookieOptions,
+          maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
+        });
+      }
     }
 
     return response;

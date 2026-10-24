@@ -119,7 +119,11 @@ export default function Footer({ forceShow = false }: { forceShow?: boolean } = 
       pathname === "/profile" ||
       pathname.startsWith("/profile/") ||
       pathname === "/login" ||
-      pathname === "/register")
+      pathname.startsWith("/login/") ||
+      pathname === "/register" ||
+      pathname.startsWith("/register/") ||
+      pathname === "/forgot-password" ||
+      pathname === "/reset-password")
   ) {
     return null;
   }

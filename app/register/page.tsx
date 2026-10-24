@@ -5,10 +5,9 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import RegisterForm from "./form"
 import { getCachedAuth } from "@/lib/auth"
-import { ParallaxBackgrounds } from "@/components/landing/parallax-backgrounds"
 import LoginInfoHub from "@/app/login/login-info-hub"
 
-import { getSafeRedirectPath } from "@/lib/navigation"
+import { getSafeRedirectPath, getSafeAdminRedirectPath } from "@/lib/navigation"
 
 export const metadata: Metadata = {
   title: "Buat Akun"
@@ -21,9 +20,23 @@ export default async function RegisterPage({
 }: {
     searchParams: RegisterSearchParams
 }){
-    const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
+    const [params, auth] = await Promise.all([searchParams, getCachedAuth()]);
+    const { user, adminAccess, needsMfaVerification, needsMfaEnrollment } = auth;
+
+    if (user && needsMfaVerification) {
+        const adminNext = getSafeAdminRedirectPath(params.next, "/admin");
+        redirect(`/login/mfa-verify?next=${encodeURIComponent(adminNext)}`);
+    }
+
+    if (user && needsMfaEnrollment) {
+        const adminNext = getSafeAdminRedirectPath(params.next, "/admin");
+        redirect(`/login/mfa-enroll?next=${encodeURIComponent(adminNext)}`);
+    }
 
     if (user) {
+        if (adminAccess) {
+            redirect(params.next ? getSafeAdminRedirectPath(params.next, "/admin") : "/admin");
+        }
         redirect(getSafeRedirectPath(params.next))
     }
 

@@ -61,6 +61,12 @@ export const resetPasswordSchema = z
   .object({
     password: passwordSchema,
     confirmPassword: passwordSchema,
+    mfaCode: z
+      .union([
+        z.literal(""),
+        z.string().regex(/^\d{6}$/, "Kode autentikator harus 6 digit angka."),
+      ])
+      .optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Kata sandi tidak cocok.",

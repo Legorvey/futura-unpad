@@ -1,82 +1,111 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
-import { rateLimited } from "@/lib/http";
+import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
+import { z } from "zod";
+import { createClient } from "@/utils/supabase/server";
+
+const verifyOtpSchema = z.object({
+  email: z.string().email(),
+  token: z.string().length(6),
+  type: z.enum(["signup", "recovery", "invite", "magiclink", "email_change"]),
+});
 
 export async function POST(request: Request) {
-    const limit = await rateLimit(request, {
-        key: "auth-verify-otp",
-        limit: 10,
-        windowSeconds: 300,
+  // IP-level rate limiting
+  const limit = await rateLimit(request, {
+    key: "auth-verify-otp",
+    limit: 10,
+    windowSeconds: 60,
+  });
+
+  if (!limit.success) {
+    return rateLimited(limit.retryAfter);
+  }
+
+  const body = await readJsonBody(request);
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = verifyOtpSchema.safeParse(body.data);
+  if (!parsed.success) {
+    return invalidRequest();
+  }
+
+  const { email, token, type } = parsed.data;
+
+  try {
+    const emailLimit = await rateLimit(email, {
+      key: "auth-verify-otp-account",
+      limit: 10,
+      windowSeconds: 300,
     });
 
-    if (!limit.success) {
-        return rateLimited(limit.retryAfter);
+    if (!emailLimit.success) {
+      return rateLimited(emailLimit.retryAfter);
     }
 
-    try {
-        const { email, token, type = "signup" } = await request.json();
+    const supabase = await createClient();
 
-        if (!email || !token) {
-            return NextResponse.json({ error: "Email and token are required" }, { status: 400 });
-        }
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type,
+    });
 
-        const normalizedEmail = email.toLowerCase().trim();
-        const emailLimit = await rateLimit(normalizedEmail, {
-            key: "auth-verify-otp-account",
-            limit: 10,
-            windowSeconds: 300,
-        });
-
-        if (!emailLimit.success) {
-            return rateLimited(emailLimit.retryAfter);
-        }
-
-        const supabase = await createClient();
-
-        const { error, data } = await supabase.auth.verifyOtp({
-            email,
-            token,
-            type: type as any,
-        });
-
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 400 });
-        }
-
-        if (type === "signup") {
-            // Successfully verified. We want them to log in manually, so we sign out the session
-            await supabase.auth.signOut();
-
-            const response = NextResponse.json({ ok: true });
-            
-            // Set a secure, short-lived flash cookie to display the success message on the login page
-            // This prevents URL spoofing attacks (e.g. attacker sending /login?verified=true)
-            response.cookies.set("email_verified_flash", "1", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                maxAge: 30, // Expires in 30 seconds
-                path: "/login",
-            });
-
-            return response;
-        }
-
-        // For recovery, we want them to stay signed in so they can access /reset-password
-        // Do not expose raw tokens/session in JSON response body
-        const response = NextResponse.json({ ok: true });
-        
-        if (type === "recovery") {
-            const { PASSWORD_RECOVERY_COOKIE, PASSWORD_RECOVERY_MAX_AGE_SECONDS, passwordRecoveryCookieOptions } = await import("@/lib/password-recovery");
-            response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {
-                ...passwordRecoveryCookieOptions,
-                maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
-            });
-        }
-        
-        return response;
-    } catch (err: any) {
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (error) {
+      return NextResponse.json(
+        { error: "Kode OTP tidak valid atau telah kedaluwarsa" },
+        { status: 400 }
+      );
     }
+
+    if (type === "signup") {
+      // Successfully verified. We want them to log in manually, so we sign out the session
+      await supabase.auth.signOut();
+
+      const response = NextResponse.json({ ok: true });
+
+      // Set a secure, short-lived flash cookie to display the success message on the login page
+      // This prevents URL spoofing attacks (e.g. attacker sending /login?verified=true)
+      response.cookies.set("email_verified_flash", "1", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30, // Expires in 30 seconds
+        path: "/login",
+      });
+
+      return response;
+    }
+
+    // For recovery, we want them to stay signed in so they can access /reset-password
+    // Do not expose raw tokens/session in JSON response body
+    const response = NextResponse.json({ ok: true });
+
+    if (type === "recovery") {
+      const {
+        PASSWORD_RECOVERY_COOKIE,
+        PASSWORD_RECOVERY_MAX_AGE_SECONDS,
+        passwordRecoveryCookieOptions,
+        createPasswordRecoveryToken,
+      } = await import("@/lib/password-recovery");
+
+      const verifiedUser = data?.user;
+      if (verifiedUser) {
+        const recoveryToken = createPasswordRecoveryToken(verifiedUser.id);
+        response.cookies.set(PASSWORD_RECOVERY_COOKIE, recoveryToken, {
+          ...passwordRecoveryCookieOptions,
+          maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
+        });
+      }
+    }
+
+    return response;
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

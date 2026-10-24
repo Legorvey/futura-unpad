@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink, FileText, Info, MapPin, Receipt, Bot, Building2, AlertTriangle, User } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Info, Building2, AlertTriangle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -20,21 +20,16 @@ import {
 } from "@/components/ui/sheet";
 import { getSafeUrl } from "../_lib/mechatura-utils";
 import {
-    isMechaturaCompetitionType,
-    mechaturaCompetitionLabels,
-    paymentStatusLabels,
     type PaymentStatus,
 } from "@/lib/payment";
 import { formatMechaturaDateTime } from "@/lib/mechatura/format";
+import { requireAdminOrRedirect } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { TeamDetailActions } from "./team-detail-actions";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-
-const MECHATURA_DOCUMENT_BUCKET = "mechatura-documents";
-const DOCUMENT_URL_EXPIRES_IN_SECONDS = 10 * 60;
 
 const detailColumns = [
     "id",
@@ -89,11 +84,6 @@ type MechaturaDetailMember = {
     fallback_name?: string | null;
 };
 
-type DocumentLink = {
-    label: string;
-    href: string | null;
-};
-
 const statusClassName: Record<PaymentStatus, string> = {
     unpaid: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
     pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
@@ -108,22 +98,6 @@ const statusClassName: Record<PaymentStatus, string> = {
 
 const getPaymentStatus = (status: string | null): PaymentStatus =>
     status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
-
-const getDocumentLink = async (
-    supabase: Awaited<ReturnType<typeof createClient>>,
-    label: string,
-    path: string | null
-): Promise<DocumentLink> => {
-    if (!path) {
-        return { label, href: null };
-    }
-
-    const { data, error } = await supabase.storage
-        .from(MECHATURA_DOCUMENT_BUCKET)
-        .createSignedUrl(path, DOCUMENT_URL_EXPIRES_IN_SECONDS);
-
-    return { label, href: error ? null : data.signedUrl };
-};
 
 const DetailItem = ({
     label,
@@ -140,26 +114,9 @@ const DetailItem = ({
     </div>
 );
 
-const formatPaymentType = (type: string | null) => {
-    if (!type) return "-";
-    const map: Record<string, string> = {
-        gopay: "GoPay",
-        qris: "QRIS",
-        shopeepay: "ShopeePay",
-        credit_card: "Credit Card",
-        bank_transfer: "Bank Transfer",
-        echannel: "Mandiri Bill",
-        cstore: "Convenience Store",
-        bca_klikpay: "BCA KlikPay",
-        bca_klikbca: "KlikBCA",
-    };
-    return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-};
-
 const AdminSidebarContent = ({
     registrationData,
     competition,
-    paymentStatus,
 }: {
     registrationData: MechaturaDetailRegistration;
     competition: string;
@@ -260,6 +217,8 @@ export default async function MechaturaRegistrationDetails({
 }: {
     params: Promise<{ id: string }>;
 }) {
+    await requireAdminOrRedirect();
+
     const { id } = await params;
     const supabase = await createClient();
     const { data: registrationData, error } = await supabase
@@ -300,7 +259,7 @@ export default async function MechaturaRegistrationDetails({
                                        meta.name?.trim() || 
                                        null;
                     }
-                } catch (e) {
+                } catch {
                     // ignore error
                 }
             }

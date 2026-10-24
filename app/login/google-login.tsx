@@ -3,9 +3,10 @@
 import { createClient } from "@/utils/supabase/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { getSafeRedirectPath } from "@/lib/navigation"
+import { getSafeRedirectPath, getSafeAdminRedirectPath } from "@/lib/navigation"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
 import { AUTH_PERSISTENCE_COOKIE, SESSION_AUTH_PERSISTENCE } from "@/utils/supabase/auth-cookies"
+import { toast } from "sonner"
 
 // Ensure this environment variable is set
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
@@ -21,14 +22,14 @@ export default function GoogleLoginButton({
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
-    const handleSuccess = async (credentialResponse: any) => {
+    const handleSuccess = async (credentialResponse: { credential?: string }) => {
         if (onBeforeLogin && !onBeforeLogin()) {
             return
         }
 
         if (!credentialResponse.credential) {
             console.error("No credential received from Google")
-            alert("Google login failed. Please try again.")
+            toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
             return
         }
 
@@ -49,21 +50,45 @@ export default function GoogleLoginButton({
 
             if (error) {
                 console.error("Supabase auth error:", error)
-                alert("Google login failed. Please try again.")
+                toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
                 setIsLoading(false)
                 return
             }
 
-            // On success, manually redirect the user since we aren't using the server-side callback anymore
-            const currentUrl = new URL(window.location.href)
-            const nextPath = getSafeRedirectPath(currentUrl.searchParams.get("next") ?? "/profile")
-            
-            // Use router.replace to safely navigate without triggering duplicate route refresh race conditions
+            const currentUrl = new URL(window.location.href);
+            const rawNext = currentUrl.searchParams.get("next");
+
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                const [{ data: adminRecord }, { data: aalData }] = await Promise.all([
+                    supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle(),
+                    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+                ]);
+
+                if (adminRecord) {
+                    const adminDestination = getSafeAdminRedirectPath(rawNext, "/admin");
+                    if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+                        router.replace(`/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`);
+                        return;
+                    }
+
+                    if (aalData?.nextLevel !== "aal2") {
+                        router.replace(`/login/mfa-enroll?next=${encodeURIComponent(adminDestination)}`);
+                        return;
+                    }
+
+                    router.replace(adminDestination);
+                    return;
+                }
+            }
+
+            const nextPath = getSafeRedirectPath(rawNext, "/profile");
             router.replace(nextPath);
 
         } catch (error) {
             console.error("Unexpected error during Google login:", error)
-            alert("Google login failed. Please try again.")
+            toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
             setIsLoading(false)
         }
     }
@@ -83,7 +108,7 @@ export default function GoogleLoginButton({
                     onSuccess={handleSuccess}
                     onError={() => {
                         console.error("Google popup closed or failed")
-                        alert("Google login failed. Please try again.")
+                        toast.error("Gagal masuk dengan Google. Silakan coba lagi.")
                     }}
                     theme="outline"
                     size="large"

@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { PASSWORD_RECOVERY_COOKIE } from "@/lib/password-recovery";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  verifyPasswordRecoveryToken,
+} from "@/lib/password-recovery";
+import { createClient } from "@/utils/supabase/server";
 import { ArrowLeft } from "lucide-react";
 import ResetPasswordForm from "./reset-password-form";
 
@@ -94,11 +98,21 @@ export default async function ResetPasswordPage({
   }
 
   const cookieStore = await cookies();
-  const hasRecoveryContext = cookieStore.has(PASSWORD_RECOVERY_COOKIE);
+  const recoveryCookie = cookieStore.get(PASSWORD_RECOVERY_COOKIE)?.value;
 
-  if (!hasRecoveryContext) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !verifyPasswordRecoveryToken(recoveryCookie, user.id)) {
     return <ExpiredResetLink />;
   }
 
-  return <ResetPasswordForm />;
+  const { data: factorsList } = await supabase.auth.mfa.listFactors();
+  const verifiedFactors =
+    factorsList?.all?.filter((factor) => factor.status === "verified") ?? [];
+  const requiresMfa = verifiedFactors.length > 0;
+
+  return <ResetPasswordForm requiresMfa={requiresMfa} />;
 }

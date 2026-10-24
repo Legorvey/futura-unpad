@@ -4,8 +4,9 @@ import {
   AUTH_PERSISTENCE_COOKIE,
   isSessionAuthPersistence,
 } from "@/utils/supabase/auth-cookies";
+import { verifyPasswordRecoveryToken } from "@/lib/password-recovery";
 
-import { isAuthRequiredPath, buildLoginRedirectHref } from "@/lib/auth-routes";
+import { isAuthRequiredPath } from "@/lib/auth-routes";
 
 export const updateSession = async (request: NextRequest) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -80,7 +81,8 @@ export const updateSession = async (request: NextRequest) => {
     return redirectResponse;
   }
 
-  const hasRecoveryContext = request.cookies.has("futura_password_recovery");
+  const recoveryCookie = request.cookies.get("futura_password_recovery")?.value;
+  const hasRecoveryContext = !!(user && verifyPasswordRecoveryToken(recoveryCookie, user.id));
   if (user && hasRecoveryContext && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/reset-password';

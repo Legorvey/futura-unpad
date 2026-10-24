@@ -1,9 +1,9 @@
-/* eslint-disable */
 import { NextResponse } from "next/server"
 import {
     PASSWORD_RECOVERY_COOKIE,
     PASSWORD_RECOVERY_MAX_AGE_SECONDS,
     passwordRecoveryCookieOptions,
+    createPasswordRecoveryToken,
 } from "@/lib/password-recovery"
 import {
     AUTH_PERSISTENCE_COOKIE,
@@ -11,15 +11,15 @@ import {
     authPersistenceCookieOptions,
     getAuthCookiePersistence,
 } from "@/utils/supabase/auth-cookies"
+import { getSafeAdminRedirectPath } from "@/lib/navigation"
 import { createClient } from "@/utils/supabase/server"
-import { cookies } from "next/headers"
 
 const safeRedirectPath = (value: string | null) => {
     if (
         !value ||
         !value.startsWith("/") ||
         value.startsWith("//") ||
-        value.startsWith("/\\") ||
+        value.includes("\\") ||
         value.startsWith("/auth/callback")
     ) {
         return "/"
@@ -38,7 +38,13 @@ export async function GET(request: Request) {
         new URL(safeNextUrl, requestUrl.origin).pathname === "/reset-password"
 
     const token_hash = requestUrl.searchParams.get("token_hash")
-    const type = requestUrl.searchParams.get("type") as any
+    const type = requestUrl.searchParams.get("type") as
+        | "signup"
+        | "recovery"
+        | "email_change"
+        | "magiclink"
+        | "invite"
+        | null
 
     const supabase = await createClient({
         authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
@@ -106,14 +112,25 @@ export async function GET(request: Request) {
 
     let finalNextUrl = safeNextUrl
     if (user && !isPasswordRecoveryRedirect) {
-        const { data: adminData } = await supabase
-            .from("admin_users")
-            .select("user_id")
-            .eq("user_id", user.id)
-            .maybeSingle()
-            
-        if (adminData && (!safeNextUrl || safeNextUrl === "/profile")) {
-            finalNextUrl = "/admin"
+        const [{ data: adminData }, { data: aalData }] = await Promise.all([
+            supabase
+                .from("admin_users")
+                .select("user_id")
+                .eq("user_id", user.id)
+                .maybeSingle(),
+            supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+        ])
+
+        if (adminData) {
+            const adminDestination = getSafeAdminRedirectPath(safeNextUrl, "/admin")
+
+            if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+                finalNextUrl = `/login/mfa-verify?next=${encodeURIComponent(adminDestination)}`
+            } else if (aalData?.nextLevel !== "aal2") {
+                finalNextUrl = `/login/mfa-enroll?next=${encodeURIComponent(adminDestination)}`
+            } else {
+                finalNextUrl = adminDestination
+            }
         }
     }
 
@@ -142,8 +159,9 @@ export async function GET(request: Request) {
         )
     }
 
-    if (isPasswordRecoveryRedirect) {
-        response.cookies.set(PASSWORD_RECOVERY_COOKIE, "1", {
+    if (isPasswordRecoveryRedirect && user) {
+        const recoveryToken = createPasswordRecoveryToken(user.id)
+        response.cookies.set(PASSWORD_RECOVERY_COOKIE, recoveryToken, {
             ...passwordRecoveryCookieOptions,
             maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
         })

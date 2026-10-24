@@ -1,10 +1,10 @@
-type RateLimitOptions = {
+export type RateLimitOptions = {
   key: string;
   limit: number;
   windowSeconds: number;
 };
 
-type RateLimitResult = {
+export type RateLimitResult = {
   success: boolean;
   retryAfter: number;
 };
@@ -17,7 +17,7 @@ type MemoryEntry = {
 const memoryStore = new Map<string, MemoryEntry>();
 
 // Clean up expired entries every 10 minutes to prevent memory leaks
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, value] of memoryStore.entries()) {
     if (value.resetAt <= now) {
@@ -25,24 +25,30 @@ setInterval(() => {
     }
   }
 }, 10 * 60 * 1000);
+cleanupInterval.unref?.();
 
-const getClientIp = (request: Request) => {
+export const getClientIp = (request: Request) => {
   // In Vercel deployments, x-vercel-forwarded-for is injected by edge proxies and cannot be forged by client
   const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
   if (vercelForwardedFor) {
     return vercelForwardedFor.split(",")[0]?.trim() || "unknown";
   }
 
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
-  }
-
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
     // Take the last hop appended by the trusted reverse proxy to avoid client-spoofed prefix
-    const parts = forwardedFor.split(",").map((p) => p.trim()).filter(Boolean);
-    return parts[parts.length - 1] || "unknown";
+    const parts = forwardedFor
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (parts.length > 0) {
+      return parts[parts.length - 1]!;
+    }
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
   }
 
   return "unknown";
@@ -75,17 +81,17 @@ const rateLimitWithMemory = (
   };
 };
 
-const rateLimitWithUpstash = async (                                                                                                             
-  key:string,                                                                                                                                  
-  options:RateLimitOptions                                                                                                                     
-): Promise<RateLimitResult | null> =>{                                                                                                          
-  const url = process.env.UPSTASH_REDIS_REST_URL;                                                                                               
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;                                                                                            
-                                                                                                                                              
-  if (!url || !token){                                                                                                                         
-    return null;                                                                                                                                
-  }   
-       
+const rateLimitWithUpstash = async (
+  key: string,
+  options: RateLimitOptions
+): Promise<RateLimitResult | null> => {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
   try {
     const res = await fetch(`${url}/pipeline`, {
       method: "POST",
@@ -129,4 +135,42 @@ export const rateLimit = async (
   }
 
   return rateLimitWithMemory(key, options);
+};
+
+export const peekRateLimit = async (
+  target: Request | string,
+  options: RateLimitOptions
+): Promise<{ blocked: boolean; retryAfter: number }> => {
+  const key = getRateLimitKey(target, options.key);
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (url && token) {
+    try {
+      const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { result?: unknown };
+        const count = Number(data.result ?? 0);
+        return { blocked: count >= options.limit, retryAfter: options.windowSeconds };
+      }
+    } catch (error) {
+      console.error("Upstash rate limit peek error:", error);
+    }
+  }
+
+  const existing = memoryStore.get(key);
+  const now = Date.now();
+
+  if (!existing || existing.resetAt <= now) {
+    return { blocked: false, retryAfter: 0 };
+  }
+
+  return {
+    blocked: existing.count >= options.limit,
+    retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
+  };
 };

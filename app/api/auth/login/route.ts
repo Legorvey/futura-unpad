@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { rateLimit } from "@/lib/rate-limit";
+import { peekRateLimit, rateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/validation";
 import {
   AUTH_PERSISTENCE_COOKIE,
@@ -34,17 +34,46 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
+  // Account-level throttling (anti-bruteforce across distributed IPs/proxies).
+  // The identifier budget is checked BEFORE any credential verification, otherwise
+  // the throttle state never prevents a guess from being evaluated. A slot is still
+  // consumed only when credentials are rejected, so a successful sign-in is never
+  // penalised by earlier typos.
+  const normalizedIdentifier = parsed.data.identifier.toLowerCase().trim();
+  const identifierThrottle = {
+    key: "auth-login-identifier",
+    limit: 5,
+    windowSeconds: 300,
+  };
+
+  const identifierStatus = await peekRateLimit(normalizedIdentifier, identifierThrottle);
+
+  if (identifierStatus.blocked) {
+    return rateLimited(identifierStatus.retryAfter);
+  }
+
+  const consumeIdentifierFailure = () =>
+    rateLimit(normalizedIdentifier, identifierThrottle);
+
   const keepSignedIn = parsed.data.keepSignedIn ?? true;
 
   const supabase = await createClient({
     authCookiePersistence: getAuthCookiePersistence(keepSignedIn),
   });
   
+  const GENERIC_AUTH_ERROR = "Email/username atau kata sandi tidak valid";
+
   let email = parsed.data.identifier;
   if (!email.includes('@')) {
-    const { data: resolvedEmail } = await supabase.rpc('get_email_by_username', { p_username: parsed.data.identifier.toLowerCase() });
+    const { data: resolvedEmail } = await supabase.rpc('get_email_by_username', { p_username: normalizedIdentifier });
     if (!resolvedEmail) {
-      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+      const accountLimit = await consumeIdentifierFailure();
+
+      if (!accountLimit.success) {
+        return rateLimited(accountLimit.retryAfter);
+      }
+
+      return NextResponse.json({ error: GENERIC_AUTH_ERROR }, { status: 401 });
     }
     email = resolvedEmail;
   }
@@ -55,7 +84,13 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    const accountLimit = await consumeIdentifierFailure();
+
+    if (!accountLimit.success) {
+      return rateLimited(accountLimit.retryAfter);
+    }
+
+    return NextResponse.json({ error: GENERIC_AUTH_ERROR }, { status: 401 });
   }
 
   const cookieStore = await cookies();
@@ -74,14 +109,35 @@ export async function POST(request: Request) {
   }
 
   let adminAccess = false;
+  let requiresMfa = false;
+  let requiresMfaEnrollment = false;
+
   if (error === null) {
-    const { data: adminData } = await supabase
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", (await supabase.auth.getUser()).data.user?.id || "")
-      .maybeSingle();
-    adminAccess = !!adminData;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: adminData } = await supabase
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (adminData) {
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2") {
+          requiresMfa = true;
+        } else if (aal?.currentLevel === "aal2") {
+          adminAccess = true;
+        } else {
+          requiresMfaEnrollment = true;
+        }
+      }
+    }
   }
 
-  return NextResponse.json({ ok: true, adminAccess });
+  return NextResponse.json({
+    ok: true,
+    adminAccess,
+    requiresMfa,
+    requiresMfaEnrollment,
+  });
 }

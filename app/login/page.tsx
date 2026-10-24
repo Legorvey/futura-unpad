@@ -4,7 +4,7 @@ import { getCachedAuth } from "@/lib/auth";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { cookies } from "next/headers";
-import { getSafeRedirectPath } from "@/lib/navigation";
+import { getSafeRedirectPath, getSafeAdminRedirectPath } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import LoginInfoHub from "./login-info-hub";
@@ -93,9 +93,24 @@ export default async function LoginPage({
 }: {
   searchParams: LoginSearchParams;
 }) {
-  const [params, { user }] = await Promise.all([searchParams, getCachedAuth()]);
+  const [params, auth] = await Promise.all([searchParams, getCachedAuth()]);
+  const { user, needsMfaVerification, needsMfaEnrollment } = auth;
+  const adminNext = getSafeAdminRedirectPath(params.next, "/admin");
+
+  // An admin who authenticated but has not completed MFA must be sent back to
+  // the MFA pages, not silently redirected to /profile as a regular user.
+  if (user && needsMfaVerification) {
+    redirect(`/login/mfa-verify?next=${encodeURIComponent(adminNext)}`);
+  }
+
+  if (user && needsMfaEnrollment) {
+    redirect(`/login/mfa-enroll?next=${encodeURIComponent(adminNext)}`);
+  }
 
   if (user) {
+    if (auth.adminAccess) {
+      redirect(adminNext);
+    }
     redirect(getSafeRedirectPath(params.next));
   }
 

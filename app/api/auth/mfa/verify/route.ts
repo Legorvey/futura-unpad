@@ -8,6 +8,7 @@ import {
   AUTH_PERSISTENCE_COOKIE,
   SESSION_AUTH_PERSISTENCE,
 } from "@/utils/supabase/auth-cookies";
+import { sendSecurityEmail } from "@/lib/email";
 
 const noCacheHeaders = {
   "Cache-Control": "no-store, max-age=0",
@@ -125,6 +126,23 @@ export async function POST(request: Request) {
         headers: noCacheHeaders,
       }
     );
+  }
+
+  // Send audit alert email so unauthorized factor enrollment is immediately detected by the owner
+  if (user.email) {
+    const appOrigin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://futuraunpad.com";
+
+    sendSecurityEmail({
+      to: user.email,
+      subject: "Peringatan Keamanan: Autentikator MFA Baru Berhasil Didaftarkan",
+      title: "Autentikator MFA Baru Didaftarkan",
+      message: `Sebuah perangkat Google Authenticator baru saja berhasil didaftarkan dan diaktifkan pada akun administrator Anda (${user.email}). Jika ini dilakukan oleh Anda, Anda dapat mengabaikan email ini.`,
+      actionText: "Bukan Anda? Pulihkan Akun Segera",
+      actionUrl: `${appOrigin}/forgot-password`,
+    }).catch((err) => console.error("Error sending MFA enrollment alert email:", err));
   }
 
   return NextResponse.json(

@@ -27,7 +27,7 @@ const cleanupInterval = setInterval(() => {
 }, 10 * 60 * 1000);
 cleanupInterval.unref?.();
 
-const getClientIp = (request: Request) => {
+export const getClientIp = (request: Request) => {
   // In Vercel deployments, x-vercel-forwarded-for is injected by edge proxies and cannot be forged by client
   const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
   if (vercelForwardedFor) {

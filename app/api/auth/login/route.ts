@@ -34,18 +34,16 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
-  // Account-level rate limiting (anti-bruteforce across distributed IPs/proxies)
-  // Max 5 attempts per 5 minutes per identifier
+  // Account-level throttling (anti-bruteforce across distributed IPs/proxies).
+  // A slot is consumed only when credentials are rejected, so an attacker cannot
+  // deny a legitimate user access to their own account.
   const normalizedIdentifier = parsed.data.identifier.toLowerCase().trim();
-  const accountLimit = await rateLimit(normalizedIdentifier, {
-    key: "auth-login-identifier",
-    limit: 5,
-    windowSeconds: 300,
-  });
-
-  if (!accountLimit.success) {
-    return rateLimited(accountLimit.retryAfter);
-  }
+  const consumeIdentifierFailure = () =>
+    rateLimit(normalizedIdentifier, {
+      key: "auth-login-identifier",
+      limit: 5,
+      windowSeconds: 300,
+    });
 
   const keepSignedIn = parsed.data.keepSignedIn ?? true;
 
@@ -59,6 +57,12 @@ export async function POST(request: Request) {
   if (!email.includes('@')) {
     const { data: resolvedEmail } = await supabase.rpc('get_email_by_username', { p_username: normalizedIdentifier });
     if (!resolvedEmail) {
+      const accountLimit = await consumeIdentifierFailure();
+
+      if (!accountLimit.success) {
+        return rateLimited(accountLimit.retryAfter);
+      }
+
       return NextResponse.json({ error: GENERIC_AUTH_ERROR }, { status: 401 });
     }
     email = resolvedEmail;
@@ -70,6 +74,12 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    const accountLimit = await consumeIdentifierFailure();
+
+    if (!accountLimit.success) {
+      return rateLimited(accountLimit.retryAfter);
+    }
+
     return NextResponse.json({ error: GENERIC_AUTH_ERROR }, { status: 401 });
   }
 

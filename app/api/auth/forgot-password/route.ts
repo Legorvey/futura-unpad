@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { invalidRequest, rateLimited, readJsonBody } from "@/lib/http";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { forgotPasswordSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -26,8 +26,11 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
+  // Scope account-level rate limiting to caller's IP + normalized email so an attacker
+  // from a separate network cannot lock out a legitimate user's recovery path.
+  const clientIp = getClientIp(request);
   const normalizedEmail = parsed.data.email.toLowerCase().trim();
-  const emailLimit = await rateLimit(normalizedEmail, {
+  const emailLimit = await rateLimit(`${clientIp}:${normalizedEmail}`, {
     key: "auth-forgot-password-account",
     limit: 3,
     windowSeconds: 300,

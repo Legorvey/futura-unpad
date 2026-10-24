@@ -133,6 +133,24 @@ export async function POST(request: Request) {
         { status: 403, headers: noCacheHeaders }
       );
     }
+  } else {
+    // Enforce session freshness: for federated (e.g. Google OAuth) accounts without passwords,
+    // ensure the authentication session was established recently (within the last 15 minutes).
+    // This removes the window where a long-lived stolen session cookie can bind a permanent credential.
+    const lastSignIn = user.last_sign_in_at
+      ? new Date(user.last_sign_in_at).getTime()
+      : 0;
+    const isSessionFresh = Date.now() - lastSignIn < 15 * 60 * 1000;
+
+    if (!isSessionFresh) {
+      return NextResponse.json(
+        {
+          error:
+            "Sesi autentikasi Anda telah kedaluwarsa untuk tindakan sensitif ini. Silakan keluar dan masuk kembali sebelum mendaftarkan MFA.",
+        },
+        { status: 401, headers: noCacheHeaders }
+      );
+    }
   }
 
   // Clean up ONLY dangling unverified factors from abandoned enrollment attempts.

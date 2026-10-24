@@ -9,6 +9,7 @@ import {
   createStatelessClient,
 } from "@/utils/supabase/server";
 import { z } from "zod";
+import { sendSecurityEmail } from "@/lib/email";
 
 const noCacheHeaders = {
   "Cache-Control": "no-store, max-age=0",
@@ -189,6 +190,23 @@ export async function POST(request: Request) {
       { error: "Gagal mengatur ulang MFA. Silakan coba lagi." },
       { status: 400, headers: noCacheHeaders }
     );
+  }
+
+  // Send audit alert email so unauthorized factor unenrollment is immediately detected
+  if (user.email) {
+    const appOrigin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://futuraunpad.com";
+
+    sendSecurityEmail({
+      to: user.email,
+      subject: "Peringatan Keamanan: MFA Telah Dihapus dari Akun Anda",
+      title: "Autentikasi Dua Faktor Dihapus",
+      message: `Faktor Google Authenticator pada akun administrator Anda (${user.email}) telah berhasil dihapus. Anda akan diminta untuk mendaftarkan faktor baru saat masuk berikutnya.`,
+      actionText: "Bukan Anda? Amankan Akun",
+      actionUrl: `${appOrigin}/forgot-password`,
+    }).catch((err) => console.error("Error sending MFA unenroll alert email:", err));
   }
 
   return NextResponse.json({ ok: true, data }, { headers: noCacheHeaders });

@@ -343,14 +343,14 @@ export default function MechaturaListClient({
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
-                                                            <span className="truncate flex items-center gap-2 text-xs">
+                                                            <span className="truncate flex items-center gap-2">
                                                                 {(() => {
                                                                     const ActiveIcon = categoryOptions.find(o => o.value === localFilters.category)?.icon || LayoutGrid;
-                                                                    return <ActiveIcon className="h-3 w-3" />;
+                                                                    return <ActiveIcon className="h-4 w-4" />;
                                                                 })()}
                                                                 {categoryOptions.find(o => o.value === localFilters.category)?.label || "Semua Kategori"}
                                                             </span>
-                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]">
@@ -369,14 +369,14 @@ export default function MechaturaListClient({
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
-                                                            <span className="truncate flex items-center gap-2 text-xs">
-                                                                <Send className="h-3 w-3" />
+                                                            <span className="truncate flex items-center gap-2">
+                                                                <Send className="h-4 w-4" />
                                                                 {localFilters.submission === "all" ? "Semua Submit" : 
                                                                  localFilters.submission === "draft" ? "Draft" : 
                                                                  localFilters.submission === "submitted" ? "Submitted" :
                                                                  (localFilters.submission as string).charAt(0).toUpperCase() + (localFilters.submission as string).slice(1)}
                                                             </span>
-                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]">
@@ -398,15 +398,15 @@ export default function MechaturaListClient({
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
-                                                            <span className="truncate flex items-center gap-2 text-xs">
-                                                                <FileText className="h-3 w-3" />
+                                                            <span className="truncate flex items-center gap-2">
+                                                                <FileText className="h-4 w-4" />
                                                                 {localFilters.approval === "all" ? "Semua Approval" : 
                                                                  localFilters.approval === "pending" ? "Menunggu" : 
                                                                  localFilters.approval === "approved" ? "Disetujui" :
                                                                  localFilters.approval === "revision" ? "Revisi" :
                                                                  (localFilters.approval as string).charAt(0).toUpperCase() + (localFilters.approval as string).slice(1)}
                                                             </span>
-                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]">
@@ -428,12 +428,12 @@ export default function MechaturaListClient({
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
-                                                            <span className="truncate flex items-center gap-2 text-xs">
-                                                                <FileText className="h-3 w-3" />
+                                                            <span className="truncate flex items-center gap-2">
+                                                                <FileText className="h-4 w-4" />
                                                                 {localFilters.batch === "all" ? "Semua Batch" : 
                                                                  localFilters.batch === "batch1" ? "Batch 1" : "Batch 2"}
                                                             </span>
-                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]">
@@ -544,8 +544,8 @@ export default function MechaturaListClient({
             </div>
 
             <div className="flex flex-col gap-5">
-                <form onSubmit={onSubmit} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
-                    <div className="relative flex-1 w-full xl:max-w-[280px]">
+                <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
+                    <div className="relative w-full">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <input
                             key={searchParam ?? "empty"}
@@ -557,18 +557,18 @@ export default function MechaturaListClient({
                         <button type="submit" className="sr-only">Cari</button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2 text-xs">
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
                                         {(() => {
                                             const ActiveIcon = categoryOptions.find(o => o.value === categoryFilter)?.icon || LayoutGrid;
-                                            return <ActiveIcon className="h-3 w-3" />;
+                                            return <ActiveIcon className="h-4 w-4" />;
                                         })()}
                                         {categoryOptions.find(o => o.value === categoryFilter)?.label || "Semua Kat."}
                                     </span>
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[160px]">
@@ -583,15 +583,15 @@ export default function MechaturaListClient({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2 text-xs">
-                                        <Send className="h-3 w-3" />
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
+                                        <Send className="h-4 w-4" />
                                         {submissionFilter === "all" ? "Semua Submit" : 
                                          submissionFilter === "draft" ? "Draft" : 
                                          submissionFilter === "submitted" ? "Submitted" :
                                          (submissionFilter as string).charAt(0).toUpperCase() + (submissionFilter as string).slice(1)}
                                     </span>
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[160px]">
@@ -609,16 +609,16 @@ export default function MechaturaListClient({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2 text-xs">
-                                        <FileText className="h-3 w-3" />
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
+                                        <FileText className="h-4 w-4" />
                                         {approvalFilter === "all" ? "Semua Approval" : 
                                          approvalFilter === "pending" ? "Menunggu" : 
                                          approvalFilter === "approved" ? "Disetujui" :
                                          approvalFilter === "revision" ? "Revisi" :
                                          (approvalFilter as string).charAt(0).toUpperCase() + (approvalFilter as string).slice(1)}
                                     </span>
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[160px]">

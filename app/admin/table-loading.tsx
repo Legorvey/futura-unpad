@@ -32,16 +32,16 @@ export default function TableLoading() {
 
             {/* Filters section skeleton */}
             <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-xl border border-border p-4 bg-card/50">
-                    <div className="relative flex-1 w-full lg:max-w-md">
+                <div className="flex flex-col gap-3 rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md">
+                    <div className="relative w-full">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" />
                         <div className="h-10 w-full rounded-lg border border-input bg-muted/50"></div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="h-10 w-[140px] rounded-lg bg-muted/50"></div>
-                        <div className="h-10 w-[140px] rounded-lg bg-muted/50"></div>
-                        <div className="h-10 w-[140px] rounded-lg bg-muted/50"></div>
+                        <div className="h-10 w-[160px] rounded-lg bg-muted/50"></div>
+                        <div className="h-10 w-[160px] rounded-lg bg-muted/50"></div>
+                        <div className="h-10 w-[190px] rounded-lg bg-muted/50"></div>
                     </div>
                 </div>
             </div>

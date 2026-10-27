@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/http";
-import { toSearchPattern } from "@/app/admin/lomba-esai/_lib/esai-utils";
+import { toSearchPattern, subthemeMap, type EsaiSubthemeFilter } from "@/app/admin/lomba-esai/_lib/esai-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +76,8 @@ export async function GET(request: Request) {
         
         const search = searchParams.get("search");
         const submission = searchParams.get("submission");
+        const category = searchParams.get("category");
+        const subtheme = searchParams.get("subtheme");
         const cols = searchParams.get("cols");
 
         const supabaseAdmin = createAdminClient();
@@ -86,6 +88,17 @@ export async function GET(request: Request) {
 
             if (submission && submission !== "all") {
                 query = query.eq("submission_status", submission);
+            }
+
+            if (category && category !== "all") {
+                query = query.eq("institution_category", category);
+            }
+
+            if (subtheme && subtheme !== "all") {
+                const mapped = subthemeMap[subtheme as Exclude<EsaiSubthemeFilter, "all">];
+                if (mapped) {
+                    query = query.ilike("sub_theme", mapped.pattern);
+                }
             }
 
             if (searchPattern) {

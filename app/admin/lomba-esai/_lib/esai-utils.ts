@@ -1,7 +1,26 @@
 export type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>;
 export type EsaiSubmissionFilter = "all" | "draft" | "submitted" | "approved";
+export type EsaiCategoryFilter = "all" | "SMA" | "SMK" | "perguruan_tinggi";
+export type EsaiSubthemeFilter = "all" | "digital" | "hijau" | "talenta";
 
 export const submissionFilters: EsaiSubmissionFilter[] = ["all", "draft", "submitted", "approved"];
+export const categoryFilters: EsaiCategoryFilter[] = ["all", "SMA", "SMK", "perguruan_tinggi"];
+export const subthemeFilters: EsaiSubthemeFilter[] = ["all", "digital", "hijau", "talenta"];
+
+export const subthemeMap: Record<Exclude<EsaiSubthemeFilter, "all">, { label: string; pattern: string }> = {
+    digital: {
+        label: "Transformasi Digital",
+        pattern: "%Transformasi Digital%",
+    },
+    hijau: {
+        label: "Industri Hijau",
+        pattern: "%Inovasi Teknologi Berkelanjutan%",
+    },
+    talenta: {
+        label: "Talenta & Ekosistem",
+        pattern: "%Pengembangan Talenta%",
+    },
+};
 export const pageSizeOptions = [10, 20, 30, 40] as const;
 export const defaultPageSize = 10;
 
@@ -72,20 +91,34 @@ export const toSearchPattern = (search: string) => {
 
 type FilterOptions = {
     submissionFilter: EsaiSubmissionFilter;
+    categoryFilter?: EsaiCategoryFilter;
+    subthemeFilter?: EsaiSubthemeFilter;
     searchPattern: string | null;
 };
 
 type FilterableQuery<T> = T & {
     eq: (column: string, value: unknown) => FilterableQuery<T>;
     or: (filters: string) => FilterableQuery<T>;
+    ilike: (column: string, pattern: string) => FilterableQuery<T>;
 };
 
 export const applyEsaiFilters = <T,>(query: T, options: FilterOptions): T => {
-    const { submissionFilter, searchPattern } = options;
+    const { submissionFilter, categoryFilter, subthemeFilter, searchPattern } = options;
     let q = query as FilterableQuery<T>;
 
     if (submissionFilter && submissionFilter !== "all") {
         q = q.eq("submission_status", submissionFilter);
+    }
+
+    if (categoryFilter && categoryFilter !== "all") {
+        q = q.eq("institution_category", categoryFilter);
+    }
+
+    if (subthemeFilter && subthemeFilter !== "all") {
+        const mapped = subthemeMap[subthemeFilter];
+        if (mapped) {
+            q = q.ilike("sub_theme", mapped.pattern);
+        }
     }
     
     if (searchPattern) {
@@ -100,17 +133,23 @@ export const buildEsaiPageHref = ({
     pageSize,
     search,
     submission,
+    category,
+    subtheme,
 }: {
     page: number;
     pageSize: number;
     search?: string;
     submission: EsaiSubmissionFilter;
+    category?: EsaiCategoryFilter;
+    subtheme?: EsaiSubthemeFilter;
 }) => {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", page.toString());
     if (pageSize !== defaultPageSize) params.set("pageSize", pageSize.toString());
     if (search?.trim()) params.set("search", search.trim());
-    if (submission !== "all") params.set("submission", submission);
+    if (submission && submission !== "all") params.set("submission", submission);
+    if (category && category !== "all") params.set("category", category);
+    if (subtheme && subtheme !== "all") params.set("subtheme", subtheme);
 
     const qs = params.toString();
     return `/admin/lomba-esai${qs ? "?" + qs : ""}`;

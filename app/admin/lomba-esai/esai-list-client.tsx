@@ -20,7 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, Clock, CheckCircle2, FileText, Send, User } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Search, X, Clock, CheckCircle2, FileText, Send, User, School, BookOpen, GraduationCap, Layers, Cpu, Leaf, Lightbulb } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { DataTable } from "./data-table";
@@ -29,7 +29,12 @@ import {
     buildEsaiPageHref,
     pageSizeOptions,
     submissionFilters,
+    categoryFilters,
+    subthemeFilters,
+    subthemeMap,
     type EsaiSubmissionFilter,
+    type EsaiCategoryFilter,
+    type EsaiSubthemeFilter,
     AdminEsaiRegistration
 } from "./_lib/esai-utils";
 
@@ -37,6 +42,8 @@ type EsaiListClientProps = {
     registrations: AdminEsaiRegistration[];
     searchParam?: string;
     submissionFilter: EsaiSubmissionFilter;
+    categoryFilter: EsaiCategoryFilter;
+    subthemeFilter: EsaiSubthemeFilter;
     pageSize: number;
     pagination: {
         page: number;
@@ -91,23 +98,41 @@ const COLUMN_GROUPS = [
     }
 ];
 
+const categoryOptions = [
+    { value: "all", label: "Semua Jenjang", icon: School },
+    { value: "SMA", label: "SMA", icon: BookOpen },
+    { value: "SMK", label: "SMK", icon: GraduationCap },
+    { value: "perguruan_tinggi", label: "Perguruan Tinggi", icon: GraduationCap },
+] as const;
+
+const subthemeOptions = [
+    { value: "all", label: "Semua Subtema", icon: Layers },
+    { value: "digital", label: "Transformasi Digital", icon: Cpu },
+    { value: "hijau", label: "Industri Hijau", icon: Leaf },
+    { value: "talenta", label: "Talenta & Ekosistem", icon: Lightbulb },
+] as const;
+
 export default function EsaiListClient({
     registrations,
     searchParam,
     submissionFilter,
+    categoryFilter,
+    subthemeFilter,
     pageSize,
     pagination,
     stats,
 }: EsaiListClientProps) {
     const router = useRouter();
     const hasActiveFilters =
-        !!searchParam?.trim() || submissionFilter !== "all";
+        !!searchParam?.trim() || submissionFilter !== "all" || categoryFilter !== "all" || subthemeFilter !== "all";
 
     const [exportOpen, setExportOpen] = useState(false);
     const [exportFilterMode, setExportFilterMode] = useState<"all" | "filtered">(hasActiveFilters ? "filtered" : "all");
 
     const [localFilters, setLocalFilters] = useState({
         submission: submissionFilter,
+        category: categoryFilter,
+        subtheme: subthemeFilter,
     });
 
     const defaultCols: Record<string, boolean> = {
@@ -142,6 +167,8 @@ export default function EsaiListClient({
             pageSize: nextPageSize,
             search: searchParam,
             submission: submissionFilter,
+            category: categoryFilter,
+            subtheme: subthemeFilter,
         });
 
     const updateFilter = (key: string, value: string | undefined) => {
@@ -150,6 +177,8 @@ export default function EsaiListClient({
             pageSize: key === "pageSize" ? Number(value) : pageSize,
             search: key === "search" ? value : searchParam,
             submission: key === "submission" ? (value as any) : submissionFilter,
+            category: key === "category" ? (value as any) : categoryFilter,
+            subtheme: key === "subtheme" ? (value as any) : subthemeFilter,
         });
         router.push(newHref);
     };
@@ -169,8 +198,24 @@ export default function EsaiListClient({
                       (submissionFilter as string).charAt(0).toUpperCase() + (submissionFilter as string).slice(1);
         activeFilterPills.push({
             key: "submission",
-            label: `Submission: ${label}`,
+            label: `Status: ${label}`,
             onRemove: () => updateFilter("submission", "all")
+        });
+    }
+    if (categoryFilter !== "all") {
+        const cat = categoryOptions.find(c => c.value === categoryFilter);
+        activeFilterPills.push({
+            key: "category",
+            label: `Jenjang: ${cat?.label ?? categoryFilter}`,
+            onRemove: () => updateFilter("category", "all")
+        });
+    }
+    if (subthemeFilter !== "all") {
+        const st = subthemeOptions.find(s => s.value === subthemeFilter);
+        activeFilterPills.push({
+            key: "subtheme",
+            label: `Subtema: ${st?.label ?? subthemeFilter}`,
+            onRemove: () => updateFilter("subtheme", "all")
         });
     }
 
@@ -198,6 +243,8 @@ export default function EsaiListClient({
                             setExportFilterMode(hasActiveFilters ? "filtered" : "all");
                             setLocalFilters({
                                 submission: submissionFilter,
+                                category: categoryFilter,
+                                subtheme: subthemeFilter,
                             });
                         }
                     }}>
@@ -248,15 +295,15 @@ export default function EsaiListClient({
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
-                                                            <span className="truncate flex items-center gap-2 text-xs">
-                                                                <Send className="h-3 w-3" />
+                                                            <span className="truncate flex items-center gap-2">
+                                                                <Send className="h-4 w-4" />
                                                                 {localFilters.submission === "all" ? "Semua Status" : 
                                                                  localFilters.submission === "draft" ? "Draft" : 
                                                                  localFilters.submission === "submitted" ? "Submitted" :
                                                                  localFilters.submission === "approved" ? "Disetujui" :
                                                                  (localFilters.submission as string).charAt(0).toUpperCase() + (localFilters.submission as string).slice(1)}
                                                             </span>
-                                                            <ChevronDown className="h-3 w-3 opacity-50" />
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent className="w-[200px]">
@@ -268,6 +315,58 @@ export default function EsaiListClient({
                                                                  status === "submitted" ? "Submitted" :
                                                                  status === "approved" ? "Disetujui" :
                                                                  (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-xs">Kategori Instansi / Jenjang</Label>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
+                                                            <span className="truncate flex items-center gap-2">
+                                                                {(() => {
+                                                                    const opt = categoryOptions.find(o => o.value === localFilters.category);
+                                                                    const Icon = opt?.icon || School;
+                                                                    return <><Icon className="h-4 w-4" />{opt?.label || "Semua Jenjang"}</>;
+                                                                })()}
+                                                            </span>
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="w-[200px]">
+                                                        {categoryOptions.map((option) => (
+                                                            <DropdownMenuItem key={option.value} onSelect={() => setLocalFilters(f => ({ ...f, category: option.value as EsaiCategoryFilter }))}>
+                                                                <option.icon className="mr-2 h-4 w-4" />
+                                                                {option.label}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5 sm:col-span-2">
+                                                <Label className="text-xs">Subtema Esai</Label>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button type="button" variant="outline" className="h-10 w-full justify-between rounded-lg bg-background">
+                                                            <span className="truncate flex items-center gap-2">
+                                                                {(() => {
+                                                                    const opt = subthemeOptions.find(o => o.value === localFilters.subtheme);
+                                                                    const Icon = opt?.icon || Layers;
+                                                                    return <><Icon className="h-4 w-4" />{opt?.label || "Semua Subtema"}</>;
+                                                                })()}
+                                                            </span>
+                                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="w-[280px]">
+                                                        {subthemeOptions.map((option) => (
+                                                            <DropdownMenuItem key={option.value} onSelect={() => setLocalFilters(f => ({ ...f, subtheme: option.value as EsaiSubthemeFilter }))}>
+                                                                <option.icon className="mr-2 h-4 w-4" />
+                                                                {option.label}
                                                             </DropdownMenuItem>
                                                         ))}
                                                     </DropdownMenuContent>
@@ -324,6 +423,8 @@ export default function EsaiListClient({
                                     if (exportFilterMode === "filtered") {
                                         if (searchParam?.trim()) query.set("search", searchParam.trim());
                                         if (localFilters.submission !== "all") query.set("submission", localFilters.submission);
+                                        if (localFilters.category !== "all") query.set("category", localFilters.category);
+                                        if (localFilters.subtheme !== "all") query.set("subtheme", localFilters.subtheme);
                                     }
                                     
                                     const selectedCols = Object.entries(cols).filter(([_, v]) => v).map(([k]) => k);
@@ -367,8 +468,8 @@ export default function EsaiListClient({
             </div>
 
             <div className="flex flex-col gap-5">
-                <form onSubmit={onSubmit} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
-                    <div className="relative flex-1 w-full xl:max-w-[280px]">
+                <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
+                    <div className="relative w-full">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <input
                             key={searchParam ?? "empty"}
@@ -380,19 +481,20 @@ export default function EsaiListClient({
                         <button type="submit" className="sr-only">Cari</button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                        {/* Status Filter */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" className="h-10 w-[140px] justify-between rounded-lg bg-background">
-                                    <span className="truncate flex items-center gap-2 text-xs">
-                                        <Send className="h-3 w-3" />
-                                        {submissionFilter === "all" ? "Semua Dok." : 
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
+                                        <Send className="h-4 w-4" />
+                                        {submissionFilter === "all" ? "Semua Status" : 
                                          submissionFilter === "draft" ? "Draft" : 
                                          submissionFilter === "submitted" ? "Submitted" :
                                          submissionFilter === "approved" ? "Disetujui" :
                                          (submissionFilter as string).charAt(0).toUpperCase() + (submissionFilter as string).slice(1)}
                                     </span>
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[160px]">
@@ -406,6 +508,60 @@ export default function EsaiListClient({
                                          (status as string).charAt(0).toUpperCase() + (status as string).slice(1)}
                                     </DropdownMenuItem>
                                 ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Jenjang / Kategori Instansi Filter */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
+                                        {(() => {
+                                            const opt = categoryOptions.find(o => o.value === categoryFilter);
+                                            const Icon = opt?.icon || School;
+                                            return <><Icon className="h-4 w-4" />{opt?.label || "Semua Jenjang"}</>;
+                                        })()}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[160px]">
+                                {categoryOptions.map((option) => {
+                                    const Icon = option.icon;
+                                    return (
+                                        <DropdownMenuItem key={option.value} onSelect={() => updateFilter("category", option.value)}>
+                                            <Icon className="mr-2 h-4 w-4" />
+                                            {option.label}
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Subtema Filter */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" variant="outline" className="h-10 w-[160px] justify-between rounded-lg bg-background">
+                                    <span className="truncate flex items-center gap-2">
+                                        {(() => {
+                                            const opt = subthemeOptions.find(o => o.value === subthemeFilter);
+                                            const Icon = opt?.icon || Layers;
+                                            return <><Icon className="h-4 w-4" />{opt?.label || "Semua Subtema"}</>;
+                                        })()}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[250px]">
+                                {subthemeOptions.map((option) => {
+                                    const Icon = option.icon;
+                                    return (
+                                        <DropdownMenuItem key={option.value} onSelect={() => updateFilter("subtheme", option.value)}>
+                                            <Icon className="mr-2 h-4 w-4" />
+                                            {option.label}
+                                        </DropdownMenuItem>
+                                    );
+                                })}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -429,7 +585,7 @@ export default function EsaiListClient({
                         ))}
                         <button 
                             type="button"
-                            onClick={() => router.push(buildEsaiPageHref({ page: 1, pageSize, search: undefined, submission: "all" }))}
+                            onClick={() => router.push(buildEsaiPageHref({ page: 1, pageSize, search: undefined, submission: "all", category: "all", subtheme: "all" }))}
                             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-2 transition-colors"
                         >
                             Hapus semua

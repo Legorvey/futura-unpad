@@ -200,8 +200,8 @@ export default function SeminarListClient({
             </div>
 
             <div className="flex flex-col gap-5">
-                <form onSubmit={onSubmit} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
-                    <div className="relative flex-1 w-full md:max-w-md">
+                <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded-xl border border-border/50 p-2.5 bg-card/40 backdrop-blur-md shadow-sm">
+                    <div className="relative w-full">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <input
                             key={searchParam ?? "empty"}

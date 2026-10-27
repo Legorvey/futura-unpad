@@ -8,7 +8,11 @@ import EsaiListClient from "./esai-list-client";
 import {
     type AdminSearchParams,
     type AdminEsaiRegistration,
+    type EsaiCategoryFilter,
+    type EsaiSubthemeFilter,
     applyEsaiFilters,
+    categoryFilters,
+    subthemeFilters,
     firstParam,
     esaiRegistrationColumns,
     normalizeFilter,
@@ -29,10 +33,14 @@ async function EsaiAdminData({
     const params = await searchParams;
     const searchParam = firstParam(params.search);
     const submissionParam = firstParam(params.submission);
+    const categoryParam = firstParam(params.category);
+    const subthemeParam = firstParam(params.subtheme);
     const pageParam = firstParam(params.page);
     const pageSizeParam = firstParam(params.pageSize);
     
     const submissionFilter = normalizeFilter(submissionParam, submissionFilters, "all");
+    const categoryFilter = normalizeFilter(categoryParam, categoryFilters, "all");
+    const subthemeFilter = normalizeFilter(subthemeParam, subthemeFilters, "all");
     const searchFilter = (searchParam ?? "").trim();
     const searchPattern = toSearchPattern(searchFilter);
     const requestedPage = normalizePositiveInt(pageParam, 1);
@@ -43,6 +51,8 @@ async function EsaiAdminData({
 
     const filterOptions = {
         submissionFilter,
+        categoryFilter,
+        subthemeFilter,
         searchPattern,
     };
     
@@ -150,6 +160,8 @@ async function EsaiAdminData({
             registrations={enrichedRegistrations}
             searchParam={searchParam}
             submissionFilter={submissionFilter}
+            categoryFilter={categoryFilter}
+            subthemeFilter={subthemeFilter}
             pageSize={pageSize}
             pagination={{
                 page,

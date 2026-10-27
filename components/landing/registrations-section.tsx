@@ -13,6 +13,7 @@ const events = [
         highlights: "To Be Announced",
         href: "/seminar-nasional",
         icon: Presentation,
+        isUnopened: true,
     },
     {
         title: "Mechatura",
@@ -23,6 +24,7 @@ const events = [
         highlights: "Robot Transporter & Robot Sumo",
         href: "/mechatura",
         icon: Bot,
+        isClosed: true,
     },
     {
         title: "Lomba Esai",
@@ -106,8 +108,21 @@ function EventCard({ event }: { event: (typeof events)[0] }) {
                         </span>
                     </div>
 
-                    <div className="flex justify-start">
-                        <ButtonV2 text="Daftar Sekarang" href={event.href} />
+                    <div className="flex items-center justify-between w-full gap-3">
+                        <ButtonV2
+                            text={event.isUnopened || event.isClosed ? "Lihat Detail" : "Daftar Sekarang"}
+                            href={event.href}
+                        />
+                        {event.isUnopened && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                Segera Dibuka
+                            </span>
+                        )}
+                        {event.isClosed && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30">
+                                Pendaftaran Ditutup
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

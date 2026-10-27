@@ -34,11 +34,15 @@ function generateJoinCode() {
 }
 
 import { formRatelimit } from "@/lib/ratelimit";
+import { IS_MECHATURA_REGISTRATION_CLOSED } from "@/lib/mechatura/batch";
 
 /**
  * Create a new team and add the current user as the leader.
  */
 export async function createTeam(category: string, teamName: string) {
+  if (IS_MECHATURA_REGISTRATION_CLOSED) {
+    return { success: false, error: "Pendaftaran Mechatura telah resmi ditutup." };
+  }
   const parsed = CreateTeamSchema.safeParse({ category, teamName });
   if (!parsed.success) {
     return { success: false, error: "Data input tidak valid." };
@@ -113,6 +117,9 @@ export async function createTeam(category: string, teamName: string) {
  * Join an existing team using a join code.
  */
 export async function joinTeam(joinCode: string, selectedCategory: string) {
+  if (IS_MECHATURA_REGISTRATION_CLOSED) {
+    return { success: false, error: "Pendaftaran Mechatura telah resmi ditutup." };
+  }
   const parsed = JoinTeamSchema.safeParse({ joinCode, selectedCategory });
   if (!parsed.success) {
     return { success: false, error: "Input tidak valid." };

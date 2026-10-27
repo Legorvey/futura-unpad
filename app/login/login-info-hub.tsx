@@ -30,36 +30,6 @@ interface SlideData {
 
 const slides: SlideData[] = [
   {
-    id: "mechatura",
-    contactLabel: "Narahubung Pendaftaran Mechatura",
-    contacts: [
-      { name: "Adam", phone: "0895-2984-6686", href: "https://wa.me/6289529846686" },
-      { name: "Raisa", phone: "0857-1173-5270", href: "https://wa.me/6285711735270" },
-    ],
-    lines: [
-      {
-        text: "Mechatura",
-        className: "text-5xl md:text-7xl lg:text-[3.5rem] xl:text-[5rem] 2xl:text-[6.5rem] font-black text-white tracking-tighter uppercase drop-shadow-xl whitespace-nowrap",
-        parallax: { x: [-15, 15], y: [-15, 15] },
-      },
-      {
-        text: "2nd Batch",
-        className: "text-4xl md:text-6xl lg:text-[2.75rem] xl:text-[4rem] 2xl:text-[5.5rem] font-black text-amber-300 tracking-widest uppercase italic drop-shadow-lg ml-8 lg:ml-8 xl:ml-16 2xl:ml-24 mt-[-2px] xl:mt-[-5px] 2xl:mt-[-10px] whitespace-nowrap",
-        parallax: { x: [-25, 25], y: [-20, 20] },
-      },
-      {
-        text: "Is",
-        className: "text-3xl md:text-5xl lg:text-3xl xl:text-5xl 2xl:text-6xl font-light text-white/80 tracking-[0.2em] xl:tracking-[0.3em] 2xl:tracking-[0.4em] uppercase drop-shadow-md mt-2 xl:mt-4 2xl:mt-6 ml-12 lg:ml-16 xl:ml-28 2xl:ml-40 whitespace-nowrap",
-        parallax: { x: [-35, 35], y: [-25, 25] },
-      },
-      {
-        text: "Opened.",
-        className: "text-[4.5rem] md:text-[6.5rem] lg:text-[4.5rem] xl:text-[7rem] 2xl:text-[9rem] font-black text-white tracking-tighter uppercase leading-none drop-shadow-2xl mt-[-2px] xl:mt-[-10px] 2xl:mt-[-15px] -ml-2 lg:-ml-4 xl:-ml-8 2xl:-ml-10 whitespace-nowrap",
-        parallax: { x: [-45, 45], y: [-30, 30] },
-      },
-    ],
-  },
-  {
     id: "lomba-esai",
     contactLabel: "Narahubung Lomba Esai",
     contacts: [
@@ -85,6 +55,35 @@ const slides: SlideData[] = [
       {
         text: "Open!",
         className: "text-[5.5rem] md:text-[7.5rem] lg:text-[5.5rem] xl:text-[8rem] 2xl:text-[10.5rem] font-black text-white tracking-tighter uppercase leading-none drop-shadow-2xl mt-[-2px] xl:mt-[-8px] 2xl:mt-[-12px] -ml-2 lg:-ml-4 xl:-ml-6 2xl:-ml-8 whitespace-nowrap",
+        parallax: { x: [-45, 45], y: [-30, 30] },
+      },
+    ],
+  },
+  {
+    id: "seminar-nasional",
+    contactLabel: "Narahubung Seminar Nasional",
+    contacts: [
+      { name: "Abid", phone: "0895-6091-98200", href: "https://wa.me/62895609198200" },
+    ],
+    lines: [
+      {
+        text: "Seminar",
+        className: "text-5xl md:text-7xl lg:text-[3.5rem] xl:text-[5rem] 2xl:text-[6.5rem] font-black text-white tracking-tighter uppercase drop-shadow-xl whitespace-nowrap",
+        parallax: { x: [-15, 15], y: [-15, 15] },
+      },
+      {
+        text: "Nasional",
+        className: "text-4xl md:text-6xl lg:text-[2.75rem] xl:text-[4rem] 2xl:text-[5.5rem] font-black text-amber-300 tracking-widest uppercase italic drop-shadow-lg ml-8 lg:ml-8 xl:ml-16 2xl:ml-24 mt-[-2px] xl:mt-[-5px] 2xl:mt-[-10px] whitespace-nowrap",
+        parallax: { x: [-25, 25], y: [-20, 20] },
+      },
+      {
+        text: "Coming",
+        className: "text-3xl md:text-5xl lg:text-3xl xl:text-5xl 2xl:text-6xl font-light text-white/80 tracking-[0.2em] xl:tracking-[0.3em] 2xl:tracking-[0.4em] uppercase drop-shadow-md mt-2 xl:mt-4 2xl:mt-6 ml-12 lg:ml-16 xl:ml-28 2xl:ml-40 whitespace-nowrap",
+        parallax: { x: [-35, 35], y: [-25, 25] },
+      },
+      {
+        text: "Soon!",
+        className: "text-[4.5rem] md:text-[6.5rem] lg:text-[4.5rem] xl:text-[7rem] 2xl:text-[9rem] font-black text-white tracking-tighter uppercase leading-none drop-shadow-2xl mt-[-2px] xl:mt-[-10px] 2xl:mt-[-15px] -ml-2 lg:-ml-4 xl:-ml-8 2xl:-ml-10 whitespace-nowrap",
         parallax: { x: [-45, 45], y: [-30, 30] },
       },
     ],

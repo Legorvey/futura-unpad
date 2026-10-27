@@ -12,6 +12,16 @@ export type MechaturaBatchInfo = {
   statusBadge: string;
 };
 
+/**
+ * Hard kill switch for Mechatura registration.
+ * Set to true to completely block all registration attempts across API, Server Actions, and UI.
+ */
+export const IS_MECHATURA_REGISTRATION_CLOSED = true;
+
+export function isMechaturaRegistrationOpen(): boolean {
+  return !IS_MECHATURA_REGISTRATION_CLOSED;
+}
+
 // Batch 1: 20 Juli 2026 00:00:00 WIB (UTC+7) - 20 September 2026 23:59:59 WIB (UTC+7)
 export const MECHATURA_BATCH_1_START = new Date("2026-07-20T00:00:00+07:00");
 export const MECHATURA_BATCH_1_END = new Date("2026-09-20T23:59:59+07:00");
@@ -24,6 +34,21 @@ export const MECHATURA_BATCH_2_PRICE = 200000;
 
 export function getMechaturaBatchInfo(date: Date = new Date()): MechaturaBatchInfo {
   const time = date.getTime();
+  const isBatch1 = time <= MECHATURA_BATCH_1_END.getTime();
+
+  if (IS_MECHATURA_REGISTRATION_CLOSED) {
+    const batch: MechaturaBatchType = isBatch1 ? 1 : 2;
+    const price = isBatch1 ? MECHATURA_BATCH_1_PRICE : MECHATURA_BATCH_2_PRICE;
+    return {
+      batch,
+      batchName: `Batch ${batch}`,
+      price,
+      formattedPrice: formatCurrency(price),
+      periodLabel: "Pendaftaran Ditutup",
+      isActive: false,
+      statusBadge: "Pendaftaran Mechatura Telah Ditutup",
+    };
+  }
 
   // If time is within Batch 2 period (or after Batch 1 end)
   if (time > MECHATURA_BATCH_1_END.getTime()) {

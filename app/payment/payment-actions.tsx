@@ -106,9 +106,9 @@ export default function PaymentActions({ orderId }: PaymentActionsProps) {
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <Button asChild variant="outline" className="h-11 rounded-xl">
-          <Link href="/mechatura/form" prefetch={false}>
+          <Link href="/profile/mechatura" prefetch={false}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Kembali ke pendaftaran
+            Kembali ke Tim Mechatura
           </Link>
         </Button>
         <Button

@@ -46,7 +46,7 @@ async function EsaiAdminData({
         searchPattern,
     };
     
-    const buildFilteredTeamQuery = (
+    const buildFilteredEsaiQuery = (
         select: string,
         options?: { count?: "exact"; head?: boolean }
     ) =>
@@ -57,11 +57,11 @@ async function EsaiAdminData({
 
     const [
         { data: requestedPageData, error: pageError, count },
-        { count: totalRegistrations },
-        { count: submittedRegistrations },
-        { count: approvedRegistrations },
+        { count: totalRegistrations, error: totalError },
+        { count: submittedRegistrations, error: submittedError },
+        { count: approvedRegistrations, error: approvedError },
     ] = await Promise.all([
-        buildFilteredTeamQuery(esaiRegistrationColumns, { count: "exact" })
+        buildFilteredEsaiQuery(esaiRegistrationColumns, { count: "exact" })
             .order("created_at", { ascending: false })
             .range(requestedFrom, requestedTo)
             .returns<AdminEsaiRegistration[]>(),
@@ -71,7 +71,12 @@ async function EsaiAdminData({
     ]);
 
     if (pageError) {
-        throw new Error(pageError.message);
+        console.error("Esai admin page query error:", pageError);
+        throw new Error("Gagal memuat data pendaftaran lomba esai.");
+    }
+
+    if (totalError || submittedError || approvedError) {
+        console.warn("Esai admin stats query error:", totalError || submittedError || approvedError);
     }
     
     const totalFilteredRegistrations = count ?? requestedPageData?.length ?? 0;
@@ -81,13 +86,14 @@ async function EsaiAdminData({
 
     if (page !== requestedPage) {
         const { data: clampedPageData, error: clampedPageError } =
-            await buildFilteredTeamQuery(esaiRegistrationColumns)
+            await buildFilteredEsaiQuery(esaiRegistrationColumns)
                 .order("created_at", { ascending: false })
                 .range((page - 1) * pageSize, page * pageSize - 1)
                 .returns<AdminEsaiRegistration[]>();
 
         if (clampedPageError) {
-            throw new Error(clampedPageError.message);
+            console.error("Esai admin clamped page query error:", clampedPageError);
+            throw new Error("Gagal memuat data halaman pendaftaran.");
         }
 
         registrations = clampedPageData ?? [];
@@ -122,7 +128,7 @@ async function EsaiAdminData({
                         email: userData.user.email || null,
                     });
                 }
-            } catch (e) {
+            } catch {
                 // ignore
             }
         }));

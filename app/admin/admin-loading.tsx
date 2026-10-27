@@ -38,6 +38,18 @@ export default function AdminLoading() {
                     ))}
                 </div>
             </section>
+
+            <section>
+                <div className="h-7 w-32 bg-muted rounded mb-5"></div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="rounded-xl border border-border p-5">
+                            <div className="h-4 w-24 bg-muted rounded"></div>
+                            <div className="mt-4 h-9 w-16 bg-muted rounded"></div>
+                        </div>
+                    ))}
+                </div>
+            </section>
         </div>
     )
 }

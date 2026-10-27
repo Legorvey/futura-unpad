@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  // SECURITY & HARDENING: Ensure unopened registration forms are completely inaccessible.
+  // SECURITY & HARDENING: Ensure unopened or closed registration forms are completely inaccessible.
   // Intercepting at the middleware layer prevents any unauthorized access, execution, 
   // or SSR bypass before the route is even processed.
   const path = request.nextUrl.pathname;
@@ -13,6 +13,10 @@ export async function proxy(request: NextRequest) {
   
   if (path.startsWith("/lomba-esai/form")) {
     return NextResponse.redirect(new URL("/lomba-esai", request.url));
+  }
+
+  if (path.startsWith("/mechatura/form")) {
+    return NextResponse.redirect(new URL("/mechatura", request.url));
   }
 
   // Gracefully handle bookmarked links to the deprecated account page

@@ -125,8 +125,8 @@ export async function POST(request: Request) {
   if (isMechaturaPaymentExpired(existingOrder)) {
     return NextResponse.json(
       {
-        error: "Waktu pembayaran Mechatura telah kedaluwarsa.",
-        redirect_url: "/mechatura/form",
+        error: "Waktu pembayaran Mechatura telah kedaluwarsa dan pendaftaran telah ditutup.",
+        redirect_url: "/mechatura",
       },
       { status: 410 }
     );

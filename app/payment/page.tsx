@@ -108,7 +108,7 @@ export default async function PaymentPage({
         title="Tautan Pembayaran Tidak Valid"
         description="Format tautan pembayaran tidak dikenali atau parameter hilang. Silakan kembali untuk mengisi formulir pendaftaran lagi."
         primaryAction={{ label: "Kembali ke Beranda", href: "/" }}
-        secondaryAction={{ label: "Daftar Mechatura", href: "/mechatura/form" }}
+        secondaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
       />
     );
   }
@@ -174,7 +174,7 @@ export default async function PaymentPage({
         badgeTone="warning"
         title="Pembayaran Dibatalkan"
         description="Transaksi pembayaran untuk pendaftaran ini telah dibatalkan. Silakan kembali ke formulir pendaftaran untuk mendaftar ulang atau periksa profil Anda."
-        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        primaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
         secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
       />
     );
@@ -187,7 +187,7 @@ export default async function PaymentPage({
         badgeTone="destructive"
         title="Pembayaran Gagal"
         description="Transaksi pembayaran Anda tidak berhasil atau dibatalkan. Silakan coba lakukan pembayaran ulang atau hubungi panitia jika membutuhkan bantuan."
-        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        primaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
         secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
       />
     );
@@ -200,7 +200,7 @@ export default async function PaymentPage({
         badgeTone="warning"
         title="Batas Waktu Pembayaran Kedaluwarsa"
         description="Batas waktu pembayaran Mechatura telah berakhir. Silakan kembali ke halaman pendaftaran Mechatura untuk memulai pendaftaran baru."
-        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        primaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
         secondaryAction={{ label: "Lihat Profil Akun", href: "/profile" }}
       />
     );

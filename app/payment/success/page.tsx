@@ -210,7 +210,7 @@ export default async function PaymentSuccessPage({
         badgeTone="warning"
         title="Batas Waktu Pembayaran Kedaluwarsa"
         description="Batas waktu pembayaran Mechatura telah berakhir. Silakan kembali ke halaman pendaftaran Mechatura untuk memulai pendaftaran baru."
-        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        primaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
         secondaryAction={{ label: "Ke Profil Akun", href: "/profile" }}
       />
     );
@@ -223,7 +223,7 @@ export default async function PaymentSuccessPage({
         badgeTone="warning"
         title="Pembayaran Dibatalkan"
         description="Transaksi pembayaran untuk pendaftaran ini telah dibatalkan. Anda dapat mengulang proses pendaftaran dari formulir."
-        primaryAction={{ label: "Daftar Mechatura Ulang", href: "/mechatura/form" }}
+        primaryAction={{ label: "Kembali ke Mechatura", href: "/mechatura" }}
         secondaryAction={{ label: "Ke Profil Akun", href: "/profile" }}
       />
     );
@@ -241,7 +241,7 @@ export default async function PaymentSuccessPage({
           label: "Coba Pembayaran Lagi",
           href: isRegistrationToken(targetOrderId)
             ? `/payment?order_id=${encodeURIComponent(targetOrderId)}`
-            : "/mechatura/form",
+            : "/mechatura",
         }}
         secondaryAction={{ label: "Ke Profil Akun", href: "/profile" }}
       />

@@ -308,8 +308,8 @@ export default async function ProfilePage() {
                 )}
               </span>
             ) : (
-               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
-                 Belum Mendaftar
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400">
+                 Pendaftaran Ditutup
                </span>
             )}
           </div>
@@ -345,9 +345,9 @@ export default async function ProfilePage() {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">Anda belum membentuk atau bergabung dengan tim Mechatura.</p>
-                <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
-                  <Link href="/mechatura" prefetch={true}>Daftar Sekarang</Link>
+                <p className="text-sm text-muted-foreground">Pendaftaran kompetisi Mechatura 2026 telah resmi ditutup.</p>
+                <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
+                  <Link href="/mechatura" prefetch={true}>Lihat Detail</Link>
                 </Button>
               </div>
             )}
@@ -368,7 +368,7 @@ export default async function ProfilePage() {
                 {latestRegistration.registration_type === "group" ? `${checkedInCount}/${totalParticipants} Hadir` : (latestRegistration.attended ? "Hadir" : "Menunggu Kehadiran")}
               </span>
             ) : (
-               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
                  Segera Dibuka
                </span>
             )}

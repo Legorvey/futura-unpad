@@ -37,7 +37,7 @@ export const normalizePositiveInt = (value: string | undefined, fallback: number
 
 export const normalizePageSize = (value: string | undefined) => {
     const size = normalizePositiveInt(value, defaultPageSize);
-    return pageSizeOptions.includes(size as any) ? size : defaultPageSize;
+    return (pageSizeOptions as readonly number[]).includes(size) ? size : defaultPageSize;
 };
 
 export type AdminEsaiRegistration = {
@@ -60,7 +60,10 @@ export type AdminEsaiRegistration = {
 
 export const toSearchPattern = (search: string) => {
     if (!search) return null;
-    const pattern = search
+    // Strip PostgREST delimiter syntax characters that could cause syntax errors or injection in .or()
+    const cleaned = search.replace(/[,()]/g, " ").trim();
+    if (!cleaned) return null;
+    const pattern = cleaned
         .replace(/\\/g, "\\\\") // Escape backslashes first
         .replace(/[%_]/g, "\\$&"); // Escape LIKE wildcards
     const safePattern = pattern.replace(/"/g, '\\"'); // Escape double quotes for PostgREST
@@ -72,9 +75,14 @@ type FilterOptions = {
     searchPattern: string | null;
 };
 
-export const applyEsaiFilters = <T>(query: T, options: FilterOptions): T => {
+type FilterableQuery<T> = T & {
+    eq: (column: string, value: unknown) => FilterableQuery<T>;
+    or: (filters: string) => FilterableQuery<T>;
+};
+
+export const applyEsaiFilters = <T,>(query: T, options: FilterOptions): T => {
     const { submissionFilter, searchPattern } = options;
-    let q = query as any;
+    let q = query as FilterableQuery<T>;
 
     if (submissionFilter && submissionFilter !== "all") {
         q = q.eq("submission_status", submissionFilter);
@@ -84,7 +92,7 @@ export const applyEsaiFilters = <T>(query: T, options: FilterOptions): T => {
         q = q.or(`full_name.ilike.${searchPattern},institution.ilike.${searchPattern},email.ilike.${searchPattern}`);
     }
 
-    return q as T;
+    return q;
 };
 
 export const buildEsaiPageHref = ({

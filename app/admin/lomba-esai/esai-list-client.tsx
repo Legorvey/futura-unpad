@@ -374,7 +374,7 @@ export default function EsaiListClient({
                             key={searchParam ?? "empty"}
                             name="search"
                             defaultValue={searchParam ?? ""}
-                            placeholder="Cari peserta, ID, atau institusi..."
+                            placeholder="Cari nama peserta, email, atau institusi..."
                             className="h-10 w-full rounded-lg border border-input bg-background px-4 pl-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                         <button type="submit" className="sr-only">Cari</button>

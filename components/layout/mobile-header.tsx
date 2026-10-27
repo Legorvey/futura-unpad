@@ -1,23 +1,14 @@
 "use client"
 
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useSidebarStore } from "./use-sidebar-store"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
 
 export function MobileHeader() {
-    const { setIsMobileOpen } = useSidebarStore()
-
     return (
-        <header className="flex h-14 items-center gap-4 border-b border-border bg-background px-4 md:hidden">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsMobileOpen(true)}
-            >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-            </Button>
-            <span className="font-semibold">Dashboard</span>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/40 px-4 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 data-vertical:h-4" />
+            <span className="text-sm font-semibold text-foreground">Futura Admin</span>
         </header>
     )
 }

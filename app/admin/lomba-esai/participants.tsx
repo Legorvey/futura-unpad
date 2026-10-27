@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { AdminEsaiRegistration } from "./_lib/esai-utils";
 import { EsaiActions } from "./esai-actions";
@@ -7,15 +8,50 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { getEsaiDocumentUrl } from "./actions";
 import { toast } from "sonner";
+import { formatRelativeTime } from "@/lib/utils";
+
+function EssayFileButton({ path }: { path: string }) {
+    const [loading, setLoading] = useState(false);
+
+    const handleOpen = async () => {
+        const newWindow = window.open("about:blank", "_blank");
+        try {
+            setLoading(true);
+            const { url, error } = await getEsaiDocumentUrl(path);
+            if (error || !url) {
+                newWindow?.close();
+                toast.error(error || "Gagal membuka dokumen");
+                return;
+            }
+            if (newWindow) {
+                newWindow.opener = null;
+                newWindow.location.href = url;
+            } else {
+                window.location.href = url;
+            }
+        } catch {
+            newWindow?.close();
+            toast.error("Gagal membuka dokumen");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Button 
+            variant="ghost" 
+            size="sm" 
+            disabled={loading}
+            className="h-7 px-2 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800/60"
+            onClick={handleOpen}
+        >
+            <FileText className="h-3.5 w-3.5 mr-1" />
+            {loading ? "Membuka..." : "Buka"}
+        </Button>
+    );
+}
 
 export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistration>[] => [
-    {
-        id: "index",
-        header: "#",
-        cell: ({ row }) => (
-            <div className="text-muted-foreground">{row.index + 1}</div>
-        ),
-    },
     {
         accessorKey: "full_name",
         header: "Peserta",
@@ -27,41 +63,18 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
                 ? row.original.full_name.trim()
                 : (row.original.fallback_name?.trim() || "Tanpa Nama");
             const nameMatches = isMatch(row.original.full_name) || isMatch(row.original.fallback_name);
-            
-            return (
-                <div className="min-w-0 flex flex-col gap-1 items-start">
-                    <span className={`font-medium ${nameMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm" : ""}`}>
-                        {participantName}
-                    </span>
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: "institution",
-        header: "Instansi",
-        cell: ({ row }) => {
-            const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
-            const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
-            const instMatches = isMatch(row.original.institution);
 
             return (
-                <div className="min-w-0 flex flex-col gap-1 items-start">
-                    <span className={`font-medium text-[13px] ${instMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm" : ""}`}>
+                <div className="min-w-0 flex flex-col min-w-[180px]">
+                    <span className={`font-medium text-sm text-zinc-100 truncate ${nameMatches ? "bg-yellow-400/20 text-yellow-300 px-1 rounded" : ""}`}>
+                        {participantName}
+                    </span>
+                    <span className="text-[11px] text-zinc-400 truncate">
                         {row.original.institution || "-"}
                     </span>
                 </div>
             );
         },
-    },
-    {
-        accessorKey: "phone_number",
-        header: "No. WA",
-        cell: ({ row }) => (
-            <div className="text-[13px] font-medium text-foreground">
-                {row.original.phone_number || "-"}
-            </div>
-        )
     },
     {
         accessorKey: "email",
@@ -73,75 +86,88 @@ export const getColumns = (searchParam?: string): ColumnDef<AdminEsaiRegistratio
             const emailMatches = isMatch(emailValue);
 
             return (
-                <div className={`text-[13px] text-muted-foreground ${emailMatches ? "bg-yellow-200 text-yellow-900 px-1 rounded-sm font-medium" : ""}`}>
+                <div className={`text-xs text-zinc-300 font-mono ${emailMatches ? "bg-yellow-400/20 text-yellow-300 px-1 rounded" : ""}`}>
                     {emailValue || "-"}
                 </div>
             );
         }
     },
     {
-        accessorKey: "paper_title",
-        header: "Judul Esai",
-        cell: ({ row }) => (
-            <div className="text-[13px] font-medium text-foreground max-w-[200px] truncate" title={row.original.paper_title || undefined}>
-                {row.original.paper_title || <span className="text-muted-foreground italic">-</span>}
-            </div>
-        )
-    },
-    {
-        accessorKey: "sub_theme",
-        header: "Subtema",
+        id: "paper_and_subtheme",
+        header: "Judul & Subtema",
         cell: ({ row }) => {
-            const subTheme = row.original.sub_theme;
-            if (!subTheme) return <span className="text-xs text-muted-foreground italic">-</span>;
-            // Show a shortened label for readability
-            const shortLabel = subTheme.length > 40 ? subTheme.substring(0, 40) + "…" : subTheme;
+            const paperTitle = row.original.paper_title?.trim();
+            const subTheme = row.original.sub_theme?.trim();
+
+            const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
+            const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
+            const titleMatches = isMatch(paperTitle);
+
             return (
-                <div className="text-[13px] font-medium text-foreground max-w-[180px] truncate" title={subTheme}>
-                    {shortLabel}
+                <div className="min-w-0 flex flex-col gap-0.5 max-w-[280px]">
+                    <span 
+                        className={`text-xs font-medium text-zinc-200 truncate ${titleMatches ? "bg-yellow-400/20 text-yellow-300 px-1 rounded w-fit" : ""}`}
+                        title={paperTitle || undefined}
+                    >
+                        {paperTitle || <span className="text-zinc-500 italic font-normal">-</span>}
+                    </span>
+                    {subTheme && (
+                        <span className="text-[11px] text-zinc-400 truncate" title={subTheme}>
+                            {subTheme}
+                        </span>
+                    )}
                 </div>
             );
         }
     },
     {
         id: "essay_file",
-        header: "File Esai",
+        header: "File",
         cell: ({ row }) => {
             const path = row.original.essay_paper_url;
             return path ? (
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 text-primary font-medium"
-                    onClick={async () => {
-                        const { url, error } = await getEsaiDocumentUrl(path);
-                        if (error || !url) {
-                            toast.error(error || "Gagal membuka dokumen");
-                            return;
-                        }
-                        window.open(url, '_blank');
-                    }}
-                >
-                    <FileText className="h-4 w-4 mr-1.5" />
-                    Buka
-                </Button>
+                <EssayFileButton path={path} />
             ) : (
-                <span className="text-xs text-muted-foreground italic ml-2">N/A</span>
+                <span className="text-xs text-zinc-500 italic ml-2">-</span>
             );
         }
     },
     {
         accessorKey: "submission_status",
-        header: "Dokumen",
+        header: "Status",
         cell: ({ row }) => {
             const status = (row.getValue("submission_status") as string) || "draft";
             
             if (status === "approved") {
-                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800/50">Disetujui</span>;
+                return (
+                    <span className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                        Disetujui
+                    </span>
+                );
             } else if (status === "submitted") {
-                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-800/50">Disubmit</span>;
+                return (
+                    <span className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400">
+                        Disubmit
+                    </span>
+                );
             }
-            return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">Draft</span>;
+            return (
+                <span className="inline-flex items-center rounded-full border border-zinc-700/50 bg-zinc-800/60 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+                    Draft
+                </span>
+            );
+        },
+    },
+    {
+        accessorKey: "created_at",
+        header: "Waktu",
+        cell: ({ row }) => {
+            const timestamp = row.original.created_at;
+            return (
+                <span suppressHydrationWarning className="text-xs text-zinc-400 font-mono whitespace-nowrap" title={timestamp || ""}>
+                    {formatRelativeTime(timestamp)}
+                </span>
+            );
         },
     },
     {

@@ -101,7 +101,7 @@ export function Sidebar() {
                             tooltip="Kembali ke Website"
                             className="text-zinc-400 hover:text-white hover:bg-sidebar-accent/70 font-medium transition-colors gap-2.5 md:gap-3.5 px-2.5 md:px-3"
                         >
-                            <Link href="/" prefetch={false} onClick={() => isMobile && setOpenMobile(false)}>
+                            <Link href="/" prefetch={false} onClick={() => setOpenMobile(false)}>
                                 <ArrowLeft className="size-4 md:size-5" />
                                 <span className="text-sm md:text-[15px] font-medium">Kembali ke Website</span>
                             </Link>
@@ -161,7 +161,7 @@ export function Sidebar() {
                                             >
                                                 <Link
                                                     href={item.href}
-                                                    onClick={() => isMobile && setOpenMobile(false)}
+                                                    onClick={() => setOpenMobile(false)}
                                                 >
                                                     <Icon className="size-4 md:size-5" />
                                                     <span className="text-sm md:text-[15px]">{item.label}</span>
@@ -222,7 +222,7 @@ export function Sidebar() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                                    side={isMobile ? "bottom" : "right"}
+                                    side={isMobile ? "top" : "right"}
                                     align="end"
                                     sideOffset={4}
                                 >
@@ -253,7 +253,7 @@ export function Sidebar() {
                                         <DropdownMenuItem asChild className="py-2 text-xs md:text-sm text-zinc-300 hover:text-white focus:text-white">
                                             <Link
                                                 href={adminAccess ? "/admin/profile" : "/profile"}
-                                                onClick={() => isMobile && setOpenMobile(false)}
+                                                onClick={() => setOpenMobile(false)}
                                                 className="cursor-pointer"
                                             >
                                                 <UserIcon className="mr-2 size-4 md:size-4.5" />

@@ -62,12 +62,14 @@ export const normalizePositiveInt = (value: string | undefined, fallback: number
 };
 
 export const toSearchPattern = (value: string) => {
-    const trimmed = (value ?? "").trim();
-    if (!trimmed) return "";
-    const escaped = trimmed
+    if (!value) return "";
+    // Strip PostgREST delimiter syntax characters that could cause syntax errors or injection in .or()
+    const cleaned = value.replace(/[,()]/g, " ").trim();
+    if (!cleaned) return "";
+    const escaped = cleaned
         .replace(/\\/g, "\\\\")
         .replace(/[%_]/g, "\\$&")
-        .replace(/"/g, '\\"');
+        .replace(/"/g, '""');
     return `"%${escaped}%"`;
 };
 

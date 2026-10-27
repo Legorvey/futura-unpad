@@ -61,7 +61,8 @@ export function EsaiActions({ participant }: { participant: AdminEsaiRegistratio
         }
         
         toast.dismiss(toastId);
-        window.open(url, '_blank');
+        const win = window.open(url, '_blank', 'noopener,noreferrer');
+        if (win) win.opener = null;
         toast.success(`Berhasil membuka ${label}`);
     };
 

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
+import { rateLimit } from "@/lib/rate-limit"
+import { rateLimited } from "@/lib/http"
 import { createAdminClient } from "@/lib/supabase-admin"
 export const dynamic = "force-dynamic"
 
@@ -54,7 +56,16 @@ const escapeCSV = (field: string | null | undefined) => {
     return stringField
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    const limit = await rateLimit(request, {
+        key: "admin-export-seminar",
+        limit: 15,
+        windowSeconds: 60,
+    });
+    if (!limit.success) {
+        return rateLimited(limit.retryAfter);
+    }
+
     const { user, adminAccess } = await requireAdmin()
 
     if (!user || !adminAccess) {

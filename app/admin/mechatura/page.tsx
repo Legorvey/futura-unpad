@@ -138,7 +138,7 @@ async function MechaturaAdminData({
     
     // Batch fetch user data to prevent N+1 auth requests
     const uniqueUserIds = Array.from(new Set(
-        registrations.flatMap(team => (team.mechatura_members || []).map(m => m.user_id).filter(Boolean))
+        registrations.flatMap(team => team.mechatura_members || []).filter(m => !m.full_name?.trim()).map(m => m.user_id).filter(Boolean)
     ));
     
     const fallbackNamesByUserId = new Map<string, string>();

@@ -18,10 +18,10 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
 
             <Sidebar />
 
-            <SidebarInset className="bg-transparent min-w-0 flex flex-col flex-1">
+            <SidebarInset className="bg-transparent min-w-0 flex flex-col flex-1 w-full max-w-full overflow-x-clip">
                 <MobileHeader />
 
-                <div className="flex-1 p-6 pt-8 sm:p-8 sm:pt-10 lg:p-10 lg:pt-12 animate-fade-up">
+                <div className="flex-1 min-w-0 w-full max-w-full p-6 pt-8 sm:p-8 sm:pt-10 lg:p-10 lg:pt-12 animate-fade-up">
                     {children}
                 </div>
             </SidebarInset>

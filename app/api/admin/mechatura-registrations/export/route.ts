@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/http";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import {
@@ -48,6 +50,15 @@ const chunk = <T,>(items: T[], size: number) => {
 };
 
 export async function GET(request: NextRequest) {
+    const limit = await rateLimit(request, {
+        key: "admin-export-mechatura",
+        limit: 15,
+        windowSeconds: 60,
+    });
+    if (!limit.success) {
+        return rateLimited(limit.retryAfter);
+    }
+
     const { user, adminAccess } = await requireAdmin();
     if (!user || !adminAccess) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

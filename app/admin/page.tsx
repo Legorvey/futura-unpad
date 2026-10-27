@@ -56,61 +56,59 @@ async function AdminDashboardData() {
     ] = countResults;
 
     return (
-        <div className="mx-auto w-full max-w-7xl space-y-8">
-            <section className="flex flex-col gap-5 border-b border-white/10 pb-8 lg:flex-row lg:items-end lg:justify-between relative">
+        <div className="mx-auto w-full max-w-7xl space-y-8 min-w-0">
+            <section className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:pb-8 lg:flex-row lg:items-end lg:justify-between relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none -z-10" />
                 <div className="space-y-3 relative z-10">
-                    <div className="space-y-2">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-balance bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">
+                    <div className="space-y-1.5 sm:space-y-2">
+                        <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-balance bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">
                             Ringkasan Futura
                         </h1>
-                        <p className="max-w-xl text-sm md:text-base font-medium leading-relaxed text-muted-foreground/80">
-                            Selamat datang kembali, <span className="text-foreground">{user.email}</span>. Pantau kemajuan pendaftaran dan kesehatan pembayaran dari satu tempat.
+                        <p className="max-w-xl text-xs sm:text-sm md:text-base font-medium leading-relaxed text-muted-foreground/80">
+                            Selamat datang kembali, <span className="text-foreground">{user.email}</span>. Pantau kemajuan pendaftaran dari satu tempat.
                         </p>
                     </div>
                 </div>
             </section>
 
             <section className="relative z-10">
-                <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
                     Seminar
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                            <Users className="w-24 h-24 text-primary" strokeWidth={1} />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Total Pendaftar</p>
+                            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-500 shrink-0" />
                         </div>
-                        <div className="flex items-center justify-between gap-3 relative z-10">
-                            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Pendaftar</p>
-                        </div>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {seminarTotal ?? 0}
                         </p>
                     </div>
 
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="flex items-center justify-between gap-3 relative z-10">
-                            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Mahasiswa</p>
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Mahasiswa</p>
                         </div>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {seminarMahasiswa ?? 0}
                         </p>
                     </div>
 
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="flex items-center justify-between gap-3 relative z-10">
-                            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Siswa</p>
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Siswa</p>
                         </div>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {seminarSiswa ?? 0}
                         </p>
                     </div>
 
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="flex items-center justify-between gap-3 relative z-10">
-                            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Dosen / Umum</p>
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Dosen / Umum</p>
                         </div>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-100">
                             {seminarDosen ?? 0} / {seminarUmum ?? 0}
                         </p>
                     </div>
@@ -118,34 +116,40 @@ async function AdminDashboardData() {
             </section>
 
             <section className="relative z-10">
-                <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
                     Mechatura
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                            <Cpu className="w-24 h-24 text-primary" strokeWidth={1} />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Total Tim</p>
+                            <Cpu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-500 shrink-0" />
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Total Tim</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {mechaturaTotal ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-500/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Tim Disetujui</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-emerald-400 relative z-10 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Tim Disetujui</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-emerald-400">
                             {mechaturaPaid ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Robot Sumo</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Robot Sumo</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {mechaturaSumo ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Robot Transporter</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Robot Transporter</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {mechaturaTransporter ?? 0}
                         </p>
                     </div>
@@ -153,34 +157,40 @@ async function AdminDashboardData() {
             </section>
 
             <section className="relative z-10">
-                <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
                     Lomba Esai
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                            <Trophy className="w-24 h-24 text-primary" strokeWidth={1} />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Total Peserta</p>
+                            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-500 shrink-0" />
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Total Peserta</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {esaiTotal ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-500/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Dokumen Disetujui</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-emerald-400 relative z-10 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Dokumen Disetujui</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-emerald-400">
                             {esaiApproved ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Pendaftaran Disubmit</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Pendaftaran Disubmit</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {esaiSubmitted ?? 0}
                         </p>
                     </div>
-                    <div className="group rounded-2xl border border-white/5 bg-card/40 backdrop-blur-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 hover:border-foreground/20 relative overflow-hidden">
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors relative z-10">Draft</p>
-                        <p className="mt-4 text-4xl font-semibold tracking-tight text-foreground relative z-10">
+                    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Draft</p>
+                        </div>
+                        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
                             {esaiDraft ?? 0}
                         </p>
                     </div>

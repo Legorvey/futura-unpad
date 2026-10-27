@@ -2,17 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle, Eye, FileText, Mail, MoreHorizontal, Phone, Tags, Trash, User, XCircle } from "lucide-react";
+import { CheckCircle, Eye, FileText, MoreHorizontal, Phone, Tags, Trash, XCircle } from "lucide-react";
+import { formatRelativeTime } from "@/lib/utils";
+import { getSafeUrl } from "@/lib/url";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getMechaturaDocumentUrl, updateMechaturaRegistrationStatus } from "./actions";
+import { updateMechaturaRegistrationStatus } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/confirm-dialog";
 import {
     useDeleteMechaturaRegistrationMutation,
-    useToggleMechaturaAttendanceMutation,
 } from "@/hooks/mutations/use-admin-mutations";
 import {
     DropdownMenu,
@@ -40,13 +41,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-    isMechaturaCompetitionType,
-    mechaturaCompetitionLabels,
-    paymentStatusLabels,
-    type PaymentStatus,
-} from "@/lib/payment";
-import { formatMechaturaDateTime } from "@/lib/mechatura/format";
 
 export type AdminMechaturaMember = {
     id: string;
@@ -81,21 +75,6 @@ export type AdminMechaturaTeam = {
 
 export type MechaturaTeamData = AdminMechaturaTeam;
 
-const statusClassName: Record<PaymentStatus, string> = {
-    unpaid: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30",
-    pending: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30",
-    paid: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
-    failed: "bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30",
-    expired: "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-500/20 dark:text-zinc-300 dark:border-zinc-500/30",
-    cancelled: "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-500/20 dark:text-neutral-300 dark:border-neutral-500/30",
-    settled: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
-    pending_verification: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30",
-    verified: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30",
-};
-
-const getStatus = (status: string | null): PaymentStatus =>
-    status && status in statusClassName ? (status as PaymentStatus) : "unpaid";
-
 const copyText = async (value: string | null | undefined, label: string) => {
     if (!value) {
         toast.error(`Tidak ada ${label} untuk disalin`);
@@ -118,12 +97,16 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
     
     const leader = team.mechatura_members?.find(m => m.is_leader);
 
-    const handleDownload = async (url: string | null, label: string) => {
-        if (!url) {
-            toast.error(`Tidak ada ${label} yang tersedia`);
+    const handleDownload = (url: string | null, label: string) => {
+        const safeUrl = getSafeUrl(url);
+        if (!safeUrl) {
+            toast.error(`Tautan ${label} tidak valid atau tidak aman`);
             return;
         }
-        window.open(url, '_blank');
+        const win = window.open(safeUrl, "_blank", "noopener,noreferrer");
+        if (win) {
+            win.opener = null;
+        }
         toast.success(`Membuka ${label}`);
     };
 
@@ -497,8 +480,8 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
                                                     </div>
                                                 )}
                                                 
-                                                {Object.values(memberFieldsPreview).map((mf, i, arr) => (
-                                                    <div key={i} className={i === arr.length - 1 ? "" : "mb-4"}>
+                                                {Object.entries(memberFieldsPreview).map(([mId, mf], i, arr) => (
+                                                    <div key={mId} className={i === arr.length - 1 ? "" : "mb-4"}>
                                                         <p className="font-semibold text-[#7f1d1d] mb-2 text-sm border-b border-[#fecaca] pb-1">{mf.name}</p>
                                                         <ul className="list-disc list-inside text-[#991b1b] text-sm space-y-1 ml-1 leading-relaxed">
                                                             {mf.fields.map(f => <li key={f}>{f}</li>)}
@@ -548,27 +531,24 @@ export function TeamActions({ team, hideViewDetails }: { team: MechaturaTeamData
 
 export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[] => [
     {
-        id: "index",
-        header: "#",
-        cell: ({ row }) => (
-            <div className="text-muted-foreground">{row.index + 1}</div>
-        ),
-    },
-    {
         accessorKey: "name",
         header: "Tim",
         cell: ({ row }) => {
+            const team = row.original;
+
             const searchParts = searchParam?.toLowerCase().trim().split(/\s+/).filter(Boolean) || [];
             const isMatch = (str?: string | null) => searchParts.length > 0 && searchParts.every(part => str?.toLowerCase().includes(part));
             
-            const nameMatches = isMatch(row.original.name);
-            const codeMatches = isMatch(row.original.join_code);
+            const nameMatches = isMatch(team.name);
+            const codeMatches = isMatch(team.join_code);
             
             return (
-                <div className="min-w-0 flex flex-col gap-1 items-start">
-                    <span className={`font-medium ${nameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm' : ''}`}>{row.original.name}</span>
-                    <span className={`text-xs text-muted-foreground tracking-wide uppercase ${codeMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm font-medium' : ''}`}>
-                        ID: {row.original.join_code}
+                <div className="min-w-0 flex flex-col min-w-[180px]">
+                    <span className={`font-medium text-sm text-zinc-100 truncate ${nameMatches ? 'bg-yellow-400/20 text-yellow-300 px-1 rounded' : ''}`}>
+                        {team.name}
+                    </span>
+                    <span className={`text-[11px] font-mono text-zinc-400 tracking-wide ${codeMatches ? 'bg-yellow-400/20 text-yellow-300 px-1 rounded' : ''}`}>
+                        ID: {team.join_code}
                     </span>
                 </div>
             );
@@ -582,9 +562,9 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
             const categoryLabel = team.category === "robot_sumo" ? "Robot Sumo" : team.category === "robot_transporter" ? "Robot Transporter" : team.category;
             
             return (
-                <div>
-                    <p className="font-medium">{categoryLabel}</p>
-                </div>
+                <span className="text-xs text-zinc-300 font-medium whitespace-nowrap">
+                    {categoryLabel}
+                </span>
             );
         },
     },
@@ -600,14 +580,14 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
             const nameMatches = isMatch(team.pembina_name);
 
             if (!hasPembina) {
-                return <span className="text-muted-foreground italic text-sm">-</span>;
+                return <span className="text-zinc-500 italic text-xs">-</span>;
             }
 
             return (
-                <div className="flex flex-col gap-1">
-                    <span className={`font-medium text-sm ${nameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm' : ''}`}>{team.pembina_name}</span>
+                <div className="flex flex-col gap-0.5">
+                    <span className={`font-medium text-xs text-zinc-200 ${nameMatches ? 'bg-yellow-400/20 text-yellow-300 px-1 rounded' : ''}`}>{team.pembina_name}</span>
                     {team.pembina_phone && (
-                        <span className="text-xs text-muted-foreground">{team.pembina_phone}</span>
+                        <span className="text-[11px] text-zinc-400 font-mono">{team.pembina_phone}</span>
                     )}
                 </div>
             );
@@ -634,25 +614,18 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
             ));
             
             return (
-                <div className="min-w-0 flex flex-col gap-1 relative">
-                    <div className="flex flex-col">
-                        <span className={`font-medium text-[13px] leading-tight ${leaderNameMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit' : ''}`}>
-                            {leader?.full_name?.trim() || leader?.fallback_name?.trim() || "Tanpa Nama"}
-                        </span>
-                        <span className={`text-[11px] text-muted-foreground mt-0.5 ${leaderPhoneMatches ? 'bg-yellow-200 text-yellow-900 px-1 rounded-sm w-fit font-medium' : ''}`}>
-                            {leader?.phone_number ?? "-"}
-                        </span>
-                    </div>
+                <div className="min-w-0 flex flex-col gap-0.5 relative">
+                    <span className={`font-medium text-xs text-zinc-200 ${leaderNameMatches ? 'bg-yellow-400/20 text-yellow-300 px-1 rounded w-fit' : ''}`}>
+                        {leader?.full_name?.trim() || leader?.fallback_name?.trim() || "Tanpa Nama"}
+                    </span>
+                    <span className={`text-[11px] text-zinc-400 font-mono ${leaderPhoneMatches ? 'bg-yellow-400/20 text-yellow-300 px-1 rounded w-fit' : ''}`}>
+                        {leader?.phone_number ?? "-"}
+                    </span>
 
                     {matchedAnggotas.length > 0 && (
-                        <div className="absolute top-full mt-1.5 left-0 z-50">
-                            <div className="relative">
-                                <div className="absolute -top-1 left-2 w-2 h-2 bg-yellow-300 rotate-45 transform origin-center rounded-[1px]" />
-                                <div className="inline-block px-2 py-1 bg-yellow-300 text-yellow-950 text-[10px] font-medium rounded-md shadow-sm relative z-10">
-                                    {matchedAnggotas.length} result{matchedAnggotas.length > 1 ? 's' : ''}
-                                </div>
-                            </div>
-                        </div>
+                        <span className="inline-flex items-center mt-1 px-1.5 py-0.5 bg-yellow-400/20 text-yellow-300 text-[10px] font-medium rounded w-fit">
+                            +{matchedAnggotas.length} anggota cocok
+                        </span>
                     )}
                 </div>
             );
@@ -660,30 +633,58 @@ export const getColumns = (searchParam?: string): ColumnDef<MechaturaTeamData>[]
     },
     {
         id: "form",
-        header: "Status",
+        header: "Dokumen",
         cell: ({ row }) => {
             const submitStatus = row.original.submission_status;
             
             return submitStatus === 'draft' ? (
-                <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">Draft</span>
+                <span className="inline-flex rounded-full border border-zinc-700/50 bg-zinc-800/60 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+                    Draft
+                </span>
             ) : (
-                <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-800/50">Submitted</span>
+                <span className="inline-flex rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400">
+                    Submitted
+                </span>
             );
         },
     },
     {
         id: "approval",
-        header: "Persetujuan",
+        header: "Status",
         cell: ({ row }) => {
             const approval = row.original.admin_approval_status;
             
             if (approval === 'approved') {
-                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800/50">Disetujui</span>;
+                return (
+                    <span className="inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                        Disetujui
+                    </span>
+                );
             } else if (approval === "revision") {
-                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800/50">Revisi</span>;
+                return (
+                    <span className="inline-flex rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400">
+                        Revisi
+                    </span>
+                );
             } else {
-                return <span className="inline-flex rounded-md border px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50">Menunggu</span>;
+                return (
+                    <span className="inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                        Menunggu
+                    </span>
+                );
             }
+        },
+    },
+    {
+        accessorKey: "created_at",
+        header: "Waktu",
+        cell: ({ row }) => {
+            const timestamp = row.original.created_at;
+            return (
+                <span suppressHydrationWarning className="text-xs text-zinc-400 font-mono whitespace-nowrap" title={timestamp || ""}>
+                    {formatRelativeTime(timestamp)}
+                </span>
+            );
         },
     },
     {

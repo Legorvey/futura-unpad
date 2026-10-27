@@ -1,9 +1,9 @@
- 
 "use client";
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Mail, MoreHorizontal, Phone, Trash, User } from "lucide-react";
+import { Eye, Mail, MoreHorizontal, Phone, Trash, User, Users } from "lucide-react";
+import { formatRelativeTime } from "@/lib/utils";
 import { useRouter } from "nextjs-toploader/app";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -23,6 +23,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export type Participants = {
     id: string;
@@ -59,16 +67,6 @@ const copyActions = [
     },
 ];
 
-import { Users } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-
 export function AttendanceCheckbox({ participant }: { participant: Participants }) {
     const router = useRouter();
     const toggleAttendance = useToggleSeminarAttendanceMutation();
@@ -80,9 +78,11 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
                 attended: checked,
                 bulk
             });
+            toast.success("Status kehadiran berhasil diperbarui");
             router.refresh();
         } catch (e) {
             console.error("Error toggling attendance", e);
+            toast.error("Gagal memperbarui status kehadiran");
         }
     };
 
@@ -97,10 +97,9 @@ export function AttendanceCheckbox({ participant }: { participant: Participants 
         else mainCheckboxState = "indeterminate";
     }
 
-    const handleMainToggle = (checked: boolean | "indeterminate") => {
-        // If it was true or indeterminate, we uncheck all. Otherwise check all.
-        const newChecked = checked === true;
-        handleToggle(participant.id, newChecked, isGroup);
+    const handleMainToggle = () => {
+        const shouldCheckAll = mainCheckboxState === false;
+        handleToggle(participant.id, shouldCheckAll, isGroup);
     };
 
     return (
@@ -260,15 +259,8 @@ export function ParticipantActions({ participant, hideViewDetails }: { participa
 
 export const columns: ColumnDef<Participants>[] = [
     {
-        id: "index",
-        header: "#",
-        cell: ({ row }) => (
-            <div className="text-muted-foreground">{row.index + 1}</div>
-        ),
-    },
-    {
         accessorKey: "attended",
-        header: () => <div className="text-center">Check In</div>,
+        header: () => <div className="text-center">Hadir</div>,
         cell: ({ row }) => (
             <div className="flex items-center justify-center">
                 <AttendanceCheckbox participant={row.original} />
@@ -277,7 +269,7 @@ export const columns: ColumnDef<Participants>[] = [
     },
     {
         accessorKey: "nama_lengkap",
-        header: "Nama",
+        header: "Peserta",
         cell: ({ row }) => {
             const participant = row.original;
             const isGroup = participant.registration_type === "group" || participant.registration_type === "grup";
@@ -285,20 +277,35 @@ export const columns: ColumnDef<Participants>[] = [
                 ? participant.group_name?.trim() || participant.nama_lengkap
                 : participant.nama_lengkap;
 
-            return <div className="font-medium">{displayName}</div>;
+            return (
+                <div className="min-w-0 flex flex-col min-w-[180px]">
+                    <span className="font-medium text-sm text-zinc-100 truncate">
+                        {displayName}
+                    </span>
+                    <span className="text-[11px] text-zinc-400 truncate">
+                        {participant.asal_institusi || "-"}
+                    </span>
+                </div>
+            );
         },
     },
     {
         accessorKey: "email",
         header: "Email",
+        cell: ({ row }) => (
+            <div className="text-xs text-zinc-300 font-mono">
+                {row.original.email}
+            </div>
+        )
     },
     {
         accessorKey: "no_telepon",
         header: "Telepon",
-    },
-    {
-        accessorKey: "asal_institusi",
-        header: "Institusi",
+        cell: ({ row }) => (
+            <div className="text-xs text-zinc-400 font-mono">
+                {row.original.no_telepon || "-"}
+            </div>
+        )
     },
     {
         accessorKey: "registration_type",
@@ -307,32 +314,47 @@ export const columns: ColumnDef<Participants>[] = [
             const type = row.original.registration_type;
             const isGroup = type === "group" || type === "grup";
             return (
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ${isGroup ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                    isGroup
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                }`}>
                     {isGroup ? "Grup" : "Individu"}
                 </span>
-            )
+            );
         }
     },
     {
         accessorKey: "status_akademika",
-        header: "Status Civitas Akademika",
-        cell: ({ row }) => (
-            <span
-                className={`
-                    inline-flex rounded-full 
-                    ${row.original.status_akademika == "mahasiswa"
-                        ? "bg-blue-100 text-blue-600"
-                        : row.original.status_akademika == "siswa"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : row.original.status_akademika == "dosen"
-                                ? "bg-violet-100 text-violet-700"
-                                : "bg-zinc-100 text-zinc-700"
-                    } 
-                    px-2.5 py-1 text-xs font-medium capitalize 
-                `}>
-                {row.original.status_akademika}
-            </span>
-        )
+        header: "Civitas",
+        cell: ({ row }) => {
+            const status = row.original.status_akademika;
+            return (
+                <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
+                    status === "mahasiswa"
+                        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        : status === "siswa"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : status === "dosen"
+                        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                        : "bg-zinc-800/60 text-zinc-400 border-zinc-700/40"
+                }`}>
+                    {status}
+                </span>
+            );
+        }
+    },
+    {
+        accessorKey: "created_at",
+        header: "Waktu",
+        cell: ({ row }) => {
+            const timestamp = row.original.created_at;
+            return (
+                <span suppressHydrationWarning className="text-xs text-zinc-400 font-mono whitespace-nowrap" title={timestamp || ""}>
+                    {formatRelativeTime(timestamp)}
+                </span>
+            );
+        },
     },
     {
         id: "actions",

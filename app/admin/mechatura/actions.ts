@@ -361,9 +361,24 @@ export async function updateMechaturaRegistrationStatus(
     return { success: true };
 }
 
+function isValidMechaturaDocumentPath(filePath: string): boolean {
+    if (!filePath || typeof filePath !== "string") return false;
+    if (filePath.includes("..") || filePath.includes("\\") || /%[0-9a-fA-F]{2}/.test(filePath)) return false;
+    const parts = filePath.split("/");
+    if (parts.length < 2) return false;
+    const fileName = parts[parts.length - 1];
+    if (!fileName || fileName.startsWith(".") || !/^[a-zA-Z0-9_.-]+$/.test(fileName)) return false;
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    return ["pdf", "jpg", "jpeg", "png"].includes(ext || "");
+}
+
 export async function getMechaturaDocumentUrl(path: string | null) {
     if (!path) return null;
     
+    if (!isValidMechaturaDocumentPath(path)) {
+        throw new Error("Path dokumen tidak valid atau mencurigakan");
+    }
+
     const { user, adminAccess } = await requireAdmin();
     if (!user || !adminAccess) {
         throw new Error("Unauthorized");

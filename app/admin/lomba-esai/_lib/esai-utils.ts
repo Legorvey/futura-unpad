@@ -85,7 +85,7 @@ export const toSearchPattern = (search: string) => {
     const pattern = cleaned
         .replace(/\\/g, "\\\\") // Escape backslashes first
         .replace(/[%_]/g, "\\$&"); // Escape LIKE wildcards
-    const safePattern = pattern.replace(/"/g, '\\"'); // Escape double quotes for PostgREST
+    const safePattern = pattern.replace(/"/g, '""'); // Escape double quotes for PostgREST
     return `"%${safePattern}%"`; // Wrap in double quotes
 };
 

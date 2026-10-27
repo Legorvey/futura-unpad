@@ -22,7 +22,7 @@ export default async function AdminProfilePage() {
     user.identities?.some((id) => id.provider === "email");
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8">
+    <div className="mx-auto w-full max-w-7xl space-y-8 min-w-0">
       <AdminProfileClient
         user={user}
         verifiedTotp={

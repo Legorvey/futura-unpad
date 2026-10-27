@@ -26,6 +26,8 @@ type EditProfileDialogProps = {
   initialUsername?: string
   initialEmail: string
   className?: string
+  trigger?: React.ReactNode
+  redirectTo?: string
 }
 
 type ProfileUpdates = {
@@ -36,7 +38,7 @@ type ProfileUpdates = {
   }
 }
 
-export function EditProfileDialog({ initialDisplayName, initialUsername = "", initialEmail, className }: EditProfileDialogProps) {
+export function EditProfileDialog({ initialDisplayName, initialUsername = "", initialEmail, className, trigger, redirectTo }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -112,7 +114,7 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
 
     try {
       const { error: updateError } = await supabase.auth.updateUser(updates, {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile`
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo || "/profile")}`
       })
 
       if (updateError) {
@@ -148,27 +150,31 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={className || "absolute top-4 right-4 h-8 gap-2"}>
-          <Pencil className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Edit Profil</span>
-        </Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button variant="outline" size="sm" className={className || "absolute top-4 right-4 h-8 gap-2"}>
+            <Pencil className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Edit Profil</span>
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 border-slate-200">
+      <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground border-border">
         <DialogHeader>
-          <DialogTitle className="text-slate-900">Edit Profil</DialogTitle>
-          <DialogDescription className="text-slate-500">
+          <DialogTitle className="text-foreground">Edit Profil</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Lakukan perubahan pada profil Anda di sini. Klik simpan setelah selesai.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="display_name" className="text-slate-900">Nama Tampilan</Label>
+              <Label htmlFor="display_name" className="text-foreground">Nama Tampilan</Label>
               <Input
                 id="display_name"
                 placeholder="cth. Budi Santoso"
                 aria-invalid={!!errors.display_name}
-                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("display_name")}
               />
               {errors.display_name && (
@@ -176,34 +182,34 @@ export function EditProfileDialog({ initialDisplayName, initialUsername = "", in
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="username" className="text-slate-900">Username</Label>
+              <Label htmlFor="username" className="text-foreground">Username</Label>
               <Input
                 id="username"
                 placeholder="cth. budisantoso"
                 aria-invalid={!!errors.username}
-                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("username")}
               />
               {errors.username && (
                 <p className="text-sm text-red-500">{errors.username.message}</p>
               )}
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Username unik Anda untuk masuk ke akun.
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email" className="text-slate-900">Email</Label>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
               <Input
                 id="email"
                 type="email"
                 aria-invalid={!!errors.email}
-                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30 focus-visible:ring-offset-0 focus-visible:outline-none"
                 {...register("email")}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Tautan konfirmasi akan dikirim ke alamat email lama dan baru Anda untuk memverifikasi perubahan ini.
               </p>
             </div>

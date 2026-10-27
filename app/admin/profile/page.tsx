@@ -1,103 +1,44 @@
-import type { Metadata } from "next"
-import { requireAdminOrRedirect } from "@/lib/auth"
-import { createClient } from "@/utils/supabase/server"
-import { EditProfileDialog } from "@/components/edit-profile-dialog"
-import { MfaProfileCard } from "@/components/admin/mfa-profile-card"
+import type { Metadata } from "next";
+import { requireAdminOrRedirect } from "@/lib/auth";
+import { createClient } from "@/utils/supabase/server";
+import { AdminProfileClient } from "./admin-profile-client";
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-})
-
-const formatDate = (dateString?: string) => {
-    if (!dateString) return "-"
-    return dateFormatter.format(new Date(dateString))
-}
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export const metadata: Metadata = {
-  title: "Profil Admin"
-}
+  title: "Profil Admin - Futura",
+  description: "Pengaturan profil administrator Futura Unpad",
+};
 
 export default async function AdminProfilePage() {
-    const { user } = await requireAdminOrRedirect()
-    const supabase = await createClient()
-    const { data: factors } = await supabase.auth.mfa.listFactors()
-    const verifiedTotp = factors?.totp?.find((f) => f.status === "verified")
+  const { user } = await requireAdminOrRedirect();
+  const supabase = await createClient();
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  const verifiedTotp = factors?.totp?.find((f) => f.status === "verified");
 
-    const isPasswordUser =
-        user.app_metadata?.provider === "email" ||
-        user.identities?.some((id) => id.provider === "email")
+  const isPasswordUser =
+    user.app_metadata?.provider === "email" ||
+    user.identities?.some((id) => id.provider === "email");
 
-    return (
-        <div className="mx-auto w-full max-w-3xl space-y-8">
-            <section className="flex flex-col gap-3 border-b border-border pb-6">
-                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-                    Admin Profile
-                </h1>
-                <p className="text-sm font-medium text-muted-foreground">
-                    Manage your administrator account settings and view your account information.
-                </p>
-            </section>
-
-            <div className="grid gap-8">
-                {/* Profile Information */}
-                <div className="rounded-xl border border-border bg-card">
-                    <div className="border-b border-border bg-muted/30 px-6 py-4 flex items-center justify-between">
-                        <h2 className="font-medium text-foreground">Profile Information</h2>
-                        <EditProfileDialog
-                            initialDisplayName={user.user_metadata?.display_name || ""}
-                            initialUsername={user.user_metadata?.username || ""}
-                            initialEmail={user.email || ""}
-                            className="h-8 text-xs sm:h-9 sm:text-sm"
-                        />
-                    </div>
-                    <div className="p-6">
-                        <dl className="space-y-6">
-                            <div>
-                                <dt className="text-sm font-medium text-muted-foreground mb-1">Email address</dt>
-                                <dd className="text-base font-medium text-foreground">{user.email}</dd>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div>
-                                    <dt className="text-sm font-medium text-muted-foreground mb-1">Display name</dt>
-                                    <dd className="text-base font-medium text-foreground">{user.user_metadata?.display_name || "-"}</dd>
-                                </div>
-                                <div>
-                                    <dt className="text-sm font-medium text-muted-foreground mb-1">Username</dt>
-                                    <dd className="text-base font-medium text-foreground">{user.user_metadata?.username ? `@${user.user_metadata.username}` : "-"}</dd>
-                                </div>
-                            </div>
-                            <div>
-                                <dt className="text-sm font-medium text-muted-foreground mb-1">Role</dt>
-                                <dd className="text-base font-medium text-foreground">Administrator</dd>
-                            </div>
-                            <div>
-                                <dt className="text-sm font-medium text-muted-foreground mb-1">Account ID</dt>
-                                <dd className="text-sm font-mono text-foreground">{user.id}</dd>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div>
-                                    <dt className="text-sm font-medium text-muted-foreground mb-1">Account created</dt>
-                                    <dd className="text-sm text-foreground">{formatDate(user.created_at)}</dd>
-                                </div>
-                                <div>
-                                    <dt className="text-sm font-medium text-muted-foreground mb-1">Last sign in</dt>
-                                    <dd className="text-sm text-foreground">{formatDate(user.last_sign_in_at)}</dd>
-                                </div>
-                            </div>
-                        </dl>
-                    </div>
-                </div>
-
-                {/* MFA Security Information */}
-                <MfaProfileCard
-                    isEnrolled={!!verifiedTotp}
-                    factorId={verifiedTotp?.id || null}
-                    friendlyName={verifiedTotp?.friendly_name}
-                    createdAt={verifiedTotp?.created_at ? formatDate(verifiedTotp.created_at) : null}
-                    isPasswordUser={!!isPasswordUser}
-                />
-            </div>
-        </div>
-    )
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      <AdminProfileClient
+        user={user}
+        verifiedTotp={
+          verifiedTotp
+            ? {
+                id: verifiedTotp.id,
+                friendly_name: verifiedTotp.friendly_name,
+                created_at: verifiedTotp.created_at,
+                last_challenged_at: (
+                  verifiedTotp as { last_challenged_at?: string }
+                ).last_challenged_at,
+              }
+            : null
+        }
+        isPasswordUser={!!isPasswordUser}
+      />
+    </div>
+  );
 }

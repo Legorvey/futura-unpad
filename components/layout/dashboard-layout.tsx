@@ -1,21 +1,30 @@
+import { cookies } from "next/headers"
 import { Sidebar } from "./sidebar"
 import { MobileHeader } from "./mobile-header"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const cookieStore = await cookies()
+    const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false"
+    const parsedWidth = Number(cookieStore.get("sidebar_width")?.value)
+    const defaultWidth = Number.isFinite(parsedWidth) && parsedWidth >= 220 && parsedWidth <= 480
+        ? parsedWidth
+        : 288
+
     return (
-        <div className="relative flex min-h-screen w-full flex-col bg-background md:flex-row overflow-hidden">
+        <SidebarProvider defaultOpen={defaultOpen} defaultWidth={defaultWidth}>
             {/* Atmospheric Background Blobs */}
-            <div className="absolute top-0 -left-1/4 w-[150%] h-[150vh] pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background blur-3xl opacity-60" />
-            
+            <div className="fixed top-0 -left-1/4 w-[150%] h-[150vh] pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background blur-3xl opacity-60" />
+
             <Sidebar />
-            
-            <div className="relative flex flex-col flex-1 transition-all md:ml-64 min-w-0 z-10">
+
+            <SidebarInset className="bg-transparent min-w-0 flex flex-col flex-1">
                 <MobileHeader />
-                
-                <main className="flex-1 p-6 pt-10 sm:p-8 sm:pt-12 lg:p-12 lg:pt-16 animate-fade-up">
+
+                <div className="flex-1 p-6 pt-8 sm:p-8 sm:pt-10 lg:p-10 lg:pt-12 animate-fade-up">
                     {children}
-                </main>
-            </div>
-        </div>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }

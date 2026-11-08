@@ -4,8 +4,6 @@ import { useEffect, useState, useRef } from "react"
 import { useInView } from "motion/react"
 import Link from "next/link"
 import { Button } from "../ui/button"
-import FlipCountdown from "@/components/seminar/flip-countdown"
-import { ESAI_REG_START_DATE, IS_ESAI_REGISTRATION_OPEN } from "@/lib/landing/helper"
 import { EsaiRegistrationButton } from "./RegistrationButton"
 
 const SCRAMBLE_TARGET = "LOMBA ESAI"

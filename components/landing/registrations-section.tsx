@@ -35,6 +35,7 @@ const events = [
         highlights: "Inovasi Smart Grid & Pengembangan EBT",
         href: "/lomba-esai",
         icon: PenTool,
+        isClosed: true,
     },
 ];
 

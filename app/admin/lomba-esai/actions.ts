@@ -18,13 +18,25 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 function isValidDocumentPath(filePath: string): boolean {
     if (!filePath || typeof filePath !== "string") return false;
-    // Disallow path traversal, backslashes, and URL-encoded sequences
-    if (filePath.includes("..") || filePath.includes("\\") || /%[0-9a-fA-F]{2}/.test(filePath)) return false;
-    const parts = filePath.split("/");
+    // Disallow path traversal, backslashes, and quote characters
+    if (filePath.includes("..") || filePath.includes("\\") || filePath.includes('"') || filePath.includes("'")) return false;
+
+    let decoded = filePath;
+    try {
+        decoded = decodeURIComponent(filePath);
+    } catch {
+        // If decoding fails, continue with raw filePath
+    }
+    if (decoded.includes("..") || decoded.includes("\\") || decoded.includes('"') || decoded.includes("'")) return false;
+
+    const parts = decoded.split("/");
     if (parts.length !== 2) return false;
     const [userIdFolder, fileName] = parts;
     if (!UUID_REGEX.test(userIdFolder)) return false;
-    if (!fileName || fileName.startsWith(".") || !/^[a-zA-Z0-9_.-]+$/.test(fileName)) return false;
+    if (!fileName || fileName.startsWith(".")) return false;
+    // Allow standard safe filename characters (alphanumeric, underscores, hyphens, dots, spaces, parentheses, brackets)
+    if (!/^[a-zA-Z0-9_.\- ()[\]]+$/.test(fileName)) return false;
+
     const ext = fileName.split(".").pop()?.toLowerCase();
     return ["pdf", "jpg", "jpeg", "png"].includes(ext || "");
 }
@@ -131,10 +143,11 @@ export async function getEsaiDocumentUrl(path: string | null) {
     const supabaseAdmin = createAdminClient();
 
     // Verify the document path actually belongs to an existing registration
+    const cleanPath = path.replace(/"/g, '\\"');
     const { data: registration, error: fetchError } = await supabaseAdmin
         .from("esai_registrations")
         .select("id")
-        .or(`essay_paper_url.eq."${path}",identity_card_url.eq."${path}",instagram_twibbon_url.eq."${path}",payment_proof_url.eq."${path}"`)
+        .or(`essay_paper_url.eq."${cleanPath}",identity_card_url.eq."${cleanPath}",instagram_twibbon_url.eq."${cleanPath}",payment_proof_url.eq."${cleanPath}"`)
         .limit(1)
         .maybeSingle();
 

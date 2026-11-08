@@ -310,6 +310,7 @@ Instagram: @futuraunpad.hmte
       if (!res.success) throw new Error(res.error || "Gagal menghapus file.");
 
       toast.success("File berhasil dihapus. Silakan unggah yang baru.");
+      router.refresh();
     } catch (err: unknown) {
       if (err instanceof Error) { toast.error(err.message); } else { toast.error("Terjadi kesalahan."); }
     }

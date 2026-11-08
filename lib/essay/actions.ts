@@ -2,7 +2,7 @@
 
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { IS_ESAI_REGISTRATION_OPEN } from "@/lib/landing/helper";
+import { IS_ESAI_REGISTRATION_OPEN, IS_ESAI_REGISTRATION_CLOSED } from "@/lib/landing/helper";
 import { z } from "zod";
 import { UpdateEsaiSchema } from "@/lib/validation/esai";
 import { formRatelimit } from "@/lib/ratelimit";
@@ -19,13 +19,27 @@ type AllowedFileField = (typeof ALLOWED_FILE_FIELDS)[number];
 
 function isValidUserFilePath(filePath: string, userId: string, isEssay = false): boolean {
   if (!filePath || typeof filePath !== "string") return false;
-  // Disallow path traversal, backslashes, and URL-encoded sequences (%2e, %2f, %5c, etc.)
-  if (filePath.includes("..") || filePath.includes("\\") || /%[0-9a-fA-F]{2}/.test(filePath)) return false;
-  const parts = filePath.split("/");
+  // Disallow path traversal and backslashes
+  if (filePath.includes("..") || filePath.includes("\\")) return false;
+
+  let decoded = filePath;
+  try {
+    decoded = decodeURIComponent(filePath);
+  } catch {
+    // If decoding fails, continue with raw filePath
+  }
+  if (decoded.includes("..") || decoded.includes("\\")) return false;
+
+  const parts = decoded.split("/");
   if (parts.length !== 2 || parts[0] !== userId) return false;
   const fileName = parts[1];
-  // Filename must not be a dotfile and must match safe filename characters
-  if (!fileName || fileName.startsWith(".") || !/^[a-zA-Z0-9_.-]+$/.test(fileName)) return false;
+
+  // Filename must not be a dotfile
+  if (!fileName || fileName.startsWith(".")) return false;
+
+  // Allow standard safe filename characters (alphanumeric, underscores, hyphens, dots, spaces, parentheses, brackets)
+  if (!/^[a-zA-Z0-9_.\- ()[\]]+$/.test(fileName)) return false;
+
   const ext = fileName.split(".").pop()?.toLowerCase();
   if (isEssay) {
     return ext === "pdf";
@@ -34,8 +48,8 @@ function isValidUserFilePath(filePath: string, userId: string, isEssay = false):
 }
 
 export async function registerEsai() {
-  if (!IS_ESAI_REGISTRATION_OPEN) {
-    return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
+  if (IS_ESAI_REGISTRATION_CLOSED || !IS_ESAI_REGISTRATION_OPEN) {
+    return { success: false, error: "Pendaftaran Lomba Esai telah resmi ditutup." };
   }
 
   const supabase = await createClient();
@@ -81,10 +95,6 @@ export async function registerEsai() {
 }
 
 export async function updateEsaiRegistration(registrationId: string, values: z.infer<typeof UpdateEsaiSchema>) {
-  if (!IS_ESAI_REGISTRATION_OPEN) {
-    return { success: false, error: "Pendaftaran Lomba Esai belum dibuka." };
-  }
-
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -100,6 +110,10 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
   const validatedFields = UpdateEsaiSchema.safeParse(values);
   if (!validatedFields.success) {
     return { success: false, error: "Data tidak valid." };
+  }
+
+  if (validatedFields.data.institution_category && !["SMA", "SMK", "perguruan_tinggi"].includes(validatedFields.data.institution_category)) {
+    return { success: false, error: "Kategori institusi tidak valid." };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -128,12 +142,18 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
     }
   }
 
+  // Discard email from updates to prevent tampering or spoofing verified account email
+  const { email: _discardedEmail, ...safeUpdateData } = validatedFields.data;
+
   // Prevent submitting an incomplete registration
   if (validatedFields.data.submission_status === "submitted") {
-    const checkData = { ...reg, ...validatedFields.data };
+    const checkData = { ...reg, ...safeUpdateData };
 
-    // FIX #5: Enforce twibbon date restriction on the server
+    // FIX #5: Enforce twibbon date and completeness restriction on the server
     const isTwibbonOpen = new Date() >= new Date("2026-10-05T00:00:00+07:00");
+    if (!isTwibbonOpen && !checkData.instagram_twibbon_url) {
+      return { success: false, error: "Anda baru dapat melakukan final submit pada 5 Oktober 2026 atau setelah mengunggah twibbon." };
+    }
 
     const isComplete = checkData.full_name && checkData.institution_category && checkData.institution && checkData.city && checkData.phone_number &&
                        (!isTwibbonOpen || checkData.instagram_twibbon_url) && checkData.identity_card_url &&
@@ -147,7 +167,7 @@ export async function updateEsaiRegistration(registrationId: string, values: z.i
   const { data: updated, error } = await supabaseAdmin
     .from("esai_registrations")
     .update({
-      ...validatedFields.data,
+      ...safeUpdateData,
       updated_at: new Date().toISOString()
     })
     .eq("id", registrationId)
@@ -185,7 +205,7 @@ export async function removeEsaiFile(registrationId: string, field: AllowedFileF
 
   const supabaseAdmin = createAdminClient();
 
-  // Verify ownership
+  // Verify ownership and fetch current file path
   const { data: reg, error: fetchError } = await supabaseAdmin
     .from("esai_registrations")
     .select("*")
@@ -198,18 +218,11 @@ export async function removeEsaiFile(registrationId: string, field: AllowedFileF
     return { success: false, error: "Pendaftaran sudah disubmit, file tidak dapat dihapus." };
   }
 
-  const filePath = reg[field];
-  if (filePath) {
-    // Ensure the file path strictly belongs to the requesting user without directory traversal
-    if (!isValidUserFilePath(filePath, user.id)) {
-      return { success: false, error: "Unauthorized file access." };
-    }
-    await supabaseAdmin.storage.from("esai_documents").remove([filePath]);
-  }
-  
+  // Atomically update DB FIRST to prevent TOCTOU race condition.
+  // If the record was submitted concurrently, 0 rows will be updated.
   const { data: updated, error: updateError } = await supabaseAdmin
     .from("esai_registrations")
-    .update({ [field]: null })
+    .update({ [field]: null, updated_at: new Date().toISOString() })
     .eq("id", registrationId)
     .eq("user_id", user.id)
     .eq("submission_status", "draft")
@@ -221,6 +234,15 @@ export async function removeEsaiFile(registrationId: string, field: AllowedFileF
     }
     console.error("Esai remove file error:", updateError);
     return { success: false, error: "Gagal menghapus file." };
+  }
+
+  // ONLY remove from storage after database was atomically confirmed updated in draft status
+  const filePath = reg[field];
+  if (filePath) {
+    // Ensure the file path strictly belongs to the requesting user without directory traversal
+    if (isValidUserFilePath(filePath, user.id, field === "essay_paper_url")) {
+      await supabaseAdmin.storage.from("esai_documents").remove([filePath]);
+    }
   }
 
   revalidatePath("/profile", "layout");

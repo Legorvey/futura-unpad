@@ -426,8 +426,8 @@ export default async function ProfilePage() {
                 {esaiRegistration.submission_status === 'submitted' ? "Disubmit" : "Draft"}
               </span>
             ) : (
-               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
-                 Belum Mendaftar
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400">
+                 Pendaftaran Ditutup
                </span>
             )}
           </div>
@@ -471,17 +471,10 @@ export default async function ProfilePage() {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">Anda belum mendaftar Lomba Esai.</p>
-                {/* To change the button back to the yellow one, set IS_LOMBA_ESAI_OPEN to true */}
-                {true ? (
-                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
-                    <Link href="/lomba-esai" prefetch={true}>Daftar Sekarang</Link>
-                  </Button>
-                ) : (
-                  <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
-                    <Link href="/lomba-esai" prefetch={true}>Detail Acara</Link>
-                  </Button>
-                )}
+                <p className="text-sm text-muted-foreground">Pendaftaran kompetisi Lomba Esai 2026 telah resmi ditutup.</p>
+                <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
+                  <Link href="/lomba-esai" prefetch={true}>Lihat Detail</Link>
+                </Button>
               </div>
             )}
           </div>

@@ -14,7 +14,8 @@ export const TARGET_DATE = ({
 };
 
 export const ESAI_REG_START_DATE = "2026-09-21T00:00:00+07:00";
-export const IS_ESAI_REGISTRATION_OPEN = true; // Set to true to manually open registration
+export const IS_ESAI_REGISTRATION_OPEN = false; // Registration closed for new entrants
+export const IS_ESAI_REGISTRATION_CLOSED = true; // Hard kill switch to block new registrations
 
 export const timeBlocks: { key: keyof ReturnType<typeof calculateTimeLeft>; label: string }[] = [
   { key: "days", label: "Days" },

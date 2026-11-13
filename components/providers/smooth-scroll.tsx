@@ -55,6 +55,15 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
       if (hashTarget) {
         e.preventDefault();
+        if (hashTarget === '#sponsors') {
+          const isMobile = window.innerWidth < 768;
+          const targetEl = document.getElementById(isMobile ? 'sponsors-mobile' : 'sponsors');
+          if (targetEl) {
+            lenis.scrollTo(targetEl, { offset: isMobile ? -80 : 0 });
+            window.history.pushState(null, '', hashTarget);
+            return;
+          }
+        }
         lenis.scrollTo(hashTarget);
         window.history.pushState(null, '', hashTarget);
       }
@@ -65,7 +74,16 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     // If the page loads with a hash, scroll to it smoothly
     if (window.location.hash) {
       setTimeout(() => {
-        lenis.scrollTo(window.location.hash);
+        const hash = window.location.hash;
+        if (hash === '#sponsors') {
+          const isMobile = window.innerWidth < 768;
+          const targetEl = document.getElementById(isMobile ? 'sponsors-mobile' : 'sponsors');
+          if (targetEl) {
+            lenis.scrollTo(targetEl, { offset: isMobile ? -80 : 0 });
+            return;
+          }
+        }
+        lenis.scrollTo(hash);
       }, 150);
     }
 
@@ -85,6 +103,14 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       if (window.location.hash) {
         const hash = window.location.hash;
         setTimeout(() => {
+          if (hash === '#sponsors') {
+            const isMobile = window.innerWidth < 768;
+            const targetEl = document.getElementById(isMobile ? 'sponsors-mobile' : 'sponsors');
+            if (targetEl) {
+              lenisRef.current?.scrollTo(targetEl, { offset: isMobile ? -80 : 0 });
+              return;
+            }
+          }
           lenisRef.current?.scrollTo(hash);
         }, 150);
       } else {

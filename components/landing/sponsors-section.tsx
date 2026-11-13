@@ -61,7 +61,6 @@ export default function SponsorsSection() {
 
   return (
     <div
-      id="sponsors"
       className="relative w-full overflow-visible py-4 sm:py-6"
       role="region"
       aria-label="Official Futura Sponsors"

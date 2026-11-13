@@ -412,7 +412,7 @@ export default function AboutSection() {
         </div>
 
         {/* Section 2: Dedicated Sponsors Section (After FUTURA UNPAD ORGANIZERS) */}
-        <div className="flex flex-col items-center text-center space-y-6">
+        <div id="sponsors-mobile" className="flex flex-col items-center text-center space-y-6 scroll-mt-24">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-[0.9] uppercase">
             FUTURA UNPAD
             <span className="block mt-2 text-white/80 text-2xl sm:text-3xl font-bold">
@@ -470,6 +470,9 @@ export default function AboutSection() {
       {/* TABLET & DESKTOP LAYOUT (>= 768px: 5-Slide Horizontal Parallax Flow)       */}
       {/* ========================================================================= */}
       <div ref={targetRef} className="hidden md:block relative h-[600vh]">
+        {/* Scroll anchor target for Slide 2 (Sponsors) in 600vh track */}
+        <div id="sponsors" className="absolute left-0 w-full pointer-events-none" style={{ top: "calc(1.25 * 100vh)" }} />
+
         <div className="sticky top-0 h-screen w-full overflow-hidden">
           {/* --- SLIDE 1: FUTURA UNPAD ORGANIZERS --- */}
           <motion.div

@@ -41,6 +41,10 @@ export function NavbarDemo() {
       link: "/#registrations",
     },
     {
+      name: "Mitra & Sponsor",
+      link: "/#sponsors",
+    },
+    {
       name: "FAQ",
       link: "/#faq",
     },

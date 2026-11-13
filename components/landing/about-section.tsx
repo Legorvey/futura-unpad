@@ -9,6 +9,7 @@ import {
   useMotionValue,
 } from "motion/react";
 import Image from "next/image";
+import SponsorsSection from "@/components/landing/sponsors-section";
 
 const documentationItems = [
   {
@@ -341,7 +342,7 @@ const GalleryRow = ({
 export default function AboutSection() {
   const targetRef = useRef<HTMLDivElement>(null);
 
-  // Track scroll progress over a 500vh container for tablet & higher resolutions
+  // Track scroll progress over a 600vh container for tablet & higher resolutions
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end end"],
@@ -353,28 +354,30 @@ export default function AboutSection() {
     restDelta: 0.001,
   });
 
-  // --- Slide 1 ---
-  const slide1X = useTransform(smoothProgress, [0, 0.2], ["0vw", "-50vw"]);
-  const slide1Opacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
+  // --- Slide 1: Organizers ---
+  const slide1X = useTransform(smoothProgress, [0, 0.16], ["0vw", "-50vw"]);
+  const slide1Opacity = useTransform(smoothProgress, [0.08, 0.15], [1, 0]);
 
-  // --- Slide 2 ---
-  const slide2ContentX = useTransform(smoothProgress, [0, 0.2, 0.35, 0.55], ["100vw", "0vw", "-10vw", "-100vw"]);
-  const slide2Opacity = useTransform(smoothProgress, [0.35, 0.5], [1, 0]);
-  const parallaxBg = useTransform(smoothProgress, [0, 0.2, 0.35, 0.55], ["-100vw", "-10vw", "10vw", "100vw"]);
+  // --- Slide 2: Dedicated Sponsors Parallax Slide (After FUTURA UNPAD ORGANIZERS) ---
+  const sponsorsSlideX = useTransform(smoothProgress, [0.12, 0.22, 0.35, 0.45], ["100vw", "0vw", "-5vw", "-100vw"]);
+  const sponsorsSlideOpacity = useTransform(smoothProgress, [0.12, 0.18, 0.35, 0.43], [0, 1, 1, 0]);
+  const sponsorsParallaxX = useTransform(smoothProgress, [0.15, 0.42], ["15vw", "-25vw"]);
 
-  // --- Slide 3 ---
-  const title3X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["100vw", "0vw", "-5vw", "-150vw"]);
+  // --- Slide 3: What is Futura? ---
+  const slide2ContentX = useTransform(smoothProgress, [0.38, 0.48, 0.60, 0.70], ["100vw", "0vw", "-10vw", "-100vw"]);
+  const slide2Opacity = useTransform(smoothProgress, [0.38, 0.45, 0.60, 0.68], [0, 1, 1, 0]);
+  const parallaxBg = useTransform(smoothProgress, [0.38, 0.48, 0.60, 0.70], ["-100vw", "-10vw", "10vw", "100vw"]);
 
-  // Gallery Rows Parallax & Entrance
-  const row1X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.95], ["150vw", "0vw", "-40vw", "-200vw"]);
-  const row2X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 0.97], ["180vw", "-40vw", "-10vw", "-220vw"]);
-  const row3X = useTransform(smoothProgress, [0.35, 0.55, 0.75, 1], ["210vw", "-20vw", "-60vw", "-180vw"]);
+  // --- Slide 4: Documentation Gallery (Kilas Balik) ---
+  const title3X = useTransform(smoothProgress, [0.62, 0.74, 0.86, 0.96], ["100vw", "0vw", "-5vw", "-150vw"]);
+  const row1X = useTransform(smoothProgress, [0.62, 0.74, 0.86, 0.96], ["150vw", "0vw", "-40vw", "-200vw"]);
+  const row2X = useTransform(smoothProgress, [0.62, 0.74, 0.86, 0.97], ["180vw", "-40vw", "-10vw", "-220vw"]);
+  const row3X = useTransform(smoothProgress, [0.62, 0.74, 0.86, 1], ["210vw", "-20vw", "-60vw", "-180vw"]);
+  const slide3Opacity = useTransform(smoothProgress, [0.82, 0.92], [1, 0]);
 
-  const slide3Opacity = useTransform(smoothProgress, [0.75, 0.9], [1, 0]);
-
-  // --- Slide 4 ---
-  const slide4TextX = useTransform(smoothProgress, [0.75, 0.95, 1], ["100vw", "0vw", "-2vw"]);
-  const slide4BgTextX = useTransform(smoothProgress, [0.75, 0.95, 1], ["-100vw", "0vw", "2vw"]);
+  // --- Slide 5: Video Trailer ---
+  const slide4TextX = useTransform(smoothProgress, [0.85, 0.94, 1], ["100vw", "0vw", "-2vw"]);
+  const slide4BgTextX = useTransform(smoothProgress, [0.85, 0.94, 1], ["-100vw", "0vw", "2vw"]);
 
   return (
     <section id="about" className="relative w-full">
@@ -408,7 +411,20 @@ export default function AboutSection() {
           </div>
         </div>
 
-        {/* Section 2: What is Futura */}
+        {/* Section 2: Dedicated Sponsors Section (After FUTURA UNPAD ORGANIZERS) */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-[0.9] uppercase">
+            FUTURA UNPAD
+            <span className="block mt-2 text-white/80 text-2xl sm:text-3xl font-bold">
+              SPONSORS
+            </span>
+          </h2>
+          <div className="w-screen relative left-1/2 -translate-x-1/2 overflow-hidden [mask-image:linear-gradient(to_right,transparent_0%,black_14%,black_86%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_14%,black_86%,transparent_100%)]">
+            <SponsorsSection />
+          </div>
+        </div>
+
+        {/* Section 3: What is Futura */}
         <div className="space-y-4 max-w-xl mx-auto text-left">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
             What is Futura?
@@ -451,42 +467,71 @@ export default function AboutSection() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TABLET & DESKTOP LAYOUT (>= 768px: Intact Horizontal Sliding Flow As-Is)  */}
+      {/* TABLET & DESKTOP LAYOUT (>= 768px: 5-Slide Horizontal Parallax Flow)       */}
       {/* ========================================================================= */}
-      <div ref={targetRef} className="hidden md:block relative h-[500vh]">
+      <div ref={targetRef} className="hidden md:block relative h-[600vh]">
         <div className="sticky top-0 h-screen w-full overflow-hidden">
-          {/* --- SLIDE 1: Intro --- */}
+          {/* --- SLIDE 1: FUTURA UNPAD ORGANIZERS --- */}
           <motion.div
             style={{ x: slide1X, opacity: slide1Opacity }}
-            className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20"
+            className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-10 px-6 md:px-12 lg:px-20 pointer-events-none"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-6 sm:mb-8 md:mb-10 lg:mb-14">
-              FUTURA UNPAD
-              <br />
-              <span className="block mt-2 sm:mt-3 md:mt-4 text-white/80">
-                ORGANIZERS
-              </span>
-            </h1>
+            <div className="pointer-events-auto flex flex-col items-center">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-6 sm:mb-8 md:mb-10 lg:mb-14">
+                FUTURA UNPAD
+                <br />
+                <span className="block mt-2 sm:mt-3 md:mt-4 text-white/80">
+                  ORGANIZERS
+                </span>
+              </h1>
 
-            <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
-              <Image
-                src="/image-eeunpad.png"
-                width={160}
-                height={160}
-                alt="Futura Logo"
-                className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
-              />
-              <Image
-                src="/hmte-unpad.png"
-                width={160}
-                height={160}
-                alt="HMTE UNPAD Logo"
-                className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
-              />
+              <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
+                <Image
+                  src="/image-eeunpad.png"
+                  width={160}
+                  height={160}
+                  alt="Futura Logo"
+                  className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
+                />
+                <Image
+                  src="/hmte-unpad.png"
+                  width={160}
+                  height={160}
+                  alt="HMTE UNPAD Logo"
+                  className="object-contain w-16 sm:w-24 md:w-28 lg:w-32 xl:w-40"
+                />
+              </div>
             </div>
           </motion.div>
 
-          {/* --- SLIDE 2: The Explanation --- */}
+          {/* --- SLIDE 2: Dedicated Sponsors Parallax Slide (After FUTURA UNPAD ORGANIZERS) --- */}
+          <motion.div
+            style={{ x: sponsorsSlideX, opacity: sponsorsSlideOpacity }}
+            className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-15 pointer-events-none overflow-hidden"
+          >
+            {/* Header: Centered within content max-width */}
+            <div className="w-full max-w-7xl mx-auto px-6 md:px-12 pointer-events-auto flex flex-col items-center">
+              <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.85] uppercase text-center text-white mb-8 md:mb-12">
+                FUTURA UNPAD
+                <br />
+                <span className="block mt-2 sm:mt-3 md:mt-4 text-white/80">
+                  SPONSORS
+                </span>
+              </h2>
+            </div>
+
+            {/* Carousel: Full-bleed viewport-width (w-screen) with stationary polished feathering */}
+            <div className="w-screen max-w-none overflow-hidden pointer-events-auto [mask-image:linear-gradient(to_right,transparent_0%,black_12%,black_88%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_12%,black_88%,transparent_100%)]">
+              <motion.div
+                style={{ x: sponsorsParallaxX }}
+                className="w-full flex"
+              >
+                <SponsorsSection />
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* --- SLIDE 3: The Explanation --- */}
           <motion.div
             style={{ opacity: slide2Opacity }}
             className="absolute inset-0 w-full h-screen flex text-white z-20 pointer-events-none px-6 md:px-12 lg:px-20"
@@ -523,7 +568,7 @@ export default function AboutSection() {
             </motion.div>
           </motion.div>
 
-          {/* --- SLIDE 3: Documentation Gallery --- */}
+          {/* --- SLIDE 4: Documentation Gallery --- */}
           <motion.div
             style={{ opacity: slide3Opacity }}
             className="absolute inset-0 w-full h-screen flex flex-col justify-center text-white z-30 pointer-events-none"
@@ -557,7 +602,7 @@ export default function AboutSection() {
             </div>
           </motion.div>
 
-          {/* --- SLIDE 4: Instagram Reel --- */}
+          {/* --- SLIDE 5: Video Trailer --- */}
           <motion.div
             className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 pointer-events-none"
           >

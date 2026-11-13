@@ -1,47 +1,125 @@
- 
-import { Hexagon, Triangle, Circle, Square, Box, Globe, Cloud, Zap } from "lucide-react"
+"use client";
 
-const sponsors = [
-  { name: "Acme Corp", icon: Hexagon },
-  { name: "Globex", icon: Globe },
-  { name: "Initech", icon: Triangle },
-  { name: "Soylent", icon: Circle },
-  { name: "Umbrella", icon: Cloud },
-  { name: "Stark Ind", icon: Zap },
-  { name: "Wayne Ent", icon: Box },
-  { name: "Hooli", icon: Square },
-]
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "motion/react";
+
+type SponsorLogo = {
+  name: string;
+  logo: string;
+  aspect: string;
+  website?: string;
+  isPrincipal?: boolean;
+  isSvg?: boolean;
+};
+
+// High-impact sponsors with 100% transparent backgrounds (no baked white boxes or backgrounds)
+export const sponsorsList: SponsorLogo[] = [
+  {
+    name: "PT United Tractors Tbk",
+    logo: "/sponsors/logo-united-tractors-white.png",
+    aspect: "w-48 sm:w-64 md:w-80 h-14 sm:h-18 md:h-22",
+    website: "https://www.unitedtractors.com",
+    isPrincipal: true,
+  },
+  {
+    name: "Kemendikbudristek",
+    logo: "/sponsors/LogoTutWuriHandayani.svg",
+    aspect: "w-16 sm:w-22 md:w-28 h-16 sm:h-22 md:h-28",
+    isSvg: true,
+  },
+  {
+    name: "Pusat Prestasi Nasional",
+    logo: "/sponsors/logo-puspresnas.png",
+    aspect: "w-40 sm:w-52 md:w-64 h-14 sm:h-18 md:h-22",
+  },
+  {
+    name: "Persatuan Robotika Seluruh Indonesia",
+    logo: "/sponsors/LogoPRSI.png",
+    aspect: "w-16 sm:w-22 md:w-28 h-16 sm:h-22 md:h-28",
+  },
+];
 
 export default function SponsorsSection() {
+  // Quadruple the list (2 equal halves of 8 items) for seamless infinite looping across all screen sizes
+  const loopList = [
+    ...sponsorsList,
+    ...sponsorsList,
+    ...sponsorsList,
+    ...sponsorsList,
+  ];
+
   return (
-    <section className="w-full overflow-hidden bg-background px-5 py-16 sm:px-8">
-      <div className="max-w-[82rem] mx-auto mb-4 text-center">
-        <p className="text-xl font-semibold">
-          Our sponsors
-        </p>
-      </div>
+    <div
+      id="sponsors"
+      className="relative w-full overflow-visible py-6 sm:py-8"
+      role="region"
+      aria-label="Official Futura Sponsors"
+    >
+      {/* Framer Motion Infinite Auto-Sliding Track (pure logo images without white backgrounds, cards, labels, or pills) */}
+      <motion.div
+        className="flex items-center gap-12 sm:gap-20 md:gap-28 w-max cursor-grab active:cursor-grabbing hover:[animation-play-state:paused]"
+        animate={{
+          x: ["0%", "-50%"],
+        }}
+        transition={{
+          x: {
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: 28,
+            ease: "linear",
+          },
+        }}
+      >
+        {loopList.map((sponsor, idx) => {
+          const isFirstHalf = idx < loopList.length / 2;
+          const keyId = `sponsor-logo-${sponsor.name}-${idx}`;
 
-      <div className="relative flex overflow-x-hidden w-full group">
-        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" />
+          const logoImage = (
+            <motion.div
+              whileHover={{ scale: 1.12, y: -4 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className={`relative ${sponsor.aspect} flex items-center justify-center shrink-0 ${
+                sponsor.isPrincipal
+                  ? "filter drop-shadow-[0_0_24px_rgba(251,191,36,0.7)] hover:drop-shadow-[0_0_36px_rgba(251,191,36,1)]"
+                  : "filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] opacity-90 hover:opacity-100 transition-opacity"
+              }`}
+            >
+              <Image
+                src={sponsor.logo}
+                alt={isFirstHalf ? sponsor.name : ""}
+                width={360}
+                height={120}
+                className="max-h-full max-w-full object-contain"
+                unoptimized={sponsor.isSvg}
+              />
+            </motion.div>
+          );
 
-        <div className="flex gap-4 w-max animate-sponsor-scroll hover:[animation-play-state:paused]">
-          {[...sponsors, ...sponsors].map((sponsor, idx) => {
-            const Icon = sponsor.icon;
-            const keyId = `sponsor-${sponsor.name}-${idx}`;
-            return (
-              <div
-                key={keyId}
-                className="flex items-center gap-3 px-8 py-4 rounded-2xl border border-border/50 shadow-sm min-w-[200px] justify-center transition-all hover:border-primary/40 hover:shadow-md cursor-pointer"
-              >
-                <Icon className="w-6 h-6 text-primary" />
-                <span className="font-bold text-lg text-foreground">{sponsor.name}</span>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-      </div>
-    </section>
-  )
+          return sponsor.website ? (
+            <Link
+              key={keyId}
+              href={sponsor.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={isFirstHalf ? `Official site: ${sponsor.name}` : undefined}
+              tabIndex={isFirstHalf ? 0 : -1}
+              aria-hidden={isFirstHalf ? undefined : true}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl shrink-0"
+            >
+              {logoImage}
+            </Link>
+          ) : (
+            <div
+              key={keyId}
+              aria-hidden={isFirstHalf ? undefined : true}
+              className="shrink-0"
+            >
+              {logoImage}
+            </div>
+          );
+        })}
+      </motion.div>
+    </div>
+  );
 }

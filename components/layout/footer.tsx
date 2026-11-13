@@ -135,6 +135,7 @@ export default function Footer({ forceShow = false }: { forceShow?: boolean } = 
         { label: "Seminar Nasional", href: "/seminar-nasional" },
         { label: "Mechatura", href: "/mechatura" },
         { label: "Lomba Esai", href: "/lomba-esai" },
+        { label: "Mitra & Sponsor", href: "/#sponsors" },
       ],
     },
     {

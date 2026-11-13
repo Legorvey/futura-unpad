@@ -13,35 +13,45 @@ type SponsorLogo = {
   isSvg?: boolean;
 };
 
-// High-impact sponsors with 100% transparent backgrounds (no baked white boxes or backgrounds)
+// All official sponsors housed in sleek white rectangle cards
 export const sponsorsList: SponsorLogo[] = [
   {
     name: "PT United Tractors Tbk",
-    logo: "/sponsors/logo-united-tractors-white.png",
-    aspect: "w-48 sm:w-64 md:w-80 h-14 sm:h-18 md:h-22",
+    logo: "/sponsors/logo-united-tractors.png",
+    aspect: "w-36 sm:w-48 h-10 sm:h-12",
     website: "https://www.unitedtractors.com",
     isPrincipal: true,
   },
   {
     name: "Kemendikbudristek",
     logo: "/sponsors/LogoTutWuriHandayani.svg",
-    aspect: "w-16 sm:w-22 md:w-28 h-16 sm:h-22 md:h-28",
+    aspect: "w-12 sm:w-16 h-12 sm:h-16",
     isSvg: true,
   },
   {
     name: "Pusat Prestasi Nasional",
     logo: "/sponsors/logo-puspresnas.png",
-    aspect: "w-40 sm:w-52 md:w-64 h-14 sm:h-18 md:h-22",
+    aspect: "w-32 sm:w-40 h-10 sm:h-12",
   },
   {
     name: "Persatuan Robotika Seluruh Indonesia",
     logo: "/sponsors/LogoPRSI.png",
-    aspect: "w-16 sm:w-22 md:w-28 h-16 sm:h-22 md:h-28",
+    aspect: "w-12 sm:w-16 h-12 sm:h-16",
+  },
+  {
+    name: "T-REX Robotic",
+    logo: "/sponsors/logo-trex-robotic-transparent.png",
+    aspect: "w-12 sm:w-16 h-12 sm:h-16",
+  },
+  {
+    name: "T-REX Robotic (ERIC)",
+    logo: "/sponsors/logo-trex-robotic-eric-transparent.png",
+    aspect: "w-12 sm:w-16 h-12 sm:h-16",
   },
 ];
 
 export default function SponsorsSection() {
-  // Quadruple the list (2 equal halves of 8 items) for seamless infinite looping across all screen sizes
+  // Quadruple the list (2 equal halves of 12 items) for seamless infinite looping across all screen sizes
   const loopList = [
     ...sponsorsList,
     ...sponsorsList,
@@ -52,13 +62,13 @@ export default function SponsorsSection() {
   return (
     <div
       id="sponsors"
-      className="relative w-full overflow-visible py-6 sm:py-8"
+      className="relative w-full overflow-visible py-4 sm:py-6"
       role="region"
       aria-label="Official Futura Sponsors"
     >
-      {/* Framer Motion Infinite Auto-Sliding Track (pure logo images without white backgrounds, cards, labels, or pills) */}
+      {/* Framer Motion Infinite Auto-Sliding Track of White Rectangle Cards (without labels or pills) */}
       <motion.div
-        className="flex items-center gap-12 sm:gap-20 md:gap-28 w-max cursor-grab active:cursor-grabbing hover:[animation-play-state:paused]"
+        className="flex items-center gap-5 sm:gap-7 w-max cursor-grab active:cursor-grabbing hover:[animation-play-state:paused]"
         animate={{
           x: ["0%", "-50%"],
         }}
@@ -75,24 +85,26 @@ export default function SponsorsSection() {
           const isFirstHalf = idx < loopList.length / 2;
           const keyId = `sponsor-logo-${sponsor.name}-${idx}`;
 
-          const logoImage = (
+          const card = (
             <motion.div
-              whileHover={{ scale: 1.12, y: -4 }}
+              whileHover={{ scale: 1.05, y: -3 }}
               transition={{ type: "spring", stiffness: 350, damping: 25 }}
-              className={`relative ${sponsor.aspect} flex items-center justify-center shrink-0 ${
+              className={`flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4.5 rounded-2xl bg-white shadow-lg min-w-[180px] sm:min-w-[220px] md:min-w-[240px] h-20 sm:h-24 transition-colors duration-300 hover:shadow-2xl shrink-0 ${
                 sponsor.isPrincipal
-                  ? "filter drop-shadow-[0_0_24px_rgba(251,191,36,0.7)] hover:drop-shadow-[0_0_36px_rgba(251,191,36,1)]"
-                  : "filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] opacity-90 hover:opacity-100 transition-opacity"
+                  ? "border-2 border-amber-400/90 shadow-[0_0_25px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/60"
+                  : "border border-white/20"
               }`}
             >
-              <Image
-                src={sponsor.logo}
-                alt={isFirstHalf ? sponsor.name : ""}
-                width={360}
-                height={120}
-                className="max-h-full max-w-full object-contain"
-                unoptimized={sponsor.isSvg}
-              />
+              <div className={`relative ${sponsor.aspect} flex items-center justify-center`}>
+                <Image
+                  src={sponsor.logo}
+                  alt={isFirstHalf ? sponsor.name : ""}
+                  width={240}
+                  height={80}
+                  className="max-h-full max-w-full object-contain"
+                  unoptimized={sponsor.isSvg}
+                />
+              </div>
             </motion.div>
           );
 
@@ -105,9 +117,9 @@ export default function SponsorsSection() {
               aria-label={isFirstHalf ? `Official site: ${sponsor.name}` : undefined}
               tabIndex={isFirstHalf ? 0 : -1}
               aria-hidden={isFirstHalf ? undefined : true}
-              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl shrink-0"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-2xl shrink-0"
             >
-              {logoImage}
+              {card}
             </Link>
           ) : (
             <div
@@ -115,7 +127,7 @@ export default function SponsorsSection() {
               aria-hidden={isFirstHalf ? undefined : true}
               className="shrink-0"
             >
-              {logoImage}
+              {card}
             </div>
           );
         })}

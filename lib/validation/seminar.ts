@@ -45,6 +45,7 @@ export const clientSeminarFormSchema = z.object({
   status_akademika: z
     .enum(["mahasiswa", "siswa", "dosen", "umum"])
     .refine((v) => v.length > 0, { message: "Pilih status akademika." }),
+  school_jenjang: z.enum(["SD", "SMP", "SMA", "SMK"]).optional(),
   identity_confirmed: z.boolean().refine((val) => val === true, {
     message: "Harap konfirmasi bahwa data Anda sudah benar untuk keperluan sertifikat.",
   }),

@@ -1,9 +1,20 @@
-import { CheckCircle2, ExternalLink, MessageCircle } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  ExternalLink,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
-import { SEMINAR_WA_GROUP_URL } from "@/lib/seminar/config";
+import {
+  SEMINAR_EVENT_DATE_LABEL,
+  SEMINAR_EVENT_TIME_LABEL,
+  SEMINAR_LOCATION_NAME,
+  SEMINAR_WA_GROUP_URL,
+} from "@/lib/seminar/config";
 
 type SeminarSuccessStepProps = {
   registrations: { id: string; nama_lengkap: string; asal_institusi: string }[];
@@ -18,76 +29,119 @@ export default function SeminarSuccessStep({
   statusLabel,
   values,
 }: SeminarSuccessStepProps) {
+  const isGroup = values.registration_type === "grup";
+
   return (
     <FieldGroup className="gap-6">
       <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-start gap-4 p-4 sm:p-6 border-b">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted">
-            <CheckCircle2 className="h-5 w-5 text-foreground" />
+        <div className="flex items-start gap-4 p-4 sm:p-6 border-b border-border">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-foreground">
               Pendaftaran Anda telah selesai
             </h2>
-            <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500">
-              Pendaftaran seminar Futura Anda telah tersimpan. Anda dapat melihat detail pendaftaran Anda di bawah ini.
+            <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted-foreground">
+              Pendaftaran Seminar Nasional Futura 2026 Anda sudah tersimpan. Detail tiket dan informasi acara tersedia di bawah ini.
             </p>
           </div>
         </div>
 
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight">
+        <div className="p-4 sm:p-6 space-y-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                {isGroup
+                  ? values.group_name
+                    ? `Pendaftaran Grup: ${values.group_name}`
+                    : "Pendaftaran Grup"
+                  : "Pendaftaran Individu"}
+              </p>
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
                 {values.nama}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {values.institusi} / {statusLabel}
               </p>
             </div>
           </div>
-          <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm sm:grid-cols-2">
+
+          <div className="grid gap-3 rounded-xl border border-border/80 bg-background/70 p-4 text-xs sm:grid-cols-2">
+            <div className="flex items-start gap-2.5">
+              <Calendar
+                className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
+                aria-hidden="true"
+              />
+              <div>
+                <p className="text-muted-foreground">Waktu Pelaksanaan</p>
+                <p className="mt-0.5 font-medium text-foreground">
+                  {SEMINAR_EVENT_DATE_LABEL}, {SEMINAR_EVENT_TIME_LABEL}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <MapPin
+                className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
+                aria-hidden="true"
+              />
+              <div>
+                <p className="text-muted-foreground">Lokasi</p>
+                <p className="mt-0.5 font-medium text-foreground">
+                  {SEMINAR_LOCATION_NAME}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <dl className="grid gap-4 border-t border-border pt-5 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Email</dt>
-              <dd className="mt-1 break-all font-medium">{values.email}</dd>
+              <dd className="mt-1 break-all font-medium text-foreground">
+                {values.email}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">WhatsApp</dt>
-              <dd className="mt-1 font-medium">{values.telp}</dd>
+              <dd className="mt-1 font-medium text-foreground">
+                {values.telp}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">ID Pendaftaran</dt>
-              <dd className="mt-1 font-mono text-sm font-semibold">
+              <dd className="mt-1 font-mono text-sm font-semibold text-foreground break-all">
                 {registrationId}
               </dd>
             </div>
-            {values.registration_type === "grup" && (
+            {isGroup && (
               <div>
                 <dt className="text-muted-foreground">Total Peserta</dt>
-                <dd className="mt-1 font-medium">
+                <dd className="mt-1 font-medium text-foreground">
                   {registrations.length} orang
                 </dd>
               </div>
             )}
           </dl>
 
-          {values.registration_type === "grup" && registrations.length > 0 && (
-            <div className="mt-5 border-t border-border pt-4">
-              <h3 className="text-sm font-medium mb-3">Anggota Grup</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+          {isGroup && registrations.length > 0 && (
+            <div className="border-t border-border pt-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                Daftar Peserta Grup
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {registrations.map((registration) => (
                   <div
                     key={registration.id}
-                    className="rounded-[8px] border border-border p-4 flex flex-col justify-center"
+                    className="rounded-xl border border-border bg-background/60 p-4 flex flex-col justify-center"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium truncate">
+                      <p className="font-medium text-foreground truncate">
                         {registration.nama_lengkap}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
                         {registration.asal_institusi}
                       </p>
-                      <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                      <p className="text-[11px] font-mono text-muted-foreground mt-1 break-all">
                         {registration.id}
                       </p>
                     </div>
@@ -99,37 +153,39 @@ export default function SeminarSuccessStep({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card p-4 sm:p-6">
+      <section className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <MessageCircle className="h-5 w-5" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
-              <h3 className="text-base font-semibold">Grup WhatsApp Peserta</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h3 className="text-base font-semibold text-foreground">
+                Grup WhatsApp Peserta
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                 Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.
               </p>
             </div>
           </div>
-          <Button type="button" className="h-10 shrink-0 rounded-[8px]" asChild>
+          <Button className="h-11 shrink-0 rounded-[8px] px-5" asChild>
             <a
               href={SEMINAR_WA_GROUP_URL}
               target="_blank"
               rel="noopener noreferrer"
             >
               <span>Gabung Grup WA</span>
-              <ExternalLink className="ml-2 h-4 w-4" />
+              <ExternalLink className="ml-2 h-4 w-4" aria-hidden="true" />
             </a>
           </Button>
         </div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Button type="button" variant="outline" className="h-11 rounded-[8px]" asChild>
+        <Button variant="outline" className="h-11 rounded-[8px]" asChild>
           <Link href="/">Ke Beranda</Link>
         </Button>
-        <Button type="button" className="h-11 rounded-[8px]" asChild>
+        <Button className="h-11 rounded-[8px]" asChild>
           <Link href="/profile">Ke Profil</Link>
         </Button>
       </div>

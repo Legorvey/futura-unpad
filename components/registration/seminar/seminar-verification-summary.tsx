@@ -1,4 +1,5 @@
- 
+"use client";
+
 import { useFormContext } from "react-hook-form";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
 import { SummaryItem } from "@/components/form/summary-item";
@@ -12,39 +13,64 @@ export default function SeminarVerificationSummary({
 }: SeminarVerificationSummaryProps) {
   const { watch } = useFormContext<ClientSeminarFormValues>();
   const watchedValues = watch();
+  const isGroup = watchedValues.registration_type === "grup";
 
   return (
     <div className="space-y-6">
-      <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-        <SummaryItem label="Nama Lengkap" value={watchedValues.nama} />
-        <SummaryItem label="Email" value={watchedValues.email} valueClassName="break-all" />
+      <dl className="grid gap-4 text-sm sm:grid-cols-2">
+        <SummaryItem
+          label="Jenis Pendaftaran"
+          value={isGroup ? "Grup" : "Individu"}
+        />
+        {isGroup ? (
+          <SummaryItem
+            label="Nama Grup/Tim"
+            value={watchedValues.group_name || "-"}
+          />
+        ) : null}
+        <SummaryItem
+          label={isGroup ? "Nama Lengkap (Kontak Utama)" : "Nama Lengkap"}
+          value={watchedValues.nama}
+        />
+        <SummaryItem
+          label="Email"
+          value={watchedValues.email}
+          valueClassName="break-all"
+        />
         <SummaryItem label="Nomor WhatsApp" value={watchedValues.telp} />
         <SummaryItem label="Asal Institusi" value={watchedValues.institusi} />
         <SummaryItem label="Status Akademika" value={statusLabel} />
       </dl>
 
-      {watchedValues.registration_type === "grup" && watchedValues.members && watchedValues.members.length > 0 && (
-        <div className="border-t border-border pt-4">
-          <h3 className="text-sm font-medium mb-3">Anggota Grup</h3>
+      {isGroup && watchedValues.members && watchedValues.members.length > 0 && (
+        <div className="border-t border-border pt-5">
+          <h3 className="text-sm font-semibold text-foreground mb-3">
+            Anggota Grup ({watchedValues.members.length})
+          </h3>
           <ul className="space-y-2 text-sm">
-            {watchedValues.members.map((m, idx) => {
-              const keyId = `member-${idx}`;
-              return (
-              <li key={keyId} className="flex gap-2">
-                <span className="text-muted-foreground">{idx + 1}.</span>
-                <span className="font-medium">
+            {watchedValues.members.map((m, idx) => (
+              <li
+                key={`member-${idx}`}
+                className="flex items-start gap-2 rounded-lg border border-border/70 bg-background/60 px-3 py-2"
+              >
+                <span className="text-muted-foreground font-medium">
+                  {idx + 1}.
+                </span>
+                <span className="font-medium text-foreground">
                   {m.nama || "-"}
-                  {!watchedValues.is_same_institution && m.institusi ? (
-                    <span className="text-muted-foreground font-normal ml-1">({m.institusi})</span>
-                  ) : null}
+                  <span className="text-muted-foreground font-normal ml-1.5">
+                    (
+                    {watchedValues.is_same_institution
+                      ? watchedValues.institusi || "-"
+                      : m.institusi || "-"}
+                    )
+                  </span>
                 </span>
               </li>
-              )
-            })}
+            ))}
           </ul>
         </div>
       )}
     </div>
   );
 }
-

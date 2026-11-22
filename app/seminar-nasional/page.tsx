@@ -5,7 +5,6 @@ import { RuangLingkup } from "@/components/seminar/ruang-lingkup"
 import { SeminarTimeline } from "@/components/seminar/seminar-timeline"
 import { SeminarFAQ } from "@/components/seminar/seminar-faq"
 import PembicaraSeminarPleno from "@/components/seminar/pembicara-seminar-pleno"
-import PembicaraTalkshow from "@/components/seminar/pembicara-talk-show"
 import LocationSection from "@/components/seminar/location-section"
 import { ContactSection } from "@/components/seminar/contact-section"
 
@@ -78,10 +77,6 @@ export default function SeminarNasional() {
                     
                     <ScrollReveal>
                         <PembicaraSeminarPleno />
-                    </ScrollReveal>
-                    
-                    <ScrollReveal>
-                        <PembicaraTalkshow />
                     </ScrollReveal>
                     
                     <ScrollReveal>

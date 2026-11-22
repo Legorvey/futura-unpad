@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isUniqueViolation } from "@/lib/database-errors";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { createClient } from "@/utils/supabase/server";
 import {
   invalidRequest,
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const existingQuery = supabase
     .from("seminar_registrations")

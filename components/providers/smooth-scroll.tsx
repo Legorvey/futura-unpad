@@ -16,6 +16,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
+      allowNestedScroll: true,
       wheelMultiplier: 1,
       touchMultiplier: 2,
     })

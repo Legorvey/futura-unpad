@@ -108,7 +108,7 @@ export function SchoolCombobox({
     setSelectedIndex(-1);
   }, [query, institutionType]);
 
-  // Debounced search — page 1
+  // Debounced search (page 1)
   React.useEffect(() => {
     let active = true;
     const controller = new AbortController();
@@ -198,8 +198,8 @@ export function SchoolCombobox({
           aria-describedby={ariaDescribedBy}
           disabled={disabled}
           className={cn(
-            "flex h-11 w-full items-center justify-between rounded-[8px] border border-input px-2.5 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
-            "focus-visible:border-amber-300 focus-visible:ring-3 focus-visible:ring-amber-300/50",
+            "flex h-11 w-full cursor-pointer items-center justify-between rounded-[8px] border border-input px-2.5 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
+            "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
             "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             ariaInvalid && "border-destructive ring-3 ring-destructive/20",
             "bg-slate-100/50 dark:bg-input/30"
@@ -208,21 +208,22 @@ export function SchoolCombobox({
           <span className={cn("flex-1 truncate text-left", !value && "text-muted-foreground")}>
             {value || "Pilih atau cari nama sekolah..."}
           </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         </button>
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0 gap-0 shadow-lg bg-white dark:bg-white dark:text-slate-900 z-50"
+        className="w-[var(--radix-popover-trigger-width)] p-0 gap-0 shadow-lg bg-white text-slate-900 dark:bg-white dark:text-slate-900 border-slate-200 z-50"
         align="start"
         sideOffset={4}
       >
         {/* Search bar */}
-        <div className="flex items-center gap-2 border-b border-border dark:border-slate-200 px-3 py-2">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-2 border-b border-slate-200 px-3 py-2">
+          <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
           <input
             ref={inputRef}
-            className="flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
+            aria-label="Cari nama sekolah"
+            className="flex-1 bg-transparent py-1 text-sm text-slate-900 outline-none placeholder:text-slate-500"
             placeholder="Ketik nama sekolah..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -246,22 +247,23 @@ export function SchoolCombobox({
             }}
           />
           {loading && (
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-slate-500" aria-hidden="true" />
           )}
         </div>
 
-        <div 
-          className="max-h-64 overflow-y-auto"
+        <div
+          data-lenis-prevent=""
+          className="max-h-64 overflow-y-auto overscroll-contain"
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
         >
           {showHint && (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+            <p className="px-3 py-4 text-center text-xs text-slate-600">
               Ketik minimal 3 karakter untuk mencari
             </p>
           )}
           {loading && (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+            <p className="px-3 py-4 text-center text-xs text-slate-600">
               Mencari...
             </p>
           )}
@@ -280,16 +282,16 @@ export function SchoolCombobox({
                       setOpen(false);
                     }}
                     className={cn(
-                      "flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black",
-                      value === item.label && "bg-yellow-500 text-black",
-                      selectedIndex === index && "bg-yellow-500/30 dark:bg-yellow-500/50"
+                      "flex min-h-11 w-full cursor-pointer flex-col justify-center rounded-sm px-2.5 py-2 text-left text-sm transition-colors hover:bg-amber-300 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-inset",
+                      value === item.label && "bg-amber-300 text-slate-950",
+                      selectedIndex === index && "bg-amber-200/80 text-slate-950"
                     )}
                   >
                     <span className="font-medium leading-snug">
                       {item.label}
                     </span>
                     {item.city && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-slate-600">
                         {item.city}
                       </span>
                     )}
@@ -303,10 +305,10 @@ export function SchoolCombobox({
                     type="button"
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="flex w-full items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-xs text-primary transition-colors hover:bg-yellow-500 hover:text-black disabled:opacity-50"
+                    className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-300 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-inset disabled:opacity-50"
                   >
                     {loadingMore ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                     ) : (
                       "Muat lebih banyak..."
                     )}
@@ -317,8 +319,8 @@ export function SchoolCombobox({
           )}
         </div>
         {showManualOption && (
-          <div className="space-y-2 p-2 border-t border-border dark:border-slate-200 bg-slate-50 dark:bg-slate-50/50">
-            <p className="px-1 text-xs text-muted-foreground">
+          <div className="space-y-2 p-2 border-t border-slate-200 bg-slate-50">
+            <p className="px-1 text-xs text-slate-600">
               {results.length === 0 && !loading ? "Tidak ditemukan." : "Tidak ada di daftar?"} Masukkan nama secara manual:
             </p>
             <button
@@ -327,9 +329,9 @@ export function SchoolCombobox({
                 onChange(query.trim());
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-yellow-500 hover:text-black"
+              className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm text-slate-900 transition-colors hover:bg-amber-300 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-inset"
             >
-              <PlusCircle className="h-4 w-4 shrink-0 text-primary" />
+              <PlusCircle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
               <span>
                 Gunakan{" "}
                 <span className="font-semibold">&ldquo;{query}&rdquo;</span>

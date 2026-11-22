@@ -30,6 +30,7 @@ export interface FormSelectFieldProps<TValues extends FieldValues> {
   description?: ReactNode;
   className?: string;
   inputClassName?: string;
+  contentClassName?: string;
   disabled?: boolean;
   required?: boolean;
 }
@@ -42,6 +43,7 @@ export function FormSelectField<TValues extends FieldValues = FieldValues>({
   description,
   className,
   inputClassName,
+  contentClassName,
   disabled,
   required,
 }: FormSelectFieldProps<TValues>) {
@@ -73,7 +75,7 @@ export function FormSelectField<TValues extends FieldValues = FieldValues>({
               >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={contentClassName}>
                 {options.map((option) => (
                   <SelectItem key={option.id} value={option.id}>
                     {option.title}

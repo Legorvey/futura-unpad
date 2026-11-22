@@ -4,51 +4,20 @@
 import { useState, useRef } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useLiteMotion } from "@/hooks/use-lite-motion";
+import {
+  SEMINAR_TIMELINE_ITEMS,
+  type SeminarTimelineEntry,
+} from "@/lib/seminar/config";
 
 type TimelineTabId = "seminar" | "mechatura" | "esai";
 
-type GrandTimelineItem = {
-  category: string;
-  event: string;
-  date: string;
-  description: string;
-  location?: string;
-};
+type GrandTimelineItem = SeminarTimelineEntry;
 
 const timelineTabs = [
   {
     id: "seminar",
     label: "Seminar Nasional",
-    items: [
-      {
-        category: "Seminar Nasional",
-        event: "Mulai Registrasi",
-        date: "To Be Announced",
-        description: "Periode registrasi peserta Seminar Nasional Futura.",
-        location: "Online/Daring",
-      },
-      {
-        category: "Seminar Nasional",
-        event: "Akhir Registrasi",
-        date: "To Be Announced",
-        description: "Akhir registrasi peserta Seminar Nasional Futura.",
-        location: "Online/Daring",
-      },
-      {
-        category: "Seminar Nasional",
-        event: "Pelaksanaan",
-        date: "28 November 2026",
-        description: "Hari pelaksanaan Seminar Nasional Futura.",
-        location: "Bale Rumawat Unpad Dipatiukur",
-      },
-      {
-        category: "Seminar Nasional",
-        event: "Pembagian Sertifikat",
-        date: "1 Desember 2026",
-        description: "Hari pembagian sertifikat Seminar Nasional Futura.",
-        location: "Online/Daring",
-      },
-    ],
+    items: SEMINAR_TIMELINE_ITEMS,
   },
   {
     id: "mechatura",

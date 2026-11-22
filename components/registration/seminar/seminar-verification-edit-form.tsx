@@ -54,6 +54,7 @@ export default function SeminarVerificationEditForm({
       <FormTextField<ClientSeminarFormValues>
         name="institusi"
         label="Asal Institusi"
+        placeholder='Isi "-" jika tidak ada'
       />
       <FormSelectField<ClientSeminarFormValues>
         name="status_akademika"
@@ -74,6 +75,7 @@ export default function SeminarVerificationEditForm({
               <FormTextField<ClientSeminarFormValues>
                 name={`members.${index}.institusi`}
                 label={`Asal Institusi ${!watchedValues.is_same_institution ? "" : "(Sama)"}`}
+                placeholder='Isi "-" jika tidak ada'
                 disabled={watchedValues.is_same_institution}
                 value={watchedValues.is_same_institution ? watchedValues.institusi : watchedValues.members?.[index]?.institusi || ""}
               />

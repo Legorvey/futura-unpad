@@ -6,7 +6,7 @@ export const seminarStatusOptions = [
   },
   {
     id: "siswa" as const,
-    title: "Siswa",
+    title: "Pelajar / Siswa",
     description: "Peserta dari sekolah menengah.",
   },
   {

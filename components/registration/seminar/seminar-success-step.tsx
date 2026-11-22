@@ -1,8 +1,9 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
+import { SEMINAR_WA_GROUP_URL } from "@/lib/seminar/config";
 
 type SeminarSuccessStepProps = {
   registrations: { id: string; nama_lengkap: string; asal_institusi: string }[];
@@ -95,6 +96,32 @@ export default function SeminarSuccessStep({
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-border bg-card p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="h-5 w-5" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold">Grup WhatsApp Peserta</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.
+              </p>
+            </div>
+          </div>
+          <Button type="button" className="h-10 shrink-0 rounded-[8px]" asChild>
+            <a
+              href={SEMINAR_WA_GROUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Gabung Grup WA</span>
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
         </div>
       </section>
 

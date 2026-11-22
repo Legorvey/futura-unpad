@@ -160,7 +160,7 @@ export default function SeminarRegistrationForm() {
             <AlertDialogCancel onClick={() => setShowAnonDialog(false)}>
               Lanjut Anonim
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.push("/login?next=/registration/seminar")}>
+            <AlertDialogAction onClick={() => router.push("/login?next=/seminar-nasional/form")}>
               Masuk
             </AlertDialogAction>
           </AlertDialogFooter>

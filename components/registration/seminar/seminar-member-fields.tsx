@@ -55,7 +55,7 @@ export function SeminarMemberFields() {
             <FormTextField<ClientSeminarFormValues>
               name={`members.${index}.institusi`}
               label={`Asal Institusi ${watchedValues.is_same_institution ? "(Sama dengan Kontak Utama)" : ""}`}
-              placeholder="Nama institusi"
+              placeholder='Nama institusi (isi "-" jika tidak ada)'
               disabled={watchedValues.is_same_institution}
               required={!watchedValues.is_same_institution}
               value={watchedValues.is_same_institution ? watchedValues.institusi : watchedValues.members?.[index]?.institusi || ""}

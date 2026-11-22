@@ -2,7 +2,7 @@ import type { BaseSyntheticEvent } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
 import { seminarStatusOptions } from "../../../lib/seminar/seminar-options";
 
@@ -77,7 +77,7 @@ export default function SeminarDetailsStep({
             <FormTextField<ClientSeminarFormValues>
               name="institusi"
               label={`Asal Institusi ${watchedValues.registration_type === "grup" ? "(Kontak Utama)" : ""}`}
-              placeholder="Nama sekolah, kampus, instansi"
+              placeholder='Nama sekolah/kampus/instansi (isi "-" jika tidak ada)'
               autoComplete="organization"
               required
             />

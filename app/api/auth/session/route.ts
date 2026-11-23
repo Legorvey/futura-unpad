@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { authSessionSchema } from "@/lib/api/auth-session";
 import { requireAdmin } from "@/lib/auth";
+import { NO_STORE_HEADERS } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -18,5 +19,5 @@ export async function GET() {
     adminAccess,
   });
 
-  return NextResponse.json(session);
+  return NextResponse.json(session, { headers: NO_STORE_HEADERS });
 }

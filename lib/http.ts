@@ -1,5 +1,28 @@
 import { NextResponse } from "next/server";
 
+export const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store, private",
+} as const;
+
+export const isSameOriginRequest = (request: Request): boolean => {
+  const secFetchSite = request.headers.get("sec-fetch-site");
+  if (secFetchSite && secFetchSite !== "same-origin" && secFetchSite !== "none") {
+    return false;
+  }
+
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    return true;
+  }
+
+  try {
+    const requestUrl = new URL(request.url);
+    return new URL(origin).origin === requestUrl.origin;
+  } catch {
+    return false;
+  }
+};
+
 export const jsonError = (message: string, status: number) =>
   NextResponse.json({ error: message }, { status });
 

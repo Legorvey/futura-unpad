@@ -63,13 +63,10 @@ export const normalizePositiveInt = (value: string | undefined, fallback: number
 
 export const toSearchPattern = (value: string) => {
     if (!value) return "";
-    // Strip PostgREST delimiter syntax characters that could cause syntax errors or injection in .or()
-    const cleaned = value.replace(/[,()]/g, " ").trim();
+    // Strip PostgREST delimiter/wildcard/quote characters and cap length to prevent filter syntax errors
+    const cleaned = value.slice(0, 100).replace(/[,()*"\\]/g, " ").trim();
     if (!cleaned) return "";
-    const escaped = cleaned
-        .replace(/\\/g, "\\\\")
-        .replace(/[%_]/g, "\\$&")
-        .replace(/"/g, '""');
+    const escaped = cleaned.replace(/[%_]/g, "\\$&");
     return `"%${escaped}%"`;
 };
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
+import { logAdminAudit } from "@/lib/audit-log"
 import { rateLimit } from "@/lib/rate-limit"
-import { rateLimited } from "@/lib/http"
+import { NO_STORE_HEADERS, rateLimited } from "@/lib/http"
 import { createAdminClient } from "@/lib/supabase-admin"
 export const dynamic = "force-dynamic"
 
@@ -52,8 +53,8 @@ const escapeCSV = (field: string | number | null | undefined) => {
         stringField = "'" + stringField
     }
 
-    // Always quote fields that contain special characters or formula characters
-    if (isFormula || stringField.includes(",") || stringField.includes('"') || stringField.includes("\n") || stringField.includes("\r")){
+    // Always quote fields that contain special characters, locale delimiters, or formula characters
+    if (isFormula || stringField.includes(",") || stringField.includes(";") || stringField.includes('"') || stringField.includes("\n") || stringField.includes("\r")){
         return `"${stringField.replace(/"/g, '""')}"`
     }
     return stringField
@@ -138,10 +139,12 @@ export async function GET() {
         return [];
     });
 
+    const MAX_EXPORT_MEMBER_COLUMNS = 50;
     let maxMembers = 0;
     allGrouped.forEach(group => {
         if (group.members.length > maxMembers) maxMembers = group.members.length;
     });
+    maxMembers = Math.min(maxMembers, MAX_EXPORT_MEMBER_COLUMNS);
 
     // CSV Header
     const headers = [
@@ -197,8 +200,16 @@ export async function GET() {
 
     const csvContent = [headers.join(","), ...rows].join("\r\n")
 
+    logAdminAudit({
+        actorId: user.id,
+        action: "seminar.registration.export",
+        outcome: "success",
+        details: { rowCount: allGrouped.length, totalRecords: registrations.length },
+    })
+
     return new NextResponse("\uFEFF" + csvContent, {
         headers: {
+            ...NO_STORE_HEADERS,
             "Content-Type": "text/csv; charset=utf-8",
             "Content-Disposition": `attachment; filename="seminar-registrations-${new Date().toISOString().split('T')[0]}.csv"`,
         },

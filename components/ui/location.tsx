@@ -84,7 +84,8 @@ export default function Location({
                         src={mapSrc}
                         allowFullScreen={true}
                         loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                         title={`Lokasi ${location}`}
                     />
                 </div>

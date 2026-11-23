@@ -51,17 +51,21 @@ function scrollToFormTop() {
 
 export default function SeminarRegistrationForm() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const { step, setStep, steps } = useRegistrationStep("seminar");
   const createRegistration = useCreateSeminarRegistrationMutation();
   const [submitError, setSubmitError] = useState("");
   const [registrationId, setRegistrationId] = useState("");
+  const [waGroupUrl, setWaGroupUrl] = useState<string | null>(null);
   const [allRegistrations, setAllRegistrations] = useState<
     { id: string; nama_lengkap: string; asal_institusi: string }[]
   >([]);
-  const [showAnonDialog, setShowAnonDialog] = useState(true);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const draftStorageKey = user?.id
+    ? `${SEMINAR_DRAFT_STORAGE_KEY}:${user.id}`
+    : null;
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -87,7 +91,7 @@ export default function SeminarRegistrationForm() {
 
   useFormDraft({
     form,
-    storageKey: SEMINAR_DRAFT_STORAGE_KEY,
+    storageKey: draftStorageKey,
     omitFields: SEMINAR_DRAFT_OMITTED_FIELDS,
   });
 
@@ -191,8 +195,12 @@ export default function SeminarRegistrationForm() {
       return;
     }
 
+    if (draftStorageKey) {
+      clearFormDraft(draftStorageKey);
+    }
     clearFormDraft(SEMINAR_DRAFT_STORAGE_KEY);
     setRegistrationId(responseData.registration_id);
+    setWaGroupUrl(responseData.wa_group_url ?? null);
     setAllRegistrations(responseData.registrations || []);
     setStep("ticket");
     setShowProfileDialog(true);
@@ -202,34 +210,6 @@ export default function SeminarRegistrationForm() {
 
   return (
     <>
-      <AlertDialog
-        open={!isLoading && !user && showAnonDialog}
-        onOpenChange={setShowAnonDialog}
-      >
-        <AlertDialogContent className="seminar-wrapper bg-card text-card-foreground border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Masuk Terlebih Dahulu</AlertDialogTitle>
-            <AlertDialogDescription>
-              Anda belum masuk. Masuk ke akun Futura Anda agar pendaftaran seminar tersimpan di halaman Profil.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              className="h-11 rounded-[8px]"
-              onClick={() => setShowAnonDialog(false)}
-            >
-              Tutup
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="h-11 rounded-[8px]"
-              onClick={() => router.push("/login?next=/seminar-nasional/form")}
-            >
-              Masuk
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <AlertDialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
         <AlertDialogContent className="seminar-wrapper bg-card text-card-foreground border-border">
           <AlertDialogHeader>
@@ -327,6 +307,7 @@ export default function SeminarRegistrationForm() {
                 registrationId={registrationId}
                 statusLabel={statusLabel}
                 values={form.getValues()}
+                waGroupUrl={waGroupUrl}
               />
             ) : null}
           </section>

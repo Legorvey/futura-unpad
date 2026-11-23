@@ -18,12 +18,11 @@ import {
 } from "@/lib/payment"
 import { getCachedAuth } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { createClient } from "@/utils/supabase/server"
 import {
   SEMINAR_REG_DISPLAY_END_LABEL,
-  SEMINAR_WA_GROUP_URL,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config"
+import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config"
 
 type ProfileRegistration = {
   id: string
@@ -118,7 +117,6 @@ export default async function ProfilePage() {
     redirect("/admin")
   }
 
-  const supabase = await createClient()
   const adminSupabase = createAdminClient()
 
   const [
@@ -145,13 +143,18 @@ export default async function ProfilePage() {
         .maybeSingle(),
       adminSupabase
         .from("esai_registrations")
-        .select("*")
+        .select("id, full_name, institution, email, phone_number, submission_status")
         .eq("user_id", user.id)
         .maybeSingle()
     ])
 
   if (error || mechaturaError || esaiError) {
-    throw new Error(error?.message ?? mechaturaError?.message ?? esaiError?.message)
+    console.error("Failed to load profile registrations", {
+      seminar: error?.message,
+      mechatura: mechaturaError?.message,
+      esai: esaiError?.message,
+    })
+    throw new Error("Gagal memuat data profil.")
   }
 
   const groupMembersPromise = isProfileGroupRegistration(latestRegistration) && latestRegistration?.group_id
@@ -167,8 +170,11 @@ export default async function ProfilePage() {
   const { data: membersData, error: membersError } = await groupMembersPromise
 
   if (membersError) {
-    throw new Error(membersError.message)
+    console.error("Failed to load seminar group members", membersError.message)
+    throw new Error("Gagal memuat data profil.")
   }
+
+  const seminarWaGroupUrl = latestRegistration ? getSeminarWaGroupUrl() : null
 
   const groupMembers = membersData ?? []
   const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
@@ -402,9 +408,11 @@ export default async function ProfilePage() {
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 shrink-0 mt-4 sm:mt-0">
-                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
-                    <a href={SEMINAR_WA_GROUP_URL} target="_blank" rel="noopener noreferrer">Gabung Grup WA</a>
-                  </Button>
+                  {seminarWaGroupUrl ? (
+                    <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                      <a href={seminarWaGroupUrl} target="_blank" rel="noopener noreferrer">Gabung Grup WA</a>
+                    </Button>
+                  ) : null}
                   <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
                     <Link href="/seminar-nasional/form" prefetch={true}>Detail Registrasi</Link>
                   </Button>

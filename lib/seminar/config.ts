@@ -34,9 +34,6 @@ export const SEMINAR_MAPS_URL =
 export const SEMINAR_MAPS_EMBED_SRC =
   "https://www.google.com/maps?q=Gedung+Rektorat+Universitas+Padjadjaran+Jatinangor&output=embed";
 
-export const SEMINAR_WA_GROUP_URL =
-  "https://chat.whatsapp.com/BDGFMtpiHS71Ku3WvXwOlj?s=cl&p=a&iam=2";
-
 export const SEMINAR_WORKSHOP_TITLE = "Seminar & Workshop";
 export const SEMINAR_FORUM_DESCRIPTION =
   "Seminar Nasional Futura adalah forum ilmiah yang mengkaji inovasi teknologi global. Acara ini menghadirkan akademisi, praktisi industri, asosiasi, dan perwakilan pemerintah untuk memaparkan tren teknologi terkini.";

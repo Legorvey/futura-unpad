@@ -13,7 +13,6 @@ import {
   SEMINAR_EVENT_DATE_LABEL,
   SEMINAR_EVENT_TIME_LABEL,
   SEMINAR_LOCATION_NAME,
-  SEMINAR_WA_GROUP_URL,
 } from "@/lib/seminar/config";
 
 type SeminarSuccessStepProps = {
@@ -21,6 +20,7 @@ type SeminarSuccessStepProps = {
   registrationId: string;
   statusLabel: string;
   values: ClientSeminarFormValues;
+  waGroupUrl?: string | null;
 };
 
 export default function SeminarSuccessStep({
@@ -28,6 +28,7 @@ export default function SeminarSuccessStep({
   registrationId,
   statusLabel,
   values,
+  waGroupUrl,
 }: SeminarSuccessStepProps) {
   const isGroup = values.registration_type === "grup";
 
@@ -153,33 +154,35 @@ export default function SeminarSuccessStep({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
-              <MessageCircle className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h3 className="text-base font-semibold text-foreground">
-                Grup WhatsApp Peserta
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.
-              </p>
+      {waGroupUrl ? (
+        <section className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Grup WhatsApp Peserta
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                  Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.
+                </p>
+              </div>
             </div>
+            <Button className="h-11 shrink-0 rounded-[8px] px-5" asChild>
+              <a
+                href={waGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>Gabung Grup WA</span>
+                <ExternalLink className="ml-2 h-4 w-4" aria-hidden="true" />
+              </a>
+            </Button>
           </div>
-          <Button className="h-11 shrink-0 rounded-[8px] px-5" asChild>
-            <a
-              href={SEMINAR_WA_GROUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span>Gabung Grup WA</span>
-              <ExternalLink className="ml-2 h-4 w-4" aria-hidden="true" />
-            </a>
-          </Button>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Button variant="outline" className="h-11 rounded-[8px]" asChild>

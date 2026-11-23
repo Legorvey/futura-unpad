@@ -18,6 +18,7 @@ type SeminarRegisteredViewProps = {
   registrationId: string;
   statusLabel: string;
   values: ClientSeminarFormValues;
+  waGroupUrl?: string | null;
 };
 
 export default function SeminarRegisteredView({
@@ -25,6 +26,7 @@ export default function SeminarRegisteredView({
   registrationId,
   statusLabel,
   values,
+  waGroupUrl,
 }: SeminarRegisteredViewProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -69,6 +71,7 @@ export default function SeminarRegisteredView({
           registrationId={registrationId}
           statusLabel={statusLabel}
           values={values}
+          waGroupUrl={waGroupUrl}
         />
       </section>
     </div>

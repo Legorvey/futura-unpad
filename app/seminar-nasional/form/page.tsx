@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Ban } from "lucide-react";
 import SeminarRegistrationForm from "./form";
 import SeminarRegisteredView from "./registered-view";
@@ -15,6 +16,7 @@ import {
   hasSeminarRegistrationStarted,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config";
+import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config";
 
 export const metadata: Metadata = {
   title: "Form Pendaftaran Seminar Nasional",
@@ -78,60 +80,77 @@ const SEMINAR_THEME_STYLES = `
 `;
 
 export default async function SeminarRegistrationPage() {
-  const { user } = await getCachedAuth();
+  const { user, adminAccess, needsMfaVerification, needsMfaEnrollment } =
+    await getCachedAuth();
+
+  if (!user) {
+    redirect("/login?next=/seminar-nasional/form");
+  }
+
+  if (needsMfaVerification) {
+    redirect("/login/mfa-verify?next=/admin");
+  }
+
+  if (needsMfaEnrollment) {
+    redirect("/login/mfa-enroll");
+  }
+
+  if (adminAccess) {
+    redirect("/admin");
+  }
+
   let latestRegistration: SeminarRegistrationRow | null = null;
   let allRegistrations: SeminarMemberRow[] = [];
   let statusLabel = "-";
 
-  if (user) {
-    const adminSupabase = createAdminClient();
-    const { data } = await adminSupabase
-      .from("seminar_registrations")
-      .select(
-        "id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_id,group_name"
-      )
-      .eq("user_id", user.id)
-      .eq("is_main_contact", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle<SeminarRegistrationRow>();
+  const adminSupabase = createAdminClient();
+  const { data } = await adminSupabase
+    .from("seminar_registrations")
+    .select(
+      "id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_id,group_name"
+    )
+    .eq("user_id", user.id)
+    .eq("is_main_contact", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<SeminarRegistrationRow>();
 
-    latestRegistration = data;
+  latestRegistration = data;
 
-    if (latestRegistration) {
-      statusLabel =
-        seminarStatusOptions.find(
-          (o) => o.id === latestRegistration?.status_akademika
-        )?.title ?? "-";
+  if (latestRegistration) {
+    statusLabel =
+      seminarStatusOptions.find(
+        (o) => o.id === latestRegistration?.status_akademika
+      )?.title ?? "-";
 
-      if (
-        latestRegistration.registration_type === "group" ||
-        latestRegistration.registration_type === "grup"
-      ) {
-        if (latestRegistration.group_id) {
-          const { data: membersData } = await adminSupabase
-            .from("seminar_registrations")
-            .select("id,nama_lengkap,asal_institusi,is_main_contact")
-            .eq("group_id", latestRegistration.group_id)
-            .order("created_at", { ascending: true });
+    if (
+      latestRegistration.registration_type === "group" ||
+      latestRegistration.registration_type === "grup"
+    ) {
+      if (latestRegistration.group_id) {
+        const { data: membersData } = await adminSupabase
+          .from("seminar_registrations")
+          .select("id,nama_lengkap,asal_institusi,is_main_contact")
+          .eq("group_id", latestRegistration.group_id)
+          .order("created_at", { ascending: true });
 
-          allRegistrations = (membersData as SeminarMemberRow[]) || [];
-        }
+        allRegistrations = (membersData as SeminarMemberRow[]) || [];
+      }
 
-        if (allRegistrations.length === 0) {
-          allRegistrations = [
-            {
-              id: latestRegistration.id,
-              nama_lengkap: latestRegistration.nama_lengkap,
-              asal_institusi: latestRegistration.asal_institusi,
-              is_main_contact: true,
-            },
-          ];
-        }
+      if (allRegistrations.length === 0) {
+        allRegistrations = [
+          {
+            id: latestRegistration.id,
+            nama_lengkap: latestRegistration.nama_lengkap,
+            asal_institusi: latestRegistration.asal_institusi,
+            is_main_contact: true,
+          },
+        ];
       }
     }
   }
 
+  const waGroupUrl = latestRegistration ? getSeminarWaGroupUrl() : null;
   const isOpen = isSeminarRegistrationOpen();
   const hasStarted = hasSeminarRegistrationStarted();
 
@@ -174,6 +193,7 @@ export default async function SeminarRegistrationPage() {
                   registrations={allRegistrations}
                   registrationId={latestRegistration.id}
                   statusLabel={statusLabel}
+                  waGroupUrl={waGroupUrl}
                   values={{
                     nama: latestRegistration.nama_lengkap,
                     email: latestRegistration.email ?? "",

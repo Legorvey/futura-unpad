@@ -33,6 +33,6 @@ export function useSeminarRegistrationOpen(): boolean {
   return useSyncExternalStore(
     subscribe,
     () => isSeminarRegistrationOpen(),
-    () => true
+    () => isSeminarRegistrationOpen()
   );
 }

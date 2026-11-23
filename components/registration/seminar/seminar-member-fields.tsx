@@ -4,7 +4,10 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
+import {
+  MAX_SEMINAR_GROUP_MEMBERS,
+  type ClientSeminarFormValues,
+} from "@/lib/validation/seminar";
 import { FormTextField } from "@/components/form/form-text-field";
 import { FormCheckboxField } from "@/components/form/form-checkbox-field";
 import { SeminarInstitutionField } from "./seminar-institution-field";
@@ -101,10 +104,17 @@ export function SeminarMemberFields() {
         type="button"
         variant="outline"
         className="w-full h-11 rounded-[8px] border-dashed"
-        onClick={() => appendMember({ nama: "", institusi: "" })}
+        disabled={memberFields.length >= MAX_SEMINAR_GROUP_MEMBERS}
+        onClick={() => {
+          if (memberFields.length < MAX_SEMINAR_GROUP_MEMBERS) {
+            appendMember({ nama: "", institusi: "" });
+          }
+        }}
       >
         <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-        Tambah Anggota
+        {memberFields.length >= MAX_SEMINAR_GROUP_MEMBERS
+          ? `Maksimal ${MAX_SEMINAR_GROUP_MEMBERS} Anggota Tercapai`
+          : "Tambah Anggota"}
       </Button>
     </div>
   );

@@ -3,7 +3,10 @@ import { isUniqueViolation } from "@/lib/database-errors";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createClient } from "@/utils/supabase/server";
 import {
+  NO_STORE_HEADERS,
   invalidRequest,
+  isSameOriginRequest,
+  jsonError,
   rateLimited,
   readJsonBody,
   serverError,
@@ -14,6 +17,7 @@ import {
   hasSeminarRegistrationStarted,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config";
+import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config";
 
 export const runtime = "nodejs";
 
@@ -46,6 +50,10 @@ const duplicateRegistrationResponse = (registration: ExistingRegistration) =>
   );
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return jsonError("Forbidden", 403);
+  }
+
   if (!isSeminarRegistrationOpen()) {
     return NextResponse.json(
       {
@@ -54,18 +62,40 @@ export async function POST(request: Request) {
           ? "Pendaftaran Seminar Nasional telah ditutup."
           : "Pendaftaran Seminar Nasional belum dibuka.",
       },
-      { status: 403 }
+      { status: 403, headers: NO_STORE_HEADERS }
     );
   }
 
-  const limit = await rateLimit(request, {
-    key: "seminar-registration",
+  const ipLimit = await rateLimit(request, {
+    key: "seminar-registration-ip",
+    limit: 30,
+    windowSeconds: 300,
+  });
+
+  if (!ipLimit.success) {
+    return rateLimited(ipLimit.retryAfter);
+  }
+
+  const authSupabase = await createClient();
+  const {
+    data: { user },
+  } = await authSupabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "Please log in before registering for the seminar." },
+      { status: 401, headers: NO_STORE_HEADERS }
+    );
+  }
+
+  const userLimit = await rateLimit(user.id, {
+    key: "seminar-registration-user",
     limit: 5,
     windowSeconds: 300,
   });
 
-  if (!limit.success) {
-    return rateLimited(limit.retryAfter);
+  if (!userLimit.success) {
+    return rateLimited(userLimit.retryAfter);
   }
 
   const body = await readJsonBody(request, 24_576);
@@ -78,18 +108,6 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return invalidRequest();
-  }
-
-  const authSupabase = await createClient();
-  const {
-    data: { user },
-  } = await authSupabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Please log in before registering for the seminar." },
-      { status: 401 }
-    );
   }
 
   const supabase = createAdminClient();
@@ -126,7 +144,7 @@ export async function POST(request: Request) {
       asal_institusi: parsed.data.asal_institusi,
       status_akademika: parsed.data.status_akademika,
       registration_type: parsed.data.registration_type,
-      group_name: parsed.data.group_name || null,
+      group_name: isGroup ? parsed.data.group_name || null : null,
       group_id: groupId,
       is_main_contact: true,
     },
@@ -169,9 +187,13 @@ export async function POST(request: Request) {
     insertedRegistrations?.find((r) => r.is_main_contact) ||
     insertedRegistrations?.[0];
 
-  return NextResponse.json({
-    success: true,
-    registration_id: mainContact?.id,
-    registrations: insertedRegistrations || [],
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      registration_id: mainContact?.id,
+      registrations: insertedRegistrations || [],
+      wa_group_url: getSeminarWaGroupUrl(),
+    },
+    { headers: NO_STORE_HEADERS }
+  );
 }

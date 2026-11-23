@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Ban } from "lucide-react";
 import {
   motion,
   useScroll,
@@ -9,6 +10,9 @@ import {
   type MotionValue,
 } from "motion/react";
 import Image from "next/image";
+import { ButtonV3 } from "../ui/button-v3";
+import { SEMINAR_REG_DISPLAY_END_LABEL } from "@/lib/seminar/config";
+import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open";
 
 const documentationItems = [
   {
@@ -203,6 +207,7 @@ const GalleryRow = ({
 
 export default function AboutSection() {
   const targetRef = useRef<HTMLDivElement>(null);
+  const isRegOpen = useSeminarRegistrationOpen();
 
   // Track scroll progress over a 500vh container for tablet & higher resolutions
   const { scrollYProgress } = useScroll({
@@ -300,15 +305,33 @@ export default function AboutSection() {
           <MobileDocumentationCarousel items={documentationItems} />
         </div>
 
-        {/* Section 4: Stay Tuned / Upcoming Announcement */}
-        <div className="flex flex-col items-center text-center space-y-6 max-w-lg mx-auto py-8">
-          <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-tight">
-            Nantikan Seminar Nasional <br className="hidden sm:inline" />
-            <span className="text-white/80">Futura 2026</span>
+        {/* Section 4: Open Registration CTA */}
+        <div className="flex flex-col items-center text-center space-y-6 max-w-2xl mx-auto py-8">
+          <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-[0.95]">
+            SEMINAR NASIONAL
+            <span className="block mt-1 text-white/80">FUTURA 2026</span>
           </h3>
           <p className="text-base sm:text-lg font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
-            Pendaftaran akan segera dibuka. Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka.
+            {isRegOpen
+              ? `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+              : "Pendaftaran Seminar Nasional Futura 2026 telah resmi ditutup."}
           </p>
+          {isRegOpen ? (
+            <ButtonV3 text="Daftar Sekarang" href="/seminar-nasional/form" />
+          ) : (
+            <div
+              role="status"
+              aria-label="Pendaftaran Seminar Nasional Ditutup"
+              className="relative inline-flex h-12 items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/75 px-5 cursor-not-allowed shadow-inner"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/20 text-red-300 mr-3 border border-red-500/30">
+                <Ban className="h-4 w-4 stroke-[2.2]" />
+              </div>
+              <span className="text-sm font-semibold tracking-tight text-white/90">
+                Pendaftaran Ditutup
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -417,7 +440,7 @@ export default function AboutSection() {
             </div>
           </motion.div>
 
-          {/* --- SLIDE 4: Stay Tuned / Upcoming Announcement --- */}
+          {/* --- SLIDE 4: Open Registration CTA --- */}
           <motion.div
             style={{ opacity: slide4Opacity }}
             className="absolute inset-0 w-full h-screen flex flex-col justify-center items-center text-white z-40 overflow-hidden px-6 md:px-12 lg:px-20 pointer-events-none"
@@ -427,22 +450,41 @@ export default function AboutSection() {
               className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none"
             >
               <h2 className="text-[8rem] sm:text-[12rem] md:text-[16rem] lg:text-[20rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
-                STAY TUNED
+                {isRegOpen ? "OPEN NOW" : "CLOSED"}
               </h2>
             </motion.div>
 
             <motion.div
               style={{ x: slide4TextX }}
-              className="relative z-10 flex flex-col items-center text-center max-w-4xl gap-6 sm:gap-8 pointer-events-auto"
+              className="relative z-10 flex flex-col items-center text-center max-w-6xl gap-6 sm:gap-8 pointer-events-auto"
             >
-              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-white text-center leading-[0.9]">
-                Nantikan Seminar Nasional <br />
-                <span className="text-white/80">Futura 2026</span>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-white text-center leading-[0.92]">
+                <span className="block whitespace-nowrap">SEMINAR NASIONAL</span>
+                <span className="block mt-2 text-white/80">FUTURA 2026</span>
               </h2>
 
-              <p className="max-w-2xl text-center text-base sm:text-lg md:text-xl lg:text-2xl font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
-                Pendaftaran akan segera dibuka. Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka.
+              <p className="max-w-3xl lg:max-w-4xl text-center text-base sm:text-lg md:text-xl lg:text-2xl font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
+                {isRegOpen
+                  ? `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                  : "Pendaftaran Seminar Nasional Futura 2026 telah resmi ditutup."}
               </p>
+
+              {isRegOpen ? (
+                <ButtonV3 text="Daftar Sekarang" href="/seminar-nasional/form" />
+              ) : (
+                <div
+                  role="status"
+                  aria-label="Pendaftaran Seminar Nasional Ditutup"
+                  className="relative inline-flex h-12 md:h-14 w-fit items-center justify-center overflow-hidden rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/75 px-5 md:px-7 cursor-not-allowed shadow-inner"
+                >
+                  <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full bg-red-500/20 text-red-300 mr-3 border border-red-500/30">
+                    <Ban className="h-4 w-4 stroke-[2.2]" />
+                  </div>
+                  <span className="text-sm md:text-base font-semibold tracking-tight text-white/90">
+                    Pendaftaran Ditutup
+                  </span>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         </div>

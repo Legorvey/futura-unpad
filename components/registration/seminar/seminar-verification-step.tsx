@@ -1,4 +1,7 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import VerificationStepCard from "@/components/registration/verification-step-card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +31,15 @@ export default function SeminarVerificationStep({
 }: SeminarVerificationStepProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [flashDoneButton, setFlashDoneButton] = useState(false);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (flashTimeoutRef.current) {
+        clearTimeout(flashTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <FieldGroup className="gap-6">
@@ -57,7 +69,9 @@ export default function SeminarVerificationStep({
       />
 
       {submitError && (
-        <p className="text-sm font-medium text-destructive">{submitError}</p>
+        <p role="alert" className="text-sm font-medium text-destructive">
+          {submitError}
+        </p>
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -68,7 +82,12 @@ export default function SeminarVerificationStep({
           onClick={() => {
             if (isEditing) {
               setFlashDoneButton(true);
-              setTimeout(() => setFlashDoneButton(false), 500);
+              if (flashTimeoutRef.current) {
+                clearTimeout(flashTimeoutRef.current);
+              }
+              flashTimeoutRef.current = setTimeout(() => {
+                setFlashDoneButton(false);
+              }, 500);
             } else {
               onClearSubmitError();
               onBack();
@@ -84,10 +103,16 @@ export default function SeminarVerificationStep({
           onClick={submitRegistration}
           disabled={isSubmitting || isEditing}
         >
-          {isSubmitting ? "Menyimpan..." : "Konfirmasi dan dapatkan tiket"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+              Menyimpan...
+            </>
+          ) : (
+            "Konfirmasi dan dapatkan tiket"
+          )}
         </Button>
       </div>
     </FieldGroup>
   );
 }
-

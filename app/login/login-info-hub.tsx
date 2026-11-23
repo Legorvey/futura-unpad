@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback, MouseEvent } from "react";
 import Image from "next/image";
 import { motion, useSpring, useTransform, AnimatePresence, type Variants, type MotionValue } from "motion/react";
+import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open";
 
 /* ────────────────────────────────────────────────────
    SLIDE DATA
@@ -28,7 +29,7 @@ interface SlideData {
   lines: TextLine[];
 }
 
-const slides: SlideData[] = [
+const getSlides = (isSeminarOpen: boolean): SlideData[] => [
   {
     id: "lomba-esai",
     contactLabel: "Narahubung Lomba Esai",
@@ -53,7 +54,7 @@ const slides: SlideData[] = [
         parallax: { x: [-35, 35], y: [-25, 25] },
       },
       {
-        text: "Open!",
+        text: "Closed",
         className: "text-[5.5rem] md:text-[7.5rem] lg:text-[5.5rem] xl:text-[8rem] 2xl:text-[10.5rem] font-black text-white tracking-tighter uppercase leading-none drop-shadow-2xl mt-[-2px] xl:mt-[-8px] 2xl:mt-[-12px] -ml-2 lg:-ml-4 xl:-ml-6 2xl:-ml-8 whitespace-nowrap",
         parallax: { x: [-45, 45], y: [-30, 30] },
       },
@@ -77,12 +78,12 @@ const slides: SlideData[] = [
         parallax: { x: [-25, 25], y: [-20, 20] },
       },
       {
-        text: "Coming",
+        text: "Is Now",
         className: "text-3xl md:text-5xl lg:text-3xl xl:text-5xl 2xl:text-6xl font-light text-white/80 tracking-[0.2em] xl:tracking-[0.3em] 2xl:tracking-[0.4em] uppercase drop-shadow-md mt-2 xl:mt-4 2xl:mt-6 ml-12 lg:ml-16 xl:ml-28 2xl:ml-40 whitespace-nowrap",
         parallax: { x: [-35, 35], y: [-25, 25] },
       },
       {
-        text: "Soon!",
+        text: isSeminarOpen ? "Open!" : "Closed",
         className: "text-[4.5rem] md:text-[6.5rem] lg:text-[4.5rem] xl:text-[7rem] 2xl:text-[9rem] font-black text-white tracking-tighter uppercase leading-none drop-shadow-2xl mt-[-2px] xl:mt-[-10px] 2xl:mt-[-15px] -ml-2 lg:-ml-4 xl:-ml-8 2xl:-ml-10 whitespace-nowrap",
         parallax: { x: [-45, 45], y: [-30, 30] },
       },
@@ -156,6 +157,8 @@ const SLIDE_INTERVAL_MS = 6_000;
 export default function LoginInfoHub() {
   const ref = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const isSeminarOpen = useSeminarRegistrationOpen();
+  const slides = getSlides(isSeminarOpen);
 
   /* ── mouse parallax springs ── */
   const mx = useSpring(0, { stiffness: 200, damping: 40 });
@@ -176,7 +179,7 @@ export default function LoginInfoHub() {
   /* ── auto-rotate ── */
   const goNext = useCallback(() => {
     setActiveIndex((i) => (i + 1) % slides.length);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     const timer = setInterval(goNext, SLIDE_INTERVAL_MS);

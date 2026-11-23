@@ -21,10 +21,10 @@ export type MechaturaRegistrationStep =
 export type SeminarPaymentStep = "registration" | "payment";
 
 export const seminarRegistrationSteps = [
-  { id: "registration-option", label: "Registration Option" },
-  { id: "details", label: "Details" },
-  { id: "verification", label: "Verify" },
-  { id: "ticket", label: "Ticket" },
+  { id: "registration-option", label: "Opsi Pendaftaran" },
+  { id: "details", label: "Detail Peserta" },
+  { id: "verification", label: "Verifikasi" },
+  { id: "ticket", label: "Tiket" },
 ] as const satisfies readonly StepDefinition<SeminarRegistrationStep>[];
 
 export const esaiRegistrationSteps = [

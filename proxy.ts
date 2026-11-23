@@ -7,10 +7,6 @@ export async function proxy(request: NextRequest) {
   // or SSR bypass before the route is even processed.
   const path = request.nextUrl.pathname;
   
-  if (path.startsWith("/seminar-nasional/form")) {
-    return NextResponse.redirect(new URL("/seminar-nasional", request.url));
-  }
-  
   if (path.startsWith("/lomba-esai/form")) {
     return NextResponse.redirect(new URL("/lomba-esai", request.url));
   }

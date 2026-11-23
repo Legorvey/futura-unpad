@@ -32,10 +32,10 @@ export default function VerificationStepCard({
             type="button"
             variant="outline"
             size="sm"
-            className="w-fit rounded-[8px]"
+            className="h-11 sm:h-9 w-fit rounded-[8px] px-3.5"
             onClick={onEdit}
           >
-            <PencilLine className="h-4 w-4" />
+            <PencilLine className="h-4 w-4" aria-hidden="true" />
             Edit
           </Button>
         )}

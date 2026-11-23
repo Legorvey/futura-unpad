@@ -1,19 +1,44 @@
 "use client";
 
-import { Calendar, MapPin, Presentation, Bot, PenTool } from "lucide-react";
+import { Presentation, Bot, PenTool } from "lucide-react";
 import { ButtonV2 } from "../ui/button-v2";
+import {
+    SEMINAR_EVENT_DATE_LABEL,
+    SEMINAR_EVENT_TIME_LABEL,
+    SEMINAR_LOCATION_NAME,
+    SEMINAR_SPEAKERS,
+} from "@/lib/seminar/config";
+import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open";
 
-const events = [
+type EventItem = {
+    title: string;
+    date: string;
+    location: string;
+    description: string;
+    highlights_title: string;
+    highlights: string | string[];
+    href: string;
+    icon: typeof Presentation;
+    isOpen?: boolean;
+    isUnopened?: boolean;
+    isClosed?: boolean;
+};
+
+const speakerHighlights = SEMINAR_SPEAKERS.map((speaker) => speaker.name);
+
+const getEvents = (isSeminarOpen: boolean): EventItem[] => [
     {
         title: "Seminar Nasional",
-        date: "Sabtu, 28 November 2026",
-        location: "Bale Rumawat Unpad Dipatiukur",
-        description: "Diskusi Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030 memfasilitasi para ahli untuk mengkaji kesiapan teknis industri nasional secara spesifik melalui integrasi konektivitas dan energi.",
+        date: `Sabtu, ${SEMINAR_EVENT_DATE_LABEL} • ${SEMINAR_EVENT_TIME_LABEL}`,
+        location: SEMINAR_LOCATION_NAME,
+        description:
+            "Forum ilmiah Seminar & Workshop bersama Persatuan Robotika Seluruh Indonesia (PRSI) yang mengkaji inovasi teknologi global, menghadirkan akademisi, praktisi industri, asosiasi, dan perwakilan pemerintah.",
         highlights_title: "Pembicara",
-        highlights: "To Be Announced",
+        highlights: speakerHighlights,
         href: "/seminar-nasional",
         icon: Presentation,
-        isUnopened: true,
+        isOpen: isSeminarOpen,
+        isClosed: !isSeminarOpen,
     },
     {
         title: "Mechatura",
@@ -40,6 +65,9 @@ const events = [
 ];
 
 export default function RegistrationsSection() {
+    const isSeminarOpen = useSeminarRegistrationOpen();
+    const events = getEvents(isSeminarOpen);
+
     return (
         <section id="registrations" className="relative w-full py-20 lg:py-28 overflow-hidden">
             <div className="relative mx-auto max-w-[100rem] w-full px-6 md:px-12 lg:px-20 z-10">
@@ -62,7 +90,7 @@ export default function RegistrationsSection() {
     );
 }
 
-function EventCard({ event }: { event: (typeof events)[0] }) {
+function EventCard({ event }: { event: EventItem }) {
     const Icon = event.icon;
 
     return (
@@ -101,19 +129,38 @@ function EventCard({ event }: { event: (typeof events)[0] }) {
 
                 <div className="mt-auto flex flex-col gap-8">
                     <div className="p-5 rounded-2xl bg-black/20 border border-white/5 backdrop-blur-sm">
-                        <span className="block text-xs font-semibold tracking-tight text-white/60 mb-1">
+                        <span className="block text-xs font-semibold tracking-tight text-white/60 mb-2">
                             {event.highlights_title}
                         </span>
-                        <span className="text-sm font-medium text-foreground/90 block">
-                            {event.highlights}
-                        </span>
+                        {Array.isArray(event.highlights) ? (
+                            <ul className="space-y-1.5">
+                                {event.highlights.map((item) => (
+                                    <li
+                                        key={item}
+                                        className="flex items-start gap-2 text-xs sm:text-sm font-medium text-foreground/90 leading-snug"
+                                    >
+                                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300/80" />
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <span className="text-sm font-medium text-foreground/90 block">
+                                {event.highlights}
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between w-full gap-3">
                         <ButtonV2
-                            text={event.isUnopened || event.isClosed ? "Lihat Detail" : "Daftar Sekarang"}
+                            text={event.isOpen ? "Daftar Sekarang" : "Lihat Detail"}
                             href={event.href}
                         />
+                        {event.isOpen && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                Dibuka s.d. 27 Nov
+                            </span>
+                        )}
                         {event.isUnopened && (
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                 Segera Dibuka

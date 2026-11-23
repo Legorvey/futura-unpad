@@ -14,7 +14,9 @@ type MemoryEntry = {
   resetAt: number;
 };
 
+const MAX_MEMORY_ENTRIES = 10_000;
 const memoryStore = new Map<string, MemoryEntry>();
+let hasLoggedMemoryFallback = false;
 
 // Clean up expired entries every 10 minutes to prevent memory leaks
 const cleanupInterval = setInterval(() => {
@@ -63,10 +65,23 @@ const rateLimitWithMemory = (
   key: string,
   options: RateLimitOptions
 ): RateLimitResult => {
+  if (process.env.NODE_ENV === "production" && !hasLoggedMemoryFallback) {
+    hasLoggedMemoryFallback = true;
+    console.warn(
+      "Rate limiter fell back to in-memory store in production; configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN."
+    );
+  }
+
   const now = Date.now();
   const existing = memoryStore.get(key);
 
   if (!existing || existing.resetAt <= now) {
+    if (memoryStore.size >= MAX_MEMORY_ENTRIES) {
+      const oldestKey = memoryStore.keys().next().value;
+      if (oldestKey) {
+        memoryStore.delete(oldestKey);
+      }
+    }
     memoryStore.set(key, {
       count: 1,
       resetAt: now + options.windowSeconds * 1000,
@@ -104,6 +119,7 @@ const rateLimitWithUpstash = async (
         ["EXPIRE", key, options.windowSeconds, "NX"],
       ]),
       cache: "no-store",
+      signal: AbortSignal.timeout(2000),
     });
 
     if (!res.ok) {
@@ -150,6 +166,7 @@ export const peekRateLimit = async (
       const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
+        signal: AbortSignal.timeout(2000),
       });
 
       if (res.ok) {

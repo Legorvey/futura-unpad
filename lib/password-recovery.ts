@@ -12,12 +12,23 @@ export const passwordRecoveryCookieOptions = {
 };
 
 const getRecoverySecret = () => {
-  return (
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  const secret =
+    process.env.PASSWORD_RECOVERY_SECRET ||
     process.env.NEXTAUTH_SECRET ||
     process.env.SESSION_SECRET ||
-    "futura_recovery_fallback_secret_key_32_bytes_min"
-  );
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (secret) {
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Missing PASSWORD_RECOVERY_SECRET environment variable in production."
+    );
+  }
+
+  return "dev-only-password-recovery-secret-key-32-bytes";
 };
 
 export function createPasswordRecoveryToken(userId: string): string {

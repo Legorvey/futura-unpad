@@ -18,7 +18,11 @@ import {
 } from "@/lib/payment"
 import { getCachedAuth } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { createClient } from "@/utils/supabase/server"
+import {
+  SEMINAR_REG_DISPLAY_END_LABEL,
+  isSeminarRegistrationOpen,
+} from "@/lib/seminar/config"
+import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config"
 
 type ProfileRegistration = {
   id: string
@@ -113,7 +117,6 @@ export default async function ProfilePage() {
     redirect("/admin")
   }
 
-  const supabase = await createClient()
   const adminSupabase = createAdminClient()
 
   const [
@@ -140,13 +143,18 @@ export default async function ProfilePage() {
         .maybeSingle(),
       adminSupabase
         .from("esai_registrations")
-        .select("*")
+        .select("id, full_name, institution, email, phone_number, submission_status")
         .eq("user_id", user.id)
         .maybeSingle()
     ])
 
   if (error || mechaturaError || esaiError) {
-    throw new Error(error?.message ?? mechaturaError?.message ?? esaiError?.message)
+    console.error("Failed to load profile registrations", {
+      seminar: error?.message,
+      mechatura: mechaturaError?.message,
+      esai: esaiError?.message,
+    })
+    throw new Error("Gagal memuat data profil.")
   }
 
   const groupMembersPromise = isProfileGroupRegistration(latestRegistration) && latestRegistration?.group_id
@@ -162,8 +170,11 @@ export default async function ProfilePage() {
   const { data: membersData, error: membersError } = await groupMembersPromise
 
   if (membersError) {
-    throw new Error(membersError.message)
+    console.error("Failed to load seminar group members", membersError.message)
+    throw new Error("Gagal memuat data profil.")
   }
+
+  const seminarWaGroupUrl = latestRegistration ? getSeminarWaGroupUrl() : null
 
   const groupMembers = membersData ?? []
   const totalParticipants = latestRegistration ? 1 + groupMembers.length : 0
@@ -195,6 +206,7 @@ export default async function ProfilePage() {
 
 
 
+  const isSeminarOpen = isSeminarRegistrationOpen()
   const displayName = user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split('@')[0] || 'Pengguna';
 
   const lightThemeVars = {
@@ -367,9 +379,13 @@ export default async function ProfilePage() {
               <span className={`inline-flex w-max self-start sm:self-auto items-center rounded-full border px-3 py-1 text-xs font-medium ${checkedInCount > 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                 {latestRegistration.registration_type === "group" ? `${checkedInCount}/${totalParticipants} Hadir` : (latestRegistration.attended ? "Hadir" : "Menunggu Kehadiran")}
               </span>
+            ) : isSeminarOpen ? (
+              <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
+                Pendaftaran Dibuka
+              </span>
             ) : (
-               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-                 Segera Dibuka
+               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400">
+                 Pendaftaran Ditutup
                </span>
             )}
           </div>
@@ -391,17 +407,34 @@ export default async function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <div className="w-full sm:w-auto shrink-0 mt-4 sm:mt-0">
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 shrink-0 mt-4 sm:mt-0">
+                  {seminarWaGroupUrl ? (
+                    <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                      <a href={seminarWaGroupUrl} target="_blank" rel="noopener noreferrer">Gabung Grup WA</a>
+                    </Button>
+                  ) : null}
                   <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
-                    <Link href="/profile/seminar" prefetch={true}>Detail Registrasi</Link>
+                    <Link href="/seminar-nasional/form" prefetch={true}>Detail Registrasi</Link>
+                  </Button>
+                </div>
+              </div>
+            ) : isSeminarOpen ? (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional Futura 2026 dibuka hingga {SEMINAR_REG_DISPLAY_END_LABEL}.</p>
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 shrink-0">
+                  <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
+                    <Link href="/seminar-nasional" prefetch={true}>Detail Acara</Link>
+                  </Button>
+                  <Button asChild className="w-full sm:w-auto h-9 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                    <Link href="/seminar-nasional/form" prefetch={true}>Daftar Sekarang</Link>
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional saat ini belum dibuka.</p>
+                <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional 2026 telah resmi ditutup.</p>
                 <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 bg-background hover:bg-muted text-foreground border-border font-medium">
-                  <Link href="/seminar-nasional" prefetch={true}>Detail Acara</Link>
+                  <Link href="/seminar-nasional" prefetch={true}>Lihat Detail</Link>
                 </Button>
               </div>
             )}

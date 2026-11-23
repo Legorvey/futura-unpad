@@ -14,6 +14,12 @@ export const updateSession = async (request: NextRequest) => {
 
   if (!supabaseUrl || !supabaseKey) {
     console.error("Middleware error: Missing Supabase environment variables");
+    if (isAuthRequiredPath(request.nextUrl.pathname)) {
+      return NextResponse.json(
+        { error: "Service unavailable" },
+        { status: 503 }
+      );
+    }
     return NextResponse.next();
   }
   const sessionOnly = isSessionAuthPersistence(

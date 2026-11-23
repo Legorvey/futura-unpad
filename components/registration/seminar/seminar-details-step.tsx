@@ -1,13 +1,25 @@
+"use client";
+
 import type { BaseSyntheticEvent } from "react";
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
-import { seminarStatusOptions } from "../../../lib/seminar/seminar-options";
+import {
+  seminarSchoolJenjangOptions,
+  seminarStatusOptions,
+} from "@/lib/seminar/seminar-options";
 
 import { FormTextField } from "@/components/form/form-text-field";
-import { FormSelectField } from "@/components/form/form-select-field";
+import { SeminarInstitutionField } from "./seminar-institution-field";
 import { SeminarMemberFields } from "./seminar-member-fields";
 
 type SeminarDetailsStepProps = {
@@ -21,95 +33,198 @@ export default function SeminarDetailsStep({
   onSubmit,
   onBack,
 }: SeminarDetailsStepProps) {
-  const { watch } = useFormContext<ClientSeminarFormValues>();
-  const watchedValues = watch();
+  const { control, getValues, setValue, watch } =
+    useFormContext<ClientSeminarFormValues>();
+  const registrationType = watch("registration_type");
+  const statusAkademika = watch("status_akademika");
+  const schoolJenjang = watch("school_jenjang") ?? "SMA";
+  const isGroup = registrationType === "grup";
+  const isStudent = statusAkademika === "siswa";
 
   return (
     <form onSubmit={onSubmit} noValidate>
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-4 sm:p-6">
-          <h2 className="text-lg font-semibold">
-            Detail Informasi
-          </h2>
-          <p className="mt-1 text-sm font-medium leading-relaxed text-neutral-500">
-            Mohon isi identitas lengkap untuk registrasi seminar
-          </p>
-        </div>
-
-        <div className="space-y-6 p-4 sm:p-6">
-          {watchedValues.registration_type === "grup" && (
-            <FormTextField<ClientSeminarFormValues>
-              name="group_name"
-              label="Nama Grup/Tim"
-              placeholder="Masukkan nama grup atau komunitas Anda"
-              required
-            />
-          )}
-
-          <FormTextField<ClientSeminarFormValues>
-            name="nama"
-            label={`Nama Lengkap ${watchedValues.registration_type === "grup" ? "(Kontak Utama)" : ""}`}
-            placeholder="Nama sesuai identitas"
-            autoComplete="name"
-            required
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <FormTextField<ClientSeminarFormValues>
-              name="email"
-              label={`Email ${watchedValues.registration_type === "grup" ? "(Kontak Utama)" : ""}`}
-              type="email"
-              placeholder="nama@email.com"
-              autoComplete="email"
-              required
-            />
-
-            <FormTextField<ClientSeminarFormValues>
-              name="telp"
-              label={`Nomor WhatsApp ${watchedValues.registration_type === "grup" ? "(Kontak Utama)" : ""}`}
-              placeholder="+62 8XX-XXXX-XXXX"
-              autoComplete="tel"
-              required
-            />
+      <FieldGroup className="gap-6">
+        <section className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="border-b border-border p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-foreground">
+              Detail Informasi
+            </h2>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-muted-foreground">
+              Mohon isi identitas lengkap untuk registrasi seminar dan persiapan sertifikat.
+            </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-6 p-4 sm:p-6">
+            {isGroup && (
+              <FormTextField<ClientSeminarFormValues>
+                name="group_name"
+                label="Nama Grup/Tim"
+                placeholder="Masukkan nama grup atau komunitas Anda"
+              />
+            )}
+
             <FormTextField<ClientSeminarFormValues>
-              name="institusi"
-              label={`Asal Institusi ${watchedValues.registration_type === "grup" ? "(Kontak Utama)" : ""}`}
-              placeholder="Nama sekolah, kampus, instansi"
-              autoComplete="organization"
-              required
+              name="nama"
+              label={isGroup ? "Nama Lengkap (Kontak Utama)" : "Nama Lengkap"}
+              placeholder="Nama sesuai identitas"
+              autoComplete="name"
             />
 
-            <FormSelectField<ClientSeminarFormValues>
-              name="status_akademika"
-              label="Status Akademika"
-              placeholder="Pilih status akademika"
-              options={seminarStatusOptions}
-              required
-            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormTextField<ClientSeminarFormValues>
+                name="email"
+                label={isGroup ? "Email (Kontak Utama)" : "Email"}
+                type="email"
+                placeholder="nama@email.com"
+                autoComplete="email"
+              />
+
+              <FormTextField<ClientSeminarFormValues>
+                name="telp"
+                label={
+                  isGroup ? "Nomor WhatsApp (Kontak Utama)" : "Nomor WhatsApp"
+                }
+                placeholder="+62 8XX-XXXX-XXXX"
+                autoComplete="tel"
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 items-start">
+              <Field className="gap-2">
+                <FieldLabel htmlFor="status_akademika">
+                  Status Akademika
+                </FieldLabel>
+                <Controller
+                  name="status_akademika"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        value={String(field.value ?? "")}
+                        onValueChange={(nextStatus) => {
+                          const prevWasStudent = field.value === "siswa";
+                          const nextIsStudent = nextStatus === "siswa";
+                          field.onChange(nextStatus);
+                          if (prevWasStudent !== nextIsStudent) {
+                            setValue("institusi", "", { shouldValidate: false });
+                            const members = getValues("members") ?? [];
+                            members.forEach((_, index) => {
+                              setValue(`members.${index}.institusi`, "", {
+                                shouldValidate: false,
+                              });
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger
+                          id="status_akademika"
+                          className="h-11 w-full rounded-[8px] data-[size=default]:h-11"
+                          aria-invalid={!!fieldState.error}
+                          aria-describedby={
+                            fieldState.error
+                              ? "status_akademika-error"
+                              : undefined
+                          }
+                        >
+                          <SelectValue placeholder="Pilih status akademika" />
+                        </SelectTrigger>
+                        <SelectContent className="seminar-wrapper bg-popover text-popover-foreground border-border">
+                          {seminarStatusOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error ? (
+                        <FieldError id="status_akademika-error">
+                          {String(fieldState.error.message)}
+                        </FieldError>
+                      ) : null}
+                    </>
+                  )}
+                />
+              </Field>
+
+              {isStudent ? (
+                <Field className="gap-2">
+                  <FieldLabel htmlFor="school_jenjang">
+                    Jenjang Sekolah
+                  </FieldLabel>
+                  <Controller
+                    name="school_jenjang"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={String(field.value ?? "SMA")}
+                        onValueChange={(nextJenjang) => {
+                          field.onChange(nextJenjang);
+                          setValue("institusi", "", { shouldValidate: false });
+                        }}
+                      >
+                        <SelectTrigger
+                          id="school_jenjang"
+                          className="h-11 w-full rounded-[8px] data-[size=default]:h-11"
+                        >
+                          <SelectValue placeholder="Pilih jenjang sekolah" />
+                        </SelectTrigger>
+                        <SelectContent className="seminar-wrapper bg-popover text-popover-foreground border-border">
+                          {seminarSchoolJenjangOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </Field>
+              ) : (
+                <SeminarInstitutionField
+                  name="institusi"
+                  label={
+                    isGroup ? "Asal Institusi (Kontak Utama)" : "Asal Institusi"
+                  }
+                  statusAkademika={statusAkademika}
+                  schoolJenjang={schoolJenjang}
+                />
+              )}
+            </div>
+
+            {isStudent ? (
+              <SeminarInstitutionField
+                name="institusi"
+                label={
+                  isGroup ? "Asal Sekolah (Kontak Utama)" : "Asal Sekolah"
+                }
+                statusAkademika={statusAkademika}
+                schoolJenjang={schoolJenjang}
+              />
+            ) : null}
+
+            {isGroup && <SeminarMemberFields />}
           </div>
+        </section>
 
-          {watchedValues.registration_type === "grup" && <SeminarMemberFields />}
-
-          <Field className="grid gap-3 sm:grid-cols-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 rounded-[8px]"
-              onClick={onBack}
-              disabled={isSubmitting}
-            >
-              Kembali
-            </Button>
-            <Button type="submit" className="h-11 rounded-[8px]">
-              Lanjut ke pemeriksaan identitas
-            </Button>
-          </Field>
-        </div>
-      </section>
+        <Field className="grid gap-3 sm:grid-cols-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 rounded-[8px]"
+            onClick={onBack}
+            disabled={isSubmitting}
+          >
+            Kembali
+          </Button>
+          <Button
+            type="submit"
+            className="h-11 rounded-[8px]"
+            disabled={isSubmitting}
+          >
+            Lanjutkan ke verifikasi identitas
+          </Button>
+        </Field>
+      </FieldGroup>
     </form>
   );
 }
-

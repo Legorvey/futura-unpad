@@ -1,3 +1,5 @@
+"use client";
+
 import type { BaseSyntheticEvent } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
@@ -9,11 +11,13 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
   FieldTitle,
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
-import { seminarRegistrationOptions } from "../../../lib/seminar/seminar-options";
+import { seminarRegistrationOptions } from "@/lib/seminar/seminar-options";
 
 type SeminarRegistrationOptionStepProps = {
   onSubmit: (event?: BaseSyntheticEvent) => void;
@@ -35,22 +39,23 @@ export default function SeminarRegistrationOptionStep({
   return (
     <form onSubmit={onSubmit}>
       <FieldGroup>
-        <Field className="gap-3">
-          <FieldLabel>
-            Pilih Opsi Pendaftaran <span aria-hidden="true">*</span>
-          </FieldLabel>
+        <FieldSet className="gap-3">
+          <FieldLegend variant="label" id="seminar-registration-option-label">
+            Pilih Opsi Pendaftaran
+          </FieldLegend>
           <Controller
             name="registration_type"
             control={control}
             render={({ field }) => (
               <RadioGroup
+                aria-labelledby="seminar-registration-option-label"
                 value={field.value}
                 onValueChange={(val) => {
                   field.onChange(val);
                   if (val === "individu") {
                     setValue("members", []);
                   } else if (val === "grup" && memberFields.length === 0) {
-                    appendMember({ nama: "" });
+                    appendMember({ nama: "", institusi: "" });
                   }
                 }}
               >
@@ -78,12 +83,11 @@ export default function SeminarRegistrationOptionStep({
           {errors.registration_type ? (
             <FieldError>{errors.registration_type.message}</FieldError>
           ) : null}
-        </Field>
+        </FieldSet>
         <Button type="submit" className="h-11 rounded-[8px] mt-4">
-          Lanjut
+          Lanjutkan
         </Button>
       </FieldGroup>
     </form>
   );
 }
-

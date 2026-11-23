@@ -6,8 +6,8 @@ export const seminarStatusOptions = [
   },
   {
     id: "siswa" as const,
-    title: "Siswa",
-    description: "Peserta dari sekolah menengah.",
+    title: "Pelajar / Siswa",
+    description: "Peserta dari sekolah dasar hingga menengah.",
   },
   {
     id: "dosen" as const,
@@ -19,6 +19,13 @@ export const seminarStatusOptions = [
     title: "Umum",
     description: "Peserta umum atau profesional.",
   },
+];
+
+export const seminarSchoolJenjangOptions = [
+  { id: "SD" as const, title: "SD (Sekolah Dasar)" },
+  { id: "SMP" as const, title: "SMP (Sekolah Menengah Pertama)" },
+  { id: "SMA" as const, title: "SMA (Sekolah Menengah Atas)" },
+  { id: "SMK" as const, title: "SMK (Sekolah Menengah Kejuruan)" },
 ];
 
 export const seminarRegistrationOptions = [

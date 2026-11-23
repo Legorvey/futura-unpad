@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
+import { logAdminAudit } from "@/lib/audit-log"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http"
+import {
+    NO_STORE_HEADERS,
+    invalidRequest,
+    isSameOriginRequest,
+    jsonError,
+    rateLimited,
+    readJsonBody,
+    serverError,
+} from "@/lib/http"
 import { rateLimit } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -12,14 +21,8 @@ const toggleSchema = z.object({
 })
 
 export async function POST(request: Request) {
-    const limit = await rateLimit(request, {
-        key: "admin-toggle-attendance",
-        limit: 60,
-        windowSeconds: 60,
-    })
-
-    if (!limit.success) {
-        return rateLimited(limit.retryAfter)
+    if (!isSameOriginRequest(request)) {
+        return jsonError("Forbidden", 403)
     }
 
     const { user, adminAccess } = await requireAdmin()
@@ -30,6 +33,16 @@ export async function POST(request: Request) {
 
     if (!adminAccess) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const limit = await rateLimit(user.id, {
+        key: "admin-toggle-attendance",
+        limit: 60,
+        windowSeconds: 60,
+    })
+
+    if (!limit.success) {
+        return rateLimited(limit.retryAfter)
     }
 
     const body = await readJsonBody(request)
@@ -76,7 +89,15 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: "Registration not found" }, { status: 404 })
             }
 
-            return NextResponse.json({ ok: true })
+            logAdminAudit({
+                actorId: user.id,
+                action: "seminar.attendance.toggle",
+                targetId: registration_id,
+                outcome: "success",
+                details: { attended, bulk: false },
+            })
+
+            return NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS })
         }
 
         const { data: registration, error: fetchError } = await supabase
@@ -100,9 +121,20 @@ export async function POST(request: Request) {
             await updateSingleRegistration()
         }
 
-        return NextResponse.json({ ok: true })
+        logAdminAudit({
+            actorId: user.id,
+            action: "seminar.attendance.toggle",
+            targetId: registration_id,
+            outcome: "success",
+            details: { attended, bulk: true, groupId: registration.group_id },
+        })
+
+        return NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS })
     } catch (e) {
-        console.error("Failed to toggle attendance", e)
+        console.error(
+            "Failed to toggle attendance",
+            e instanceof Error ? e.message : "Unknown error"
+        )
         return serverError()
     }
 }

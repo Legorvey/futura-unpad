@@ -18,6 +18,7 @@ import {
   type AuthSessionUser,
 } from "@/lib/api/auth-session";
 import { queryKeys } from "@/lib/query/keys";
+import { clearAllRegistrationDrafts } from "@/hooks/use-form-draft";
 import { useAuthSessionQuery } from "@/hooks/queries/use-auth-session-query";
 import { createClient } from "@/utils/supabase/client";
 
@@ -87,6 +88,7 @@ export function AuthProvider({
       channel.close();
     }
 
+    clearAllRegistrationDrafts();
     queryClient.clear();
     setCachedSession({ user: null, adminAccess: false });
     setIsMutatingAuth(false);
@@ -125,6 +127,7 @@ export function AuthProvider({
         data === "logout" ||
         (typeof data === "object" && data !== null && data.type === "LOGOUT")
       ) {
+        clearAllRegistrationDrafts();
         queryClient.clear();
         setCachedSession({ user: null, adminAccess: false });
         router.refresh();

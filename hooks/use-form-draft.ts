@@ -5,9 +5,11 @@ import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 
 type UseFormDraftOptions<TValues extends FieldValues> = {
   form: UseFormReturn<TValues>;
-  storageKey: string;
+  storageKey: string | null;
   omitFields?: readonly FieldPath<TValues>[];
 };
+
+const DRAFT_STORAGE_PREFIX = "futura:registration:";
 
 const EMPTY_OMITTED_FIELDS: readonly string[] = [];
 
@@ -65,21 +67,39 @@ export function useFormDraft<TValues extends FieldValues>({
   const omittedFields = useMemo(() => new Set<string>(omitFields), [omitFields]);
 
   useEffect(() => {
+    hasLoadedDraft.current = false;
+
+    if (!storageKey) {
+      return;
+    }
+
     try {
-      const rawDraft = window.localStorage.getItem(storageKey);
+      // Remove any legacy persistent localStorage copy so PII does not outlive the browser session.
+      window.localStorage.removeItem(storageKey);
+
+      const rawDraft = window.sessionStorage.getItem(storageKey);
 
       if (rawDraft) {
-        const draft = JSON.parse(rawDraft) as Partial<TValues>;
-        form.reset({ ...form.getValues(), ...draft } as TValues);
+        const parsed: unknown = JSON.parse(rawDraft);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const draft = parsed as Partial<TValues>;
+          form.reset({ ...form.getValues(), ...draft } as TValues);
+        } else {
+          window.sessionStorage.removeItem(storageKey);
+        }
       }
     } catch {
-      window.localStorage.removeItem(storageKey);
+      window.sessionStorage.removeItem(storageKey);
     } finally {
       hasLoadedDraft.current = true;
     }
   }, [form, storageKey]);
 
   useEffect(() => {
+    if (!storageKey) {
+      return;
+    }
+
     const subscription = form.watch((values) => {
       if (!hasLoadedDraft.current) {
         return;
@@ -87,7 +107,7 @@ export function useFormDraft<TValues extends FieldValues>({
 
       try {
         const draft = sanitizeDraftValue(values, omittedFields);
-        window.localStorage.setItem(storageKey, JSON.stringify(draft));
+        window.sessionStorage.setItem(storageKey, JSON.stringify(draft));
       } catch {
         // Ignore storage quota or unavailable storage errors.
       }
@@ -99,8 +119,30 @@ export function useFormDraft<TValues extends FieldValues>({
 
 export function clearFormDraft(storageKey: string) {
   try {
+    window.sessionStorage.removeItem(storageKey);
     window.localStorage.removeItem(storageKey);
   } catch {
     // Ignore unavailable storage errors.
+  }
+}
+
+export function clearAllRegistrationDrafts() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  for (const storage of [window.sessionStorage, window.localStorage]) {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < storage.length; i += 1) {
+        const key = storage.key(i);
+        if (key?.startsWith(DRAFT_STORAGE_PREFIX)) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => storage.removeItem(key));
+    } catch {
+      // Ignore unavailable storage errors.
+    }
   }
 }

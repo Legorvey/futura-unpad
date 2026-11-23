@@ -11,27 +11,13 @@ import {
     authPersistenceCookieOptions,
     getAuthCookiePersistence,
 } from "@/utils/supabase/auth-cookies"
-import { getSafeAdminRedirectPath } from "@/lib/navigation"
+import { getSafeAdminRedirectPath, getSafeRedirectPath } from "@/lib/navigation"
 import { createClient } from "@/utils/supabase/server"
-
-const safeRedirectPath = (value: string | null) => {
-    if (
-        !value ||
-        !value.startsWith("/") ||
-        value.startsWith("//") ||
-        value.includes("\\") ||
-        value.startsWith("/auth/callback")
-    ) {
-        return "/"
-    }
-
-    return value
-}
 
 export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get("code")
-    const safeNextUrl = safeRedirectPath(requestUrl.searchParams.get("next"))
+    const safeNextUrl = getSafeRedirectPath(requestUrl.searchParams.get("next"), "/")
     const keepSignedInParam = requestUrl.searchParams.get("keep_signed_in")
     const keepSignedIn = keepSignedInParam === null || keepSignedInParam === "1"
     const isPasswordRecoveryRedirect =
@@ -134,17 +120,20 @@ export async function GET(request: Request) {
         }
     }
 
-    if (user && isEmailChangeFlow) {
-        const urlObj = new URL(finalNextUrl, requestUrl.origin);
-        if (user.new_email) {
-            urlObj.searchParams.set("email_change", "pending");
-        } else {
-            urlObj.searchParams.set("email_change", "success");
-        }
-        finalNextUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+    let redirectTarget = new URL(finalNextUrl, requestUrl.origin)
+    if (redirectTarget.origin !== requestUrl.origin || redirectTarget.pathname.startsWith("//")) {
+        redirectTarget = new URL("/", requestUrl.origin)
     }
 
-    const response = NextResponse.redirect(new URL(finalNextUrl, requestUrl.origin))
+    if (user && isEmailChangeFlow) {
+        if (user.new_email) {
+            redirectTarget.searchParams.set("email_change", "pending")
+        } else {
+            redirectTarget.searchParams.set("email_change", "success")
+        }
+    }
+
+    const response = NextResponse.redirect(redirectTarget)
     
     if (keepSignedIn) {
         response.cookies.set(AUTH_PERSISTENCE_COOKIE, "", {

@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
+import { logAdminAudit } from "@/lib/audit-log"
 import { createAdminClient } from "@/lib/supabase-admin"
-import { invalidRequest, rateLimited, readJsonBody, serverError } from "@/lib/http"
+import {
+    NO_STORE_HEADERS,
+    invalidRequest,
+    isSameOriginRequest,
+    jsonError,
+    rateLimited,
+    readJsonBody,
+    serverError,
+} from "@/lib/http"
 import { rateLimit } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -10,14 +19,8 @@ const verifyRegistrationSchema = z.object({
 })
 
 export async function POST(request: Request) {
-    const limit = await rateLimit(request, {
-        key: "admin-verify-registration",
-        limit: 30,
-        windowSeconds: 60,
-    })
-
-    if (!limit.success) {
-        return rateLimited(limit.retryAfter)
+    if (!isSameOriginRequest(request)) {
+        return jsonError("Forbidden", 403)
     }
 
     const { user, adminAccess } = await requireAdmin()
@@ -28,6 +31,16 @@ export async function POST(request: Request) {
 
     if (!adminAccess) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const limit = await rateLimit(user.id, {
+        key: "admin-verify-registration",
+        limit: 60,
+        windowSeconds: 60,
+    })
+
+    if (!limit.success) {
+        return rateLimited(limit.retryAfter)
     }
 
     const body = await readJsonBody(request)
@@ -61,7 +74,16 @@ export async function POST(request: Request) {
     }
 
     if (updatedRegistration) {
-        return NextResponse.json({ ok: true, participant: { nama_lengkap: updatedRegistration.nama_lengkap } })
+        logAdminAudit({
+            actorId: user.id,
+            action: "seminar.attendance.verify",
+            targetId: parsed.data.registration_id,
+            outcome: "success",
+        })
+        return NextResponse.json(
+            { ok: true, participant: { nama_lengkap: updatedRegistration.nama_lengkap } },
+            { headers: NO_STORE_HEADERS }
+        )
     }
 
     const { data: registration, error: fetchError } = await supabase

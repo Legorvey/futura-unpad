@@ -27,6 +27,7 @@ export const seminarRegistrationResponseSchema = z.object({
   success: z.literal(true),
   registration_id: z.string(),
   registrations: z.array(seminarTicketRegistrationSchema),
+  wa_group_url: z.string().url().nullable().optional(),
 });
 
 export const mechaturaRegistrationResponseSchema = z.object({

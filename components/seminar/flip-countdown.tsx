@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 function calculateTimeLeft(targetDate: number) {
   const difference = targetDate - new Date().getTime();
@@ -41,7 +41,7 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
   return (
     <div className="flex flex-col items-center">
       <div 
-        className="relative w-16 h-20 sm:w-20 sm:h-28 md:w-28 md:h-36 lg:w-32 lg:h-40 rounded-xl md:rounded-2xl shadow-xl font-sans" 
+        className="relative w-14 h-20 sm:w-20 sm:h-28 md:w-24 md:h-32 lg:w-32 lg:h-40 rounded-xl md:rounded-2xl shadow-xl font-sans" 
         style={{ perspective: "1000px" }}
       >
         {/* Split Line */}
@@ -49,7 +49,7 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
         
         {/* Top Static (Next value) */}
         <div className="absolute top-0 left-0 w-full h-[50%] bg-[#E8EAEF] rounded-t-xl md:rounded-t-2xl overflow-hidden flex justify-center items-end border border-black/5 border-b-0">
-          <span className="text-[#0033A0] font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tighter leading-none translate-y-[50%] block pb-0">
+          <span className="text-[#0033A0] font-black text-3xl sm:text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none translate-y-[50%] block pb-0">
             {currentStr}
           </span>
           <div className="absolute inset-0 bg-gradient-to-b from-black/[0.02] to-black/[0.08]" />
@@ -57,7 +57,7 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
 
         {/* Bottom Static (Current value until flip ends) */}
         <div className="absolute bottom-0 left-0 w-full h-[50%] bg-[#E8EAEF] rounded-b-xl md:rounded-b-2xl overflow-hidden flex justify-center items-start border border-black/5 border-t-0">
-          <span className="text-[#0033A0] font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tighter leading-none -translate-y-[50%] block pt-0">
+          <span className="text-[#0033A0] font-black text-3xl sm:text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none -translate-y-[50%] block pt-0">
             {isFlipping ? prevStr : currentStr}
           </span>
         </div>
@@ -68,7 +68,7 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
             className="absolute top-0 left-0 w-full h-[50%] bg-[#E8EAEF] rounded-t-2xl overflow-hidden flex justify-center items-end border border-black/5 border-b-0 origin-bottom animate-flip-top z-20"
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <span className="text-[#0033A0] font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tighter leading-none translate-y-[50%] block pb-0">
+            <span className="text-[#0033A0] font-black text-3xl sm:text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none translate-y-[50%] block pb-0">
               {prevStr}
             </span>
             <div className="absolute inset-0 bg-gradient-to-b from-black/[0.02] to-black/[0.08]" />
@@ -81,7 +81,7 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
             className="absolute bottom-0 left-0 w-full h-[50%] bg-[#E8EAEF] rounded-b-2xl overflow-hidden flex justify-center items-start border border-black/5 border-t-0 origin-top animate-flip-bottom z-20"
             style={{ backfaceVisibility: 'hidden', transform: 'rotateX(90deg)' }}
           >
-            <span className="text-[#0033A0] font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl tracking-tighter leading-none -translate-y-[50%] block pt-0">
+            <span className="text-[#0033A0] font-black text-3xl sm:text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none -translate-y-[50%] block pt-0">
               {currentStr}
             </span>
           </div>
@@ -96,10 +96,13 @@ const FlipDigit = ({ value, label }: { value: number; label: string }) => {
 
 export default function FlipCountdown({ targetDate }: { targetDate: number }) {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    setMounted(true);
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);
@@ -127,11 +130,13 @@ export default function FlipCountdown({ targetDate }: { targetDate: number }) {
           animation-delay: 0.3s;
         }
       `}} />
-      <div className="flex items-center justify-center gap-2 sm:gap-4 lg:gap-8">
+      <div className="flex items-center justify-center gap-1.5 sm:gap-4 lg:gap-6">
         <FlipDigit label="Days" value={timeLeft.days} />
-        <div className="text-[#E8EAEF] text-2xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-8">/</div>
+        <div className="text-[#E8EAEF] text-xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-8">/</div>
         <FlipDigit label="Hours" value={timeLeft.hours} />
-        <div className="text-[#E8EAEF] text-2xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-8">/</div>
+        <div className="text-[#E8EAEF] text-xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-8">/</div>
+        <FlipDigit label="Minutes" value={timeLeft.minutes} />
+        <div className="text-[#E8EAEF] text-xl sm:text-4xl md:text-6xl font-black mb-6 md:mb-8">/</div>
         <FlipDigit label="Seconds" value={timeLeft.seconds} />
       </div>
     </>

@@ -8,7 +8,6 @@ export const authUserSchema = z.object({
       display_name: z.string().optional(),
       username: z.string().optional(),
     })
-    .catchall(z.unknown())
     .optional(),
 });
 

@@ -55,10 +55,10 @@ export const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
         <h4 className="text-sm md:text-base font-light tracking-tight text-white/40 mb-1">
           Pembicara
         </h4>
-        <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight transition-colors duration-500 group-hover:text-amber-300">
+        <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight text-balance transition-colors duration-500 group-hover:text-amber-300">
           {pembicara.name}
         </h3>
-        <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/60">
+        <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/60 text-balance">
           {pembicara.position}
         </p>
         

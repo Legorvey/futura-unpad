@@ -1,5 +1,5 @@
 /* eslint-disable */
-export type AcademicStatus = "mahasiswa" | "siswa" | "dosen" | "umum";
+export type AcademicStatus = "mahasiswa" | "siswa" | "guru" | "dosen" | "umum";
 export type AttendanceMethod = "daring" | "luring";
 export type PaymentStatus =
   | "unpaid"
@@ -26,6 +26,10 @@ export const paymentPrices: Record<
     daring: 0,
     luring: 0,
   },
+  guru: {
+    daring: 0,
+    luring: 0,
+  },
   dosen: {
     daring: 0,
     luring: 0,
@@ -39,6 +43,7 @@ export const paymentPrices: Record<
 export const statusLabels: Record<AcademicStatus, string> = {
   mahasiswa: "Mahasiswa",
   siswa: "Siswa",
+  guru: "Guru",
   dosen: "Dosen",
   umum: "Umum",
 };
@@ -72,6 +77,7 @@ export const formatCurrency = (value: number) => currencyFormatter.format(value)
 export const isAcademicStatus = (value: unknown): value is AcademicStatus =>
   value === "mahasiswa" ||
   value === "siswa" ||
+  value === "guru" ||
   value === "dosen" ||
   value === "umum";
 

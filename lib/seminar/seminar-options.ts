@@ -10,6 +10,11 @@ export const seminarStatusOptions = [
     description: "Peserta dari sekolah dasar hingga menengah.",
   },
   {
+    id: "guru" as const,
+    title: "Guru",
+    description: "Tenaga pendidik sekolah dasar hingga menengah.",
+  },
+  {
     id: "dosen" as const,
     title: "Dosen",
     description: "Tenaga pendidik perguruan tinggi.",

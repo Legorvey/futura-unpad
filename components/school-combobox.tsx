@@ -52,15 +52,30 @@ export const INSTITUTION_TYPE_OPTIONS: {
 export const SEARCHABLE_TYPES: InstitutionType[] = ["SD", "SMP", "SMA", "SMK"];
 
 function parseItems(raw: unknown[]): SchoolItem[] {
-  return raw.map((item: any) => ({
-    id:
-      item.npsn ||
-      item.id ||
-      `${item.sekolah ?? "?"}-${item.kecamatan ?? Math.random()}`,
-    label: item.sekolah ?? item.nama ?? String(item),
-    city:
-      item.kabupaten_kota || item.kab_kota || item.propinsi || undefined,
-  }));
+  return raw.map((rawItem) => {
+    const item =
+      rawItem && typeof rawItem === "object"
+        ? (rawItem as Record<string, unknown>)
+        : {};
+    const asString = (val: unknown) =>
+      typeof val === "string" ? val : undefined;
+
+    const sekolah = asString(item.sekolah);
+    const nama = asString(item.nama);
+    const kecamatan = asString(item.kecamatan);
+
+    return {
+      id:
+        asString(item.npsn) ||
+        asString(item.id) ||
+        `${sekolah ?? "?"}-${kecamatan ?? Math.random()}`,
+      label: sekolah ?? nama ?? String(rawItem),
+      city:
+        asString(item.kabupaten_kota) ||
+        asString(item.kab_kota) ||
+        asString(item.propinsi),
+    };
+  });
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -100,13 +115,32 @@ export function SchoolCombobox({
 
   const jenjang = institutionType.toLowerCase();
 
-  // Reset when query or jenjang changes
-  React.useEffect(() => {
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (disabled) return;
+      setOpen(nextOpen);
+      if (!nextOpen) {
+        setQuery("");
+        setResults([]);
+        setHasMore(false);
+        setPage(1);
+        setSelectedIndex(-1);
+        setLoading(false);
+      }
+    },
+    [disabled]
+  );
+
+  const handleQueryChange = React.useCallback((nextQuery: string) => {
+    setQuery(nextQuery);
     setResults([]);
     setPage(1);
     setHasMore(false);
     setSelectedIndex(-1);
-  }, [query, institutionType]);
+    if (nextQuery.trim().length < 3) {
+      setLoading(false);
+    }
+  }, []);
 
   // Debounced search (page 1)
   React.useEffect(() => {
@@ -114,11 +148,12 @@ export function SchoolCombobox({
     const controller = new AbortController();
 
     if (query.trim().length < 3) {
-      setResults([]);
-      setHasMore(false);
-      setSelectedIndex(-1);
-      return;
+      return () => {
+        active = false;
+        controller.abort();
+      };
     }
+
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -133,8 +168,13 @@ export function SchoolCombobox({
             setSelectedIndex(-1);
           }
         }
-      } catch (err: any) {
-        if (active && err.name !== 'AbortError') setResults([]);
+      } catch (err: unknown) {
+        if (
+          active &&
+          !(err instanceof Error && err.name === "AbortError")
+        ) {
+          setResults([]);
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -167,26 +207,21 @@ export function SchoolCombobox({
     }
   };
 
-  // Focus search input on open; reset on close
+  // Focus search input on open
   React.useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-      setResults([]);
-      setHasMore(false);
-      setPage(1);
-      setSelectedIndex(-1);
-    }
+    if (!open) return;
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(focusTimer);
   }, [open]);
 
-  const showHint = query.trim().length < 3;
-  const showManualOption = query.trim().length >= 3;
+  const trimmedQuery = query.trim();
+  const isNoInstitution = trimmedQuery === "-";
+  const showHint = trimmedQuery.length < 3 && !isNoInstitution;
+  const showManualOption = trimmedQuery.length >= 3 || isNoInstitution;
   const showResults = results.length > 0;
-  const isFilled = !!value;
 
   return (
-    <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           id={id}
@@ -226,7 +261,7 @@ export function SchoolCombobox({
             className="flex-1 bg-transparent py-1 text-sm text-slate-900 outline-none placeholder:text-slate-500"
             placeholder="Ketik nama sekolah..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault();
@@ -239,8 +274,8 @@ export function SchoolCombobox({
                 if (selectedIndex >= 0 && selectedIndex < results.length) {
                   onChange(results[selectedIndex].label);
                   setOpen(false);
-                } else if (query.trim().length >= 3) {
-                  onChange(query.trim());
+                } else if (trimmedQuery.length >= 3 || isNoInstitution) {
+                  onChange(trimmedQuery);
                   setOpen(false);
                 }
               }
@@ -258,9 +293,21 @@ export function SchoolCombobox({
           onTouchMove={(e) => e.stopPropagation()}
         >
           {showHint && (
-            <p className="px-3 py-4 text-center text-xs text-slate-600">
-              Ketik minimal 3 karakter untuk mencari
-            </p>
+            <div className="px-3 py-3 space-y-2 text-center">
+              <p className="text-xs text-slate-600">
+                Ketik minimal 3 karakter untuk mencari, atau ketik &quot;-&quot; jika tidak berasal dari sekolah manapun
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("-");
+                  setOpen(false);
+                }}
+                className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-amber-300 hover:text-slate-950"
+              >
+                Tidak berasal dari sekolah manapun (isi &quot;-&quot;)
+              </button>
+            </div>
           )}
           {loading && (
             <p className="px-3 py-4 text-center text-xs text-slate-600">
@@ -334,7 +381,7 @@ export function SchoolCombobox({
               <PlusCircle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
               <span>
                 Gunakan{" "}
-                <span className="font-semibold">&ldquo;{query}&rdquo;</span>
+                <span className="font-semibold">&ldquo;{trimmedQuery}&rdquo;</span>
               </span>
             </button>
           </div>
@@ -365,7 +412,6 @@ export function PlainInstitutionInput({
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
 }: PlainInstitutionInputProps) {
-  const isFilled = !!value;
   return (
     <Input
       id={id}

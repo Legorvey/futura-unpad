@@ -21,6 +21,7 @@ async function AdminDashboardData() {
         adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }),
         adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "mahasiswa"),
         adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "siswa"),
+        adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "guru"),
         adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "dosen"),
         adminSupabase.from("seminar_registrations").select("*", { count: "exact", head: true }).eq("status_akademika", "umum"),
         adminSupabase.from("mechatura_teams").select("*", { count: "exact", head: true }),
@@ -43,6 +44,7 @@ async function AdminDashboardData() {
         { count: seminarTotal },
         { count: seminarMahasiswa },
         { count: seminarSiswa },
+        { count: seminarGuru },
         { count: seminarDosen },
         { count: seminarUmum },
         { count: mechaturaTotal },
@@ -106,10 +108,10 @@ async function AdminDashboardData() {
 
                     <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3.5 sm:p-5 hover:border-zinc-700 transition-colors relative overflow-hidden">
                         <div className="flex items-center justify-between gap-1">
-                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Dosen / Umum</p>
+                            <p className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider truncate">Dosen / Guru / Umum</p>
                         </div>
                         <p className="mt-2 sm:mt-3 text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-100">
-                            {seminarDosen ?? 0} / {seminarUmum ?? 0}
+                            {seminarDosen ?? 0} / {seminarGuru ?? 0} / {seminarUmum ?? 0}
                         </p>
                     </div>
                 </div>

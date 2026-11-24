@@ -47,14 +47,14 @@ const stepGuides: Record<
   { title: string; description: string }
 > = {
   "registration-option": {
-    title: "Opsi Pendaftaran",
+    title: "Email & Opsi Pendaftaran",
     description:
-      "Pilih pendaftaran individu jika mendaftar sendiri, atau pilih grup untuk mendaftarkan beberapa peserta sekaligus melalui satu kontak utama.",
+      "Masukkan alamat email aktif Anda untuk pengiriman tiket dan tautan grup WhatsApp, lalu pilih pendaftaran individu atau grup.",
   },
   details: {
     title: "Detail Peserta",
     description:
-      "Lengkapi nama lengkap sesuai identitas untuk kebutuhan sertifikat, email aktif, nomor WhatsApp, asal institusi, dan status akademika. Untuk grup, tambahkan seluruh anggota sebelum melanjutkan.",
+      "Lengkapi nama lengkap sesuai identitas untuk kebutuhan sertifikat, nomor WhatsApp aktif, status akademika, dan asal institusi (isi \"-\" jika tidak ada). Untuk grup, tambahkan seluruh anggota sebelum melanjutkan.",
   },
   verification: {
     title: "Verifikasi Data",

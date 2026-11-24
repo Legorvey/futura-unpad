@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   PlainInstitutionInput,
   SchoolCombobox,
@@ -30,6 +30,10 @@ function getInstitutionPlaceholder(
 ): string {
   if (statusAkademika === "mahasiswa" || statusAkademika === "dosen") {
     return "Tulis nama lengkap perguruan tinggi (contoh: Universitas Padjadjaran)";
+  }
+
+  if (statusAkademika === "guru") {
+    return 'Nama sekolah / instansi (isi "-" jika tidak ada)';
   }
 
   return 'Nama instansi / komunitas (isi "-" jika tidak ada)';
@@ -65,6 +69,12 @@ export function SeminarInstitutionField({
                 ? field.value
                 : "";
 
+          const describedBy = fieldState.error
+            ? `${id}-error`
+            : !disabled
+              ? `${id}-desc`
+              : undefined;
+
           return (
             <>
               {isSchoolSearch ? (
@@ -75,9 +85,7 @@ export function SeminarInstitutionField({
                   institutionType={schoolJenjang}
                   disabled={disabled}
                   aria-invalid={!!fieldState.error}
-                  aria-describedby={
-                    fieldState.error ? `${id}-error` : undefined
-                  }
+                  aria-describedby={describedBy}
                 />
               ) : (
                 <PlainInstitutionInput
@@ -87,11 +95,14 @@ export function SeminarInstitutionField({
                   disabled={disabled}
                   placeholder={getInstitutionPlaceholder(statusAkademika)}
                   aria-invalid={!!fieldState.error}
-                  aria-describedby={
-                    fieldState.error ? `${id}-error` : undefined
-                  }
+                  aria-describedby={describedBy}
                 />
               )}
+              {!disabled ? (
+                <FieldDescription id={`${id}-desc`}>
+                  Dapat mengisi dengan &quot;-&quot; jika tidak berasal dari institusi manapun.
+                </FieldDescription>
+              ) : null}
               {fieldState.error ? (
                 <FieldError id={`${id}-error`}>
                   {String(fieldState.error.message)}

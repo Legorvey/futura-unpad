@@ -57,6 +57,8 @@ export default function SeminarRegistrationForm() {
   const [submitError, setSubmitError] = useState("");
   const [registrationId, setRegistrationId] = useState("");
   const [waGroupUrl, setWaGroupUrl] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<boolean | undefined>(undefined);
+  const [linkedToProfile, setLinkedToProfile] = useState(false);
   const [allRegistrations, setAllRegistrations] = useState<
     { id: string; nama_lengkap: string; asal_institusi: string }[]
   >([]);
@@ -65,7 +67,7 @@ export default function SeminarRegistrationForm() {
 
   const draftStorageKey = user?.id
     ? `${SEMINAR_DRAFT_STORAGE_KEY}:${user.id}`
-    : null;
+    : `${SEMINAR_DRAFT_STORAGE_KEY}:guest`;
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -111,7 +113,7 @@ export default function SeminarRegistrationForm() {
     0,
     steps.findIndex((item) => item.id === step)
   );
-  const activeStepLabel = steps[activeStepIndex]?.label ?? "Opsi Pendaftaran";
+  const activeStepLabel = steps[activeStepIndex]?.label ?? "Email & Opsi";
 
   const hasPrefilled = useRef(false);
 
@@ -128,7 +130,7 @@ export default function SeminarRegistrationForm() {
 
   const goToDetails = async (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
-    const isValid = await trigger(["registration_type"]);
+    const isValid = await trigger(["email", "registration_type"]);
     if (isValid) {
       const registrationType = getValues("registration_type");
       const currentMembers = getValues("members") ?? [];
@@ -201,6 +203,8 @@ export default function SeminarRegistrationForm() {
     clearFormDraft(SEMINAR_DRAFT_STORAGE_KEY);
     setRegistrationId(responseData.registration_id);
     setWaGroupUrl(responseData.wa_group_url ?? null);
+    setEmailSent(responseData.email_sent);
+    setLinkedToProfile(Boolean(responseData.linked_to_profile));
     setAllRegistrations(responseData.registrations || []);
     setStep("ticket");
     setShowProfileDialog(true);
@@ -215,13 +219,15 @@ export default function SeminarRegistrationForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Pendaftaran Berhasil</AlertDialogTitle>
             <AlertDialogDescription>
-              {user
-                ? "Tiket Seminar Nasional Anda sudah tersimpan. Anda dapat melihat detail pendaftaran kapan saja melalui halaman Profil."
-                : "Pendaftaran Seminar Nasional Anda telah tersimpan. Anda dapat melihat detail pendaftaran kapan saja dari halaman Profil."}
+              {emailSent === false
+                ? "Tiket Seminar Nasional Anda sudah tersimpan, namun pengiriman email konfirmasi sedang terkendala. Silakan simpan detail tiket dan tautan grup WhatsApp langsung dari halaman tiket."
+                : user && linkedToProfile
+                  ? "Tiket Seminar Nasional Anda sudah tersimpan dan dikirim ke email Anda. Anda dapat melihat detail pendaftaran kapan saja melalui halaman Profil."
+                  : "Tiket Seminar Nasional Anda sudah tersimpan. Detail tiket dan tautan grup WhatsApp telah dikirim ke email Anda."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            {user && (
+            {user && linkedToProfile && (
               <AlertDialogCancel
                 className="h-11 rounded-[8px]"
                 onClick={() => router.push("/profile")}
@@ -308,6 +314,8 @@ export default function SeminarRegistrationForm() {
                 statusLabel={statusLabel}
                 values={form.getValues()}
                 waGroupUrl={waGroupUrl}
+                showProfileLink={Boolean(user) && linkedToProfile}
+                emailSent={emailSent}
               />
             ) : null}
           </section>

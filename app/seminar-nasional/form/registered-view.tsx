@@ -72,6 +72,7 @@ export default function SeminarRegisteredView({
           statusLabel={statusLabel}
           values={values}
           waGroupUrl={waGroupUrl}
+          showProfileLink={true}
         />
       </section>
     </div>

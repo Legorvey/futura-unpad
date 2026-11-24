@@ -335,6 +335,8 @@ export const columns: ColumnDef<Participants>[] = [
                         ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                         : status === "siswa"
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : status === "guru"
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
                         : status === "dosen"
                         ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
                         : "bg-zinc-800/60 text-zinc-400 border-zinc-700/40"

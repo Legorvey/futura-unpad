@@ -18,6 +18,7 @@ const statusOptions = [
     { value: "all", label: "Semua status", icon: UsersRound },
     { value: "mahasiswa", label: "Mahasiswa", icon: GraduationCap },
     { value: "siswa", label: "Siswa", icon: BookOpen },
+    { value: "guru", label: "Guru", icon: Briefcase },
     { value: "dosen", label: "Dosen", icon: Briefcase },
     { value: "umum", label: "Umum", icon: Globe },
 ]

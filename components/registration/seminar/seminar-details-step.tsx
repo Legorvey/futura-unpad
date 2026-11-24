@@ -37,6 +37,7 @@ export default function SeminarDetailsStep({
     useFormContext<ClientSeminarFormValues>();
   const registrationType = watch("registration_type");
   const statusAkademika = watch("status_akademika");
+  const email = watch("email");
   const schoolJenjang = watch("school_jenjang") ?? "SMA";
   const isGroup = registrationType === "grup";
   const isStudent = statusAkademika === "siswa";
@@ -70,14 +71,18 @@ export default function SeminarDetailsStep({
               autoComplete="name"
             />
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormTextField<ClientSeminarFormValues>
-                name="email"
-                label={isGroup ? "Email (Kontak Utama)" : "Email"}
-                type="email"
-                placeholder="nama@email.com"
-                autoComplete="email"
-              />
+            <div className="grid gap-3 sm:grid-cols-2 items-start">
+              <Field className="gap-2">
+                <FieldLabel>
+                  {isGroup ? "Email (Kontak Utama)" : "Email"}
+                </FieldLabel>
+                <div className="flex h-11 w-full items-center rounded-[8px] border border-input bg-muted/40 px-3 text-sm text-foreground">
+                  <span className="truncate">{email || "-"}</span>
+                </div>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  Diambil dari tahap pertama. Kembali ke tahap 1 untuk mengubah email.
+                </p>
+              </Field>
 
               <FormTextField<ClientSeminarFormValues>
                 name="telp"
@@ -160,6 +165,12 @@ export default function SeminarDetailsStep({
                         onValueChange={(nextJenjang) => {
                           field.onChange(nextJenjang);
                           setValue("institusi", "", { shouldValidate: false });
+                          const members = getValues("members") ?? [];
+                          members.forEach((_, index) => {
+                            setValue(`members.${index}.institusi`, "", {
+                              shouldValidate: false,
+                            });
+                          });
                         }}
                       >
                         <SelectTrigger

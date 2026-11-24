@@ -27,7 +27,17 @@ export const seminarRegistrationResponseSchema = z.object({
   success: z.literal(true),
   registration_id: z.string(),
   registrations: z.array(seminarTicketRegistrationSchema),
-  wa_group_url: z.string().url().nullable().optional(),
+  wa_group_url: z
+    .string()
+    .url()
+    .refine(
+      (value) => value.startsWith("https://"),
+      "Invalid WhatsApp group URL"
+    )
+    .nullable()
+    .optional(),
+  email_sent: z.boolean().optional(),
+  linked_to_profile: z.boolean().optional(),
 });
 
 export const mechaturaRegistrationResponseSchema = z.object({

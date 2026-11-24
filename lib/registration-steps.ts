@@ -21,7 +21,7 @@ export type MechaturaRegistrationStep =
 export type SeminarPaymentStep = "registration" | "payment";
 
 export const seminarRegistrationSteps = [
-  { id: "registration-option", label: "Opsi Pendaftaran" },
+  { id: "registration-option", label: "Email & Opsi" },
   { id: "details", label: "Detail Peserta" },
   { id: "verification", label: "Verifikasi" },
   { id: "ticket", label: "Tiket" },

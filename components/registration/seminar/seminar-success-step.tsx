@@ -21,6 +21,8 @@ type SeminarSuccessStepProps = {
   statusLabel: string;
   values: ClientSeminarFormValues;
   waGroupUrl?: string | null;
+  showProfileLink?: boolean;
+  emailSent?: boolean;
 };
 
 export default function SeminarSuccessStep({
@@ -29,8 +31,19 @@ export default function SeminarSuccessStep({
   statusLabel,
   values,
   waGroupUrl,
+  showProfileLink = false,
+  emailSent,
 }: SeminarSuccessStepProps) {
   const isGroup = values.registration_type === "grup";
+  const safeWaGroupUrl = (() => {
+    if (!waGroupUrl) return null;
+    try {
+      const parsed = new URL(waGroupUrl);
+      return parsed.protocol === "https:" ? parsed.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
 
   return (
     <FieldGroup className="gap-6">
@@ -154,7 +167,7 @@ export default function SeminarSuccessStep({
         </div>
       </section>
 
-      {waGroupUrl ? (
+      {safeWaGroupUrl ? (
         <section className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
@@ -166,13 +179,18 @@ export default function SeminarSuccessStep({
                   Grup WhatsApp Peserta
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                  Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.
+                  Bergabung ke grup WhatsApp peserta Seminar Nasional Futura 2026 untuk informasi teknis dan pengumuman acara.{" "}
+                  {emailSent === false
+                    ? "Silakan simpan tautan ini langsung dari halaman tiket."
+                    : values.email
+                      ? `Tautan ini juga telah dikirimkan ke ${values.email}.`
+                      : null}
                 </p>
               </div>
             </div>
             <Button className="h-11 shrink-0 rounded-[8px] px-5" asChild>
               <a
-                href={waGroupUrl}
+                href={safeWaGroupUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -184,13 +202,28 @@ export default function SeminarSuccessStep({
         </section>
       ) : null}
 
+      {emailSent === false ? (
+        <section
+          role="status"
+          className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900"
+        >
+          Pendaftaran Anda telah berhasil disimpan, namun pengiriman email konfirmasi sedang mengalami kendala. Silakan simpan ID pendaftaran dan tautan grup WhatsApp di atas.
+        </section>
+      ) : null}
+
       <div className="grid gap-3 sm:grid-cols-2">
         <Button variant="outline" className="h-11 rounded-[8px]" asChild>
           <Link href="/">Ke Beranda</Link>
         </Button>
-        <Button className="h-11 rounded-[8px]" asChild>
-          <Link href="/profile">Ke Profil</Link>
-        </Button>
+        {showProfileLink ? (
+          <Button className="h-11 rounded-[8px]" asChild>
+            <Link href="/profile">Ke Profil</Link>
+          </Button>
+        ) : (
+          <Button className="h-11 rounded-[8px]" asChild>
+            <Link href="/seminar-nasional">Kembali ke Seminar</Link>
+          </Button>
+        )}
       </div>
     </FieldGroup>
   );

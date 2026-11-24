@@ -1,11 +1,11 @@
 import type { Participants } from "../participants";
 
 export type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>;
-export type StatusFilter = "all" | "mahasiswa" | "siswa" | "dosen" | "umum";
+export type StatusFilter = "all" | "mahasiswa" | "siswa" | "guru" | "dosen" | "umum";
 export type RegistrationTypeFilter = "all" | "individual" | "group";
 export type AttendanceFilter = "all" | "checked-in" | "pending" | "partial";
 
-export const statusFilters: StatusFilter[] = ["all", "mahasiswa", "siswa", "dosen", "umum"];
+export const statusFilters: StatusFilter[] = ["all", "mahasiswa", "siswa", "guru", "dosen", "umum"];
 export const typeFilters: RegistrationTypeFilter[] = ["all", "individual", "group"];
 export const attendanceFilters: AttendanceFilter[] = ["all", "checked-in", "pending", "partial"];
 export const pageSizeOptions = [10, 20, 30, 40] as const;

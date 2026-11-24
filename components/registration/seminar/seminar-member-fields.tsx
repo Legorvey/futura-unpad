@@ -1,6 +1,6 @@
 "use client";
 
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,7 @@ import { FormCheckboxField } from "@/components/form/form-checkbox-field";
 import { SeminarInstitutionField } from "./seminar-institution-field";
 
 export function SeminarMemberFields() {
-  const { control, watch, setValue } =
-    useFormContext<ClientSeminarFormValues>();
+  const { control, setValue } = useFormContext<ClientSeminarFormValues>();
 
   const {
     fields: memberFields,
@@ -25,10 +24,19 @@ export function SeminarMemberFields() {
     name: "members",
   });
 
-  const watchedValues = watch();
+  const [statusAkademika, rawSchoolJenjang, isSameInstitution, mainInstitusi] =
+    useWatch({
+      control,
+      name: [
+        "status_akademika",
+        "school_jenjang",
+        "is_same_institution",
+        "institusi",
+      ],
+    });
   const canRemoveMember = memberFields.length > 1;
-  const schoolJenjang = watchedValues.school_jenjang ?? "SMA";
-  const isStudent = watchedValues.status_akademika === "siswa";
+  const schoolJenjang = rawSchoolJenjang ?? "SMA";
+  const isStudent = statusAkademika === "siswa";
 
   return (
     <div className="space-y-4 pt-6 border-t border-border">
@@ -87,13 +95,11 @@ export function SeminarMemberFields() {
             <SeminarInstitutionField
               name={`members.${index}.institusi`}
               label={isStudent ? "Asal Sekolah" : "Asal Institusi"}
-              statusAkademika={watchedValues.status_akademika}
+              statusAkademika={statusAkademika}
               schoolJenjang={schoolJenjang}
-              disabled={watchedValues.is_same_institution}
+              disabled={isSameInstitution}
               displayValue={
-                watchedValues.is_same_institution
-                  ? (watchedValues.institusi ?? "")
-                  : undefined
+                isSameInstitution ? (mainInstitusi ?? "") : undefined
               }
             />
           </div>

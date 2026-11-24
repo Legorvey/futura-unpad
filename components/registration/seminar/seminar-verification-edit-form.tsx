@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -31,16 +31,31 @@ export default function SeminarVerificationEditForm({
   flashDoneButton,
   onDone,
 }: SeminarVerificationEditFormProps) {
-  const { control, getValues, setValue, trigger, watch } =
+  const { control, getValues, setValue, trigger } =
     useFormContext<ClientSeminarFormValues>();
   const { fields: memberFields } = useFieldArray({
     control,
     name: "members",
   });
-  const watchedValues = watch();
-  const isGroup = watchedValues.registration_type === "grup";
-  const isStudent = watchedValues.status_akademika === "siswa";
-  const schoolJenjang = watchedValues.school_jenjang ?? "SMA";
+  const [
+    registrationType,
+    statusAkademika,
+    rawSchoolJenjang,
+    isSameInstitution,
+    mainInstitusi,
+  ] = useWatch({
+    control,
+    name: [
+      "registration_type",
+      "status_akademika",
+      "school_jenjang",
+      "is_same_institution",
+      "institusi",
+    ],
+  });
+  const isGroup = registrationType === "grup";
+  const isStudent = statusAkademika === "siswa";
+  const schoolJenjang = rawSchoolJenjang ?? "SMA";
 
   const handleDone = async () => {
     const isValid = await trigger(SEMINAR_VERIFICATION_FIELDS);
@@ -142,6 +157,12 @@ export default function SeminarVerificationEditForm({
                 onValueChange={(nextJenjang) => {
                   field.onChange(nextJenjang);
                   setValue("institusi", "", { shouldValidate: false });
+                  const members = getValues("members") ?? [];
+                  members.forEach((_, index) => {
+                    setValue(`members.${index}.institusi`, "", {
+                      shouldValidate: false,
+                    });
+                  });
                 }}
               >
                 <SelectTrigger
@@ -166,9 +187,9 @@ export default function SeminarVerificationEditForm({
       <SeminarInstitutionField
         name="institusi"
         label={isStudent ? "Asal Sekolah" : "Asal Institusi"}
-        statusAkademika={watchedValues.status_akademika}
+        statusAkademika={statusAkademika}
         schoolJenjang={schoolJenjang}
-        className={isStudent ? undefined : "sm:col-span-2"}
+        className="sm:col-span-2"
       />
 
       {isGroup && memberFields.length > 0 && (
@@ -185,13 +206,11 @@ export default function SeminarVerificationEditForm({
               <SeminarInstitutionField
                 name={`members.${index}.institusi`}
                 label={isStudent ? "Asal Sekolah" : "Asal Institusi"}
-                statusAkademika={watchedValues.status_akademika}
+                statusAkademika={statusAkademika}
                 schoolJenjang={schoolJenjang}
-                disabled={watchedValues.is_same_institution}
+                disabled={isSameInstitution}
                 displayValue={
-                  watchedValues.is_same_institution
-                    ? (watchedValues.institusi ?? "")
-                    : undefined
+                  isSameInstitution ? (mainInstitusi ?? "") : undefined
                 }
               />
             </div>

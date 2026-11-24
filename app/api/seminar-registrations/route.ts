@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import type { z } from "zod";
 import { isUniqueViolation } from "@/lib/database-errors";
+import { sendSeminarTicketEmail } from "@/lib/email";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createClient } from "@/utils/supabase/server";
 import {
@@ -17,36 +19,37 @@ import {
   hasSeminarRegistrationStarted,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config";
+import { seminarStatusOptions } from "@/lib/seminar/seminar-options";
 import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config";
 
 export const runtime = "nodejs";
 
-type ExistingRegistration = {
-  id: string;
-  user_id: string | null;
-  email: string;
-};
+type SeminarStatusAkademika = z.infer<
+  typeof seminarRegistrationSchema
+>["status_akademika"];
 
 type SeminarRegistrationInsert = {
   user_id: string | null;
   nama_lengkap: string;
-  email: string | null | undefined;
-  no_telepon: string | null | undefined;
+  email: string | null;
+  no_telepon: string | null;
   asal_institusi: string;
-  status_akademika: "mahasiswa" | "siswa" | "dosen" | "umum";
+  status_akademika: SeminarStatusAkademika;
   registration_type: "individual" | "group";
   group_name: string | null;
   group_id: string | null;
   is_main_contact: boolean;
 };
 
-const duplicateRegistrationResponse = (registration: ExistingRegistration) =>
+const escapeLikePattern = (value: string) =>
+  value.replace(/[\\%_]/g, "\\$&");
+
+const duplicateEmailResponse = () =>
   NextResponse.json(
     {
-      error: "You already have a seminar registration.",
-      registration_id: registration.id,
+      error: "Email ini sudah terdaftar pada Seminar Nasional.",
     },
-    { status: 409 }
+    { status: 409, headers: NO_STORE_HEADERS }
   );
 
 export async function POST(request: Request) {
@@ -76,28 +79,6 @@ export async function POST(request: Request) {
     return rateLimited(ipLimit.retryAfter);
   }
 
-  const authSupabase = await createClient();
-  const {
-    data: { user },
-  } = await authSupabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Please log in before registering for the seminar." },
-      { status: 401, headers: NO_STORE_HEADERS }
-    );
-  }
-
-  const userLimit = await rateLimit(user.id, {
-    key: "seminar-registration-user",
-    limit: 5,
-    windowSeconds: 300,
-  });
-
-  if (!userLimit.success) {
-    return rateLimited(userLimit.retryAfter);
-  }
-
   const body = await readJsonBody(request, 24_576);
 
   if (!body.ok) {
@@ -110,26 +91,62 @@ export async function POST(request: Request) {
     return invalidRequest();
   }
 
+  const emailLimit = await rateLimit(parsed.data.email, {
+    key: "seminar-registration-email",
+    limit: 5,
+    windowSeconds: 300,
+  });
+
+  if (!emailLimit.success) {
+    return rateLimited(emailLimit.retryAfter);
+  }
+
+  let authenticatedUserId: string | null = null;
+  try {
+    const authSupabase = await createClient();
+    const {
+      data: { user },
+    } = await authSupabase.auth.getUser();
+    authenticatedUserId = user?.id ?? null;
+  } catch {
+    authenticatedUserId = null;
+  }
+
   const supabase = createAdminClient();
 
-  const existingQuery = supabase
+  const { data: existingByEmail, error: existingError } = await supabase
     .from("seminar_registrations")
-    .select("id,user_id,email")
-    .eq("user_id", user.id)
-    .eq("is_main_contact", true);
-
-  const { data: existingRegistration, error: existingError } =
-    await existingQuery.order("created_at", { ascending: false }).limit(1);
+    .select("id")
+    .ilike("email", escapeLikePattern(parsed.data.email))
+    .eq("is_main_contact", true)
+    .limit(1);
 
   if (existingError) {
-    console.error("Duplicate registration lookup failed", existingError.message);
+    console.error("Duplicate email lookup failed", existingError.message);
     return serverError();
   }
 
-  if (existingRegistration?.[0]) {
-    return duplicateRegistrationResponse(
-      existingRegistration[0] as ExistingRegistration
-    );
+  if (existingByEmail?.[0]) {
+    return duplicateEmailResponse();
+  }
+
+  let insertUserId: string | null = authenticatedUserId;
+  if (authenticatedUserId) {
+    const { data: existingByUser, error: userLookupError } = await supabase
+      .from("seminar_registrations")
+      .select("id")
+      .eq("user_id", authenticatedUserId)
+      .eq("is_main_contact", true)
+      .limit(1);
+
+    if (userLookupError) {
+      console.error("User registration lookup failed", userLookupError.message);
+      return serverError();
+    }
+
+    if (existingByUser?.[0]) {
+      insertUserId = null;
+    }
   }
 
   const isGroup = parsed.data.registration_type === "group";
@@ -137,7 +154,7 @@ export async function POST(request: Request) {
 
   const inserts: SeminarRegistrationInsert[] = [
     {
-      user_id: user.id,
+      user_id: insertUserId,
       nama_lengkap: parsed.data.nama_lengkap,
       email: parsed.data.email,
       no_telepon: parsed.data.no_telepon,
@@ -174,9 +191,13 @@ export async function POST(request: Request) {
 
   if (error) {
     if (isUniqueViolation(error)) {
+      const errorDetail = `${error.message ?? ""} ${(error as { details?: string }).details ?? ""}`.toLowerCase();
+      if (errorDetail.includes("email")) {
+        return duplicateEmailResponse();
+      }
       return NextResponse.json(
-        { error: "You already have a seminar registration." },
-        { status: 409 }
+        { error: "Pendaftaran tidak dapat diproses karena data duplikat." },
+        { status: 409, headers: NO_STORE_HEADERS }
       );
     }
     console.error("Seminar registration insert failed", error.message);
@@ -186,13 +207,39 @@ export async function POST(request: Request) {
   const mainContact =
     insertedRegistrations?.find((r) => r.is_main_contact) ||
     insertedRegistrations?.[0];
+  const waGroupUrl = getSeminarWaGroupUrl();
+  const statusLabel =
+    seminarStatusOptions.find((o) => o.id === parsed.data.status_akademika)
+      ?.title ?? parsed.data.status_akademika;
+
+  const emailSent = mainContact?.id
+    ? await Promise.race([
+        sendSeminarTicketEmail({
+          to: parsed.data.email,
+          registrationId: mainContact.id,
+          namaLengkap: parsed.data.nama_lengkap,
+          noTelepon: parsed.data.no_telepon,
+          asalInstitusi: parsed.data.asal_institusi,
+          statusLabel,
+          registrationType: parsed.data.registration_type,
+          groupName: isGroup ? parsed.data.group_name || null : null,
+          members: insertedRegistrations || [],
+          waGroupUrl,
+        }),
+        new Promise<boolean>((resolve) =>
+          setTimeout(() => resolve(false), 6000)
+        ),
+      ])
+    : false;
 
   return NextResponse.json(
     {
       success: true,
       registration_id: mainContact?.id,
       registrations: insertedRegistrations || [],
-      wa_group_url: getSeminarWaGroupUrl(),
+      wa_group_url: waGroupUrl,
+      email_sent: emailSent,
+      linked_to_profile: Boolean(insertUserId),
     },
     { headers: NO_STORE_HEADERS }
   );

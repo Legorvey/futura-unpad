@@ -4,6 +4,7 @@ import type { BaseSyntheticEvent } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { FormTextField } from "@/components/form/form-text-field";
 import {
   Field,
   FieldContent,
@@ -37,11 +38,21 @@ export default function SeminarRegistrationOptionStep({
   });
 
   return (
-    <form onSubmit={onSubmit}>
-      <FieldGroup>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup className="gap-6">
+        <FormTextField<ClientSeminarFormValues>
+          name="email"
+          label="Email"
+          type="email"
+          placeholder="nama@email.com"
+          autoComplete="email"
+          required
+          description="Detail tiket dan tautan grup WhatsApp peserta akan dikirimkan ke alamat email ini."
+        />
+
         <FieldSet className="gap-3">
           <FieldLegend variant="label" id="seminar-registration-option-label">
-            Pilih Opsi Pendaftaran
+            Pilih Tipe Pendaftaran
           </FieldLegend>
           <Controller
             name="registration_type"

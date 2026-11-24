@@ -22,7 +22,7 @@ export const seminarRegistrationSchema = z
     email: emailSchema,
     no_telepon: phoneNumberSchema,
     asal_institusi: requiredText(160),
-    status_akademika: z.enum(["mahasiswa", "siswa", "dosen", "umum"]),
+    status_akademika: z.enum(["mahasiswa", "siswa", "guru", "dosen", "umum"]),
     identity_confirmed: z.literal(true),
     group_name: z.string().trim().max(120).optional().nullable(),
     members: z
@@ -83,7 +83,7 @@ export const clientSeminarFormSchema = z.object({
     .min(1, "Asal institusi wajib diisi.")
     .max(160, "Nama institusi terlalu panjang."),
   status_akademika: z
-    .enum(["mahasiswa", "siswa", "dosen", "umum"])
+    .enum(["mahasiswa", "siswa", "guru", "dosen", "umum"])
     .refine((v) => v.length > 0, { message: "Pilih status akademika." }),
   school_jenjang: z.enum(["SD", "SMP", "SMA", "SMK"]).optional(),
   identity_confirmed: z.boolean().refine((val) => val === true, {
@@ -102,6 +102,14 @@ export const clientSeminarFormSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: "Nama grup wajib diisi.",
         path: ["group_name"],
+      });
+    }
+
+    if (!data.members || data.members.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Minimal 1 anggota tambahan wajib diisi untuk pendaftaran grup.",
+        path: ["members"],
       });
     }
 

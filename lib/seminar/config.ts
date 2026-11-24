@@ -67,8 +67,8 @@ export const SEMINAR_SPEAKERS = [
   },
   {
     id: 4,
-    name: "Prof. Brian Yuliarto, S.T., M.Eng., Ph.D.",
-    position: "Menteri Diktisaintek",
+    name: "Prof. Stella Christie, Ph.D.",
+    position: "Wakil Menteri Pendidikan Tinggi, Sains, dan Teknologi",
     description: "",
     imageSrc: "/seminar/mystery-pembicara-moderator.png",
   },

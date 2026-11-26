@@ -24,15 +24,15 @@ export function isSeminarRegistrationOpen(now: Date = new Date()): boolean {
 }
 
 export const SEMINAR_LOCATION_NAME =
-  "Ruang Serba Guna (RSG) Rektorat Gd. 2 Lt. 4";
+  "Bale Rumawat, Universitas Padjadjaran (Kampus Dipati Ukur)";
 export const SEMINAR_LOCATION_FULL =
-  "Ruang Serba Guna (RSG) Rektorat Gd. 2 Lt. 4, Universitas Padjadjaran";
+  "Bale Rumawat, Universitas Padjadjaran (Kampus Dipati Ukur)";
 export const SEMINAR_LOCATION_ADDRESS =
-  "Kampus Unpad Jatinangor, Jl. Ir. Soekarno KM. 21, Hegarmanah, Kec. Jatinangor, Kabupaten Sumedang, Jawa Barat 45363";
+  "Jl. Dipati Ukur No. 35, Lebakgede, Coblong, Kota Bandung, Jawa Barat 40132";
 export const SEMINAR_MAPS_URL =
-  "https://maps.google.com/?q=Gedung+Rektorat+Universitas+Padjadjaran+Jatinangor";
+  "https://www.google.com/maps/search/?api=1&query=Jl+Dipati+Ukur+No+35+Bandung";
 export const SEMINAR_MAPS_EMBED_SRC =
-  "https://www.google.com/maps?q=Gedung+Rektorat+Universitas+Padjadjaran+Jatinangor&output=embed";
+  "https://www.google.com/maps?q=Bale+Rumawat+Universitas+Padjadjaran+Jl+Dipati+Ukur+No+35+Bandung&output=embed";
 
 export const SEMINAR_WORKSHOP_TITLE = "Seminar & Workshop";
 export const SEMINAR_FORUM_DESCRIPTION =

@@ -56,14 +56,6 @@ export default function SeminarDetailsStep({
           </div>
 
           <div className="space-y-6 p-4 sm:p-6">
-            {isGroup && (
-              <FormTextField<ClientSeminarFormValues>
-                name="group_name"
-                label="Nama Grup/Tim"
-                placeholder="Masukkan nama grup atau komunitas Anda"
-              />
-            )}
-
             <FormTextField<ClientSeminarFormValues>
               name="nama"
               label={isGroup ? "Nama Lengkap (Kontak Utama)" : "Nama Lengkap"}

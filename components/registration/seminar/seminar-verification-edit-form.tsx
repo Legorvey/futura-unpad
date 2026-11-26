@@ -66,14 +66,6 @@ export default function SeminarVerificationEditForm({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {isGroup && (
-        <FormTextField<ClientSeminarFormValues>
-          name="group_name"
-          label="Nama Grup/Tim"
-          placeholder="Masukkan nama grup atau komunitas Anda"
-          className="sm:col-span-2"
-        />
-      )}
       <FormTextField<ClientSeminarFormValues>
         name="nama"
         label={isGroup ? "Nama Lengkap (Kontak Utama)" : "Nama Lengkap"}

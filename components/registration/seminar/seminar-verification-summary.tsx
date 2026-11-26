@@ -22,12 +22,6 @@ export default function SeminarVerificationSummary({
           label="Jenis Pendaftaran"
           value={isGroup ? "Grup" : "Individu"}
         />
-        {isGroup ? (
-          <SummaryItem
-            label="Nama Grup/Tim"
-            value={watchedValues.group_name || "-"}
-          />
-        ) : null}
         <SummaryItem
           label={isGroup ? "Nama Lengkap (Kontak Utama)" : "Nama Lengkap"}
           value={watchedValues.nama}

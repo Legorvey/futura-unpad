@@ -31,7 +31,6 @@ type SeminarRegistrationRow = {
   status_akademika: string;
   registration_type: string;
   group_id: string | null;
-  group_name: string | null;
 };
 
 type SeminarMemberRow = {
@@ -104,7 +103,7 @@ export default async function SeminarRegistrationPage() {
     const { data } = await adminSupabase
       .from("seminar_registrations")
       .select(
-        "id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_id,group_name"
+        "id,nama_lengkap,email,no_telepon,asal_institusi,status_akademika,registration_type,group_id"
       )
       .eq("user_id", user.id)
       .eq("is_main_contact", true)
@@ -211,7 +210,6 @@ export default async function SeminarRegistrationPage() {
                       : "umum",
                     is_same_institution: true,
                     identity_confirmed: true,
-                    group_name: latestRegistration.group_name ?? undefined,
                     members: [],
                   }}
                 />

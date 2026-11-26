@@ -82,7 +82,6 @@ export default function SeminarRegistrationForm() {
     defaultValues: {
       registration_type: "individu",
       is_same_institution: true,
-      group_name: "",
       nama: "",
       email: "",
       telp: "",
@@ -203,7 +202,6 @@ export default function SeminarRegistrationForm() {
         asal_institusi: data.institusi,
         status_akademika: data.status_akademika,
         identity_confirmed: true,
-        group_name: data.registration_type === "grup" ? data.group_name : null,
         members:
           data.registration_type === "grup"
             ? data.members?.map((m: { nama: string; institusi?: string }) => ({

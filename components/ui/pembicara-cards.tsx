@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useTransform, useScroll } from "motion/react";
 import Image from "next/image";
 
 interface Pembicara {
@@ -19,33 +17,17 @@ interface PembicaraCardsProps {
 }
 
 export const PembicaraItem = ({ pembicara }: { pembicara: Pembicara }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-
-  // Parallax inside the image container (maps style)
-  const yImage = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
-
   return (
-    <div 
-      ref={ref} 
-      className="relative flex flex-col items-center w-full gap-6 md:gap-8 group" 
-    >
+    <div className="relative flex flex-col items-center w-full gap-6 md:gap-8 group">
       {/* Static Wrapper */}
-      <div 
-        className="relative w-full max-w-[320px] aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl z-0"
-      >
-        {/* Parallax Image Inside */}
-        <motion.div style={{ y: yImage, scale: 1.25 }} className="absolute inset-0 w-full h-full">
-          <Image 
-            src={pembicara.imageSrc} 
-            alt={pembicara.name} 
-            fill 
-            className="object-cover grayscale transition-all duration-700 group-hover:grayscale-0" 
-          />
-        </motion.div>
+      <div className="relative w-full max-w-[320px] aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl z-0">
+        <Image
+          src={pembicara.imageSrc}
+          alt={pembicara.name}
+          fill
+          sizes="(max-width: 768px) 320px, 320px"
+          className="object-contain object-bottom grayscale transition-all duration-700 group-hover:grayscale-0"
+        />
         {/* Very subtle overlay to blend with background */}
         <div className="absolute inset-0 bg-background/10 mix-blend-overlay pointer-events-none transition-opacity duration-500 group-hover:opacity-0" />
       </div>

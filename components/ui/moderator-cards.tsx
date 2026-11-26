@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useTransform, useScroll } from "motion/react";
 import Image from "next/image";
 
 export interface ModeratorCardProps {
@@ -14,32 +12,17 @@ export interface ModeratorCardProps {
 }
 
 export const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-
-  // Parallax inside the image container
-  const yImage = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
-
   return (
-    <div
-      ref={ref}
-      className="relative flex flex-col items-center w-full gap-6 md:gap-8 group"
-    >
+    <div className="relative flex flex-col items-center w-full gap-6 md:gap-8 group">
       {/* Static Wrapper */}
-      <div
-        className="relative w-full max-w-[320px] aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl z-0"
-      >
-        <motion.div style={{ y: yImage, scale: 1.25 }} className="absolute inset-0 w-full h-full">
-          <Image
-            src={moderator.imageSrc}
-            alt={moderator.name}
-            fill
-            className="object-cover grayscale transition-all duration-700 group-hover:grayscale-0"
-          />
-        </motion.div>
+      <div className="relative w-full max-w-[320px] aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl z-0">
+        <Image
+          src={moderator.imageSrc}
+          alt={moderator.name}
+          fill
+          sizes="(max-width: 768px) 320px, 320px"
+          className="object-cover object-top grayscale transition-all duration-700 group-hover:grayscale-0"
+        />
         <div className="absolute inset-0 bg-background/10 mix-blend-overlay pointer-events-none transition-opacity duration-500 group-hover:opacity-0" />
       </div>
 
@@ -48,12 +31,12 @@ export const ModeratorItem = ({ moderator }: { moderator: ModeratorCardProps }) 
         <h4 className="text-sm md:text-base font-light tracking-tight text-white/40 mb-1">
           Moderator
         </h4>
-        <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight transition-colors duration-500 group-hover:text-amber-300">
+        <h3 className="text-3xl md:text-4xl font-medium tracking-[-0.05em] text-white leading-tight text-balance transition-colors duration-500 group-hover:text-amber-300">
           {moderator.name}
         </h3>
 
         {moderator.job && (
-          <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/60">
+          <p className="mt-2 text-base md:text-lg font-light tracking-tight text-white/60 text-balance">
             {moderator.job}
           </p>
         )}

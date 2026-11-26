@@ -47,7 +47,7 @@ export const SEMINAR_SPEAKERS = [
     name: "Erwan Setiawan, S.E",
     position: "Wakil Gubernur Jawa Barat",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/erwan-setiawan.png",
   },
   {
     id: 2,
@@ -55,7 +55,7 @@ export const SEMINAR_SPEAKERS = [
     position:
       "Staf Ahli Menteri Pertanian, Kementan RI / Dewan Pakar PRSI",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/hermansyah.png",
   },
   {
     id: 3,
@@ -63,30 +63,30 @@ export const SEMINAR_SPEAKERS = [
     position:
       "PR Kecerdasan Artifisial dan Keamanan Siber BRIN / Wakil Ketua Umum PRSI",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/sofyan-mufti-prasetiyo.png",
   },
   {
     id: 4,
     name: "Prof. Stella Christie, Ph.D.",
     position: "Wakil Menteri Pendidikan Tinggi, Sains, dan Teknologi",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/stella-christie.png",
   },
   {
     id: 5,
     name: "Yohanes Erwin Priyanto, S.ST",
     position: "PT. Handal Yesindo Sejahtera",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/yohanes-erwin-priyanto.png",
   },
 ];
 
 export const SEMINAR_MODERATORS = [
   {
     id: 1,
-    name: "To Be Announced",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
-    job: "",
+    name: "Septian Ari Kurniawan, S.T., M.T.",
+    imageSrc: "/seminar/moderators/septian-ari-kurniawan.jpg",
+    job: "Dosen Teknik Elektro, Universitas Padjadjaran",
     experience: "",
     description: "",
   },

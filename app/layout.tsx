@@ -65,8 +65,8 @@ export const metadata: Metadata = {
     description: "Acara teknologi tahunan oleh HMTE Universitas Padjadjaran. Ikuti seminar nasional dan kompetisi inovasi.",
   },
   icons: {
-    icon: "/favicon-fix.png"
-  }
+    icon: "/new-favicon.PNG",
+  },
 };
 
 export default async function RootLayout({

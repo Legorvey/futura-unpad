@@ -24,15 +24,15 @@ export function isSeminarRegistrationOpen(now: Date = new Date()): boolean {
 }
 
 export const SEMINAR_LOCATION_NAME =
-  "Ruang Serba Guna (RSG) Rektorat Gd. 2 Lt. 4";
+  "Bale Rumawat, Universitas Padjadjaran (Kampus Dipati Ukur)";
 export const SEMINAR_LOCATION_FULL =
-  "Ruang Serba Guna (RSG) Rektorat Gd. 2 Lt. 4, Universitas Padjadjaran";
+  "Bale Rumawat, Universitas Padjadjaran (Kampus Dipati Ukur)";
 export const SEMINAR_LOCATION_ADDRESS =
-  "Kampus Unpad Jatinangor, Jl. Ir. Soekarno KM. 21, Hegarmanah, Kec. Jatinangor, Kabupaten Sumedang, Jawa Barat 45363";
+  "Jl. Dipati Ukur No. 35, Lebakgede, Coblong, Kota Bandung, Jawa Barat 40132";
 export const SEMINAR_MAPS_URL =
-  "https://maps.google.com/?q=Gedung+Rektorat+Universitas+Padjadjaran+Jatinangor";
+  "https://www.google.com/maps/search/?api=1&query=Jl+Dipati+Ukur+No+35+Bandung";
 export const SEMINAR_MAPS_EMBED_SRC =
-  "https://www.google.com/maps?q=Gedung+Rektorat+Universitas+Padjadjaran+Jatinangor&output=embed";
+  "https://www.google.com/maps?q=Bale+Rumawat+Universitas+Padjadjaran+Jl+Dipati+Ukur+No+35+Bandung&output=embed";
 
 export const SEMINAR_WORKSHOP_TITLE = "Seminar & Workshop";
 export const SEMINAR_FORUM_DESCRIPTION =
@@ -47,7 +47,7 @@ export const SEMINAR_SPEAKERS = [
     name: "Erwan Setiawan, S.E",
     position: "Wakil Gubernur Jawa Barat",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/erwan-setiawan.png",
   },
   {
     id: 2,
@@ -55,7 +55,7 @@ export const SEMINAR_SPEAKERS = [
     position:
       "Staf Ahli Menteri Pertanian, Kementan RI / Dewan Pakar PRSI",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/hermansyah.png",
   },
   {
     id: 3,
@@ -63,30 +63,30 @@ export const SEMINAR_SPEAKERS = [
     position:
       "PR Kecerdasan Artifisial dan Keamanan Siber BRIN / Wakil Ketua Umum PRSI",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/sofyan-mufti-prasetiyo.png",
   },
   {
     id: 4,
     name: "Prof. Stella Christie, Ph.D.",
     position: "Wakil Menteri Pendidikan Tinggi, Sains, dan Teknologi",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/stella-christie.png",
   },
   {
     id: 5,
     name: "Yohanes Erwin Priyanto, S.ST",
     position: "PT. Handal Yesindo Sejahtera",
     description: "",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
+    imageSrc: "/seminar/speakers/yohanes-erwin-priyanto.png",
   },
 ];
 
 export const SEMINAR_MODERATORS = [
   {
     id: 1,
-    name: "To Be Announced",
-    imageSrc: "/seminar/mystery-pembicara-moderator.png",
-    job: "",
+    name: "Septian Ari Kurniawan, S.T., M.T.",
+    imageSrc: "/seminar/moderators/septian-ari-kurniawan.jpg",
+    job: "Dosen Teknik Elektro, Universitas Padjadjaran",
     experience: "",
     description: "",
   },

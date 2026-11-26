@@ -24,7 +24,6 @@ export const seminarRegistrationSchema = z
     asal_institusi: requiredText(160),
     status_akademika: z.enum(["mahasiswa", "siswa", "guru", "dosen", "umum"]),
     identity_confirmed: z.literal(true),
-    group_name: z.string().trim().max(120).optional().nullable(),
     members: z
       .array(
         z.object({
@@ -40,14 +39,6 @@ export const seminarRegistrationSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.registration_type === "group") {
-      if (!data.group_name || data.group_name.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Nama grup wajib diisi.",
-          path: ["group_name"],
-        });
-      }
-
       if (!data.members || data.members.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -90,21 +81,12 @@ export const clientSeminarFormSchema = z.object({
     message: "Harap konfirmasi bahwa data Anda sudah benar untuk keperluan sertifikat.",
   }),
   is_same_institution: z.boolean(),
-  group_name: z.string().trim().max(120, "Nama tim terlalu panjang.").optional(),
   members: z.array(z.object({
     nama: z.string().trim().min(1, "Nama anggota wajib diisi.").max(120, "Nama terlalu panjang."),
     institusi: z.string().trim().max(160, "Nama institusi terlalu panjang.").optional()
   })).max(MAX_SEMINAR_GROUP_MEMBERS, `Maksimal ${MAX_SEMINAR_GROUP_MEMBERS} anggota tambahan per grup.`).optional(),
 }).superRefine((data, ctx) => {
   if (data.registration_type === "grup") {
-    if (!data.group_name || data.group_name.trim() === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Nama grup wajib diisi.",
-        path: ["group_name"],
-      });
-    }
-
     if (!data.members || data.members.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

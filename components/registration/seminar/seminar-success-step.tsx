@@ -66,11 +66,7 @@ export default function SeminarSuccessStep({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-                {isGroup
-                  ? values.group_name
-                    ? `Pendaftaran Grup: ${values.group_name}`
-                    : "Pendaftaran Grup"
-                  : "Pendaftaran Individu"}
+                {isGroup ? "Pendaftaran Grup" : "Pendaftaran Individu"}
               </p>
               <h3 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
                 {values.nama}

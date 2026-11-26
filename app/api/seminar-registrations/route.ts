@@ -20,7 +20,10 @@ import {
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config";
 import { seminarStatusOptions } from "@/lib/seminar/seminar-options";
-import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config";
+import {
+  getSeminarWaGroupUrl,
+  isSeminarEmailRegistered,
+} from "@/lib/seminar/server-config";
 
 export const runtime = "nodejs";
 
@@ -40,9 +43,6 @@ type SeminarRegistrationInsert = {
   group_id: string | null;
   is_main_contact: boolean;
 };
-
-const escapeLikePattern = (value: string) =>
-  value.replace(/[\\%_]/g, "\\$&");
 
 const duplicateEmailResponse = () =>
   NextResponse.json(
@@ -114,20 +114,16 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient();
 
-  const { data: existingByEmail, error: existingError } = await supabase
-    .from("seminar_registrations")
-    .select("id")
-    .ilike("email", escapeLikePattern(parsed.data.email))
-    .eq("is_main_contact", true)
-    .limit(1);
-
-  if (existingError) {
-    console.error("Duplicate email lookup failed", existingError.message);
+  try {
+    if (await isSeminarEmailRegistered(parsed.data.email)) {
+      return duplicateEmailResponse();
+    }
+  } catch (lookupError) {
+    console.error(
+      "Duplicate email lookup failed",
+      lookupError instanceof Error ? lookupError.message : lookupError
+    );
     return serverError();
-  }
-
-  if (existingByEmail?.[0]) {
-    return duplicateEmailResponse();
   }
 
   let insertUserId: string | null = authenticatedUserId;
@@ -161,7 +157,7 @@ export async function POST(request: Request) {
       asal_institusi: parsed.data.asal_institusi,
       status_akademika: parsed.data.status_akademika,
       registration_type: parsed.data.registration_type,
-      group_name: isGroup ? parsed.data.group_name || null : null,
+      group_name: null,
       group_id: groupId,
       is_main_contact: true,
     },
@@ -177,7 +173,7 @@ export async function POST(request: Request) {
         asal_institusi: member.asal_institusi || parsed.data.asal_institusi,
         status_akademika: parsed.data.status_akademika,
         registration_type: "group",
-        group_name: parsed.data.group_name || null,
+        group_name: null,
         group_id: groupId,
         is_main_contact: false,
       });
@@ -222,7 +218,7 @@ export async function POST(request: Request) {
           asalInstitusi: parsed.data.asal_institusi,
           statusLabel,
           registrationType: parsed.data.registration_type,
-          groupName: isGroup ? parsed.data.group_name || null : null,
+          groupName: null,
           members: insertedRegistrations || [],
           waGroupUrl,
         }),

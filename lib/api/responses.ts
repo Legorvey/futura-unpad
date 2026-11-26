@@ -23,6 +23,11 @@ export const seminarTicketRegistrationSchema = z.object({
 });
 
 
+export const seminarEmailCheckResponseSchema = z.object({
+  available: z.boolean(),
+  message: z.string().optional(),
+});
+
 export const seminarRegistrationResponseSchema = z.object({
   success: z.literal(true),
   registration_id: z.string(),

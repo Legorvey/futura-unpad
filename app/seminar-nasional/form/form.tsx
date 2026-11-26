@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 import { useCreateSeminarRegistrationMutation } from "@/hooks/mutations/use-registration-mutations";
+import { seminarEmailCheckResponseSchema } from "@/lib/api/responses";
+import { postJson } from "@/lib/query/fetch-json";
 import { clearFormDraft, useFormDraft } from "@/hooks/use-form-draft";
 import { useRegistrationStep } from "@/hooks/use-registration-step";
 import {
@@ -64,6 +66,7 @@ export default function SeminarRegistrationForm() {
   >([]);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   const draftStorageKey = user?.id
     ? `${SEMINAR_DRAFT_STORAGE_KEY}:${user.id}`
@@ -131,17 +134,50 @@ export default function SeminarRegistrationForm() {
   const goToDetails = async (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     const isValid = await trigger(["email", "registration_type"]);
-    if (isValid) {
-      const registrationType = getValues("registration_type");
-      const currentMembers = getValues("members") ?? [];
-      if (registrationType === "grup" && currentMembers.length === 0) {
-        setValue("members", [{ nama: "", institusi: "" }]);
-      } else if (registrationType === "individu" && currentMembers.length > 0) {
-        setValue("members", []);
+    if (!isValid) return;
+
+    setIsCheckingEmail(true);
+    try {
+      const checkResult = await postJson(
+        "/api/seminar-registrations/check-email",
+        seminarEmailCheckResponseSchema,
+        { email: getValues("email") }
+      );
+
+      if (!checkResult.available) {
+        const duplicateMessage =
+          checkResult.message ||
+          "Email ini sudah terdaftar pada Seminar Nasional. Satu email hanya dapat digunakan satu kali.";
+        form.setError("email", {
+          type: "manual",
+          message: duplicateMessage,
+        });
+        toast.error("Email sudah terdaftar", {
+          description: duplicateMessage,
+        });
+        return;
       }
-      setStep("details");
-      scrollToFormTop();
+    } catch (error) {
+      toast.error("Gagal memeriksa email", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Silakan coba beberapa saat lagi.",
+      });
+      return;
+    } finally {
+      setIsCheckingEmail(false);
     }
+
+    const registrationType = getValues("registration_type");
+    const currentMembers = getValues("members") ?? [];
+    if (registrationType === "grup" && currentMembers.length === 0) {
+      setValue("members", [{ nama: "", institusi: "" }]);
+    } else if (registrationType === "individu" && currentMembers.length > 0) {
+      setValue("members", []);
+    }
+    setStep("details");
+    scrollToFormTop();
   };
 
   const goToVerification = async (e?: React.BaseSyntheticEvent) => {
@@ -278,7 +314,10 @@ export default function SeminarRegistrationForm() {
             </div>
 
             {step === "registration-option" ? (
-              <SeminarRegistrationOptionStep onSubmit={goToDetails} />
+              <SeminarRegistrationOptionStep
+                isSubmitting={isCheckingEmail}
+                onSubmit={goToDetails}
+              />
             ) : null}
 
             {step === "details" ? (

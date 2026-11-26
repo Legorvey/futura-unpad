@@ -1,6 +1,7 @@
 "use client";
 
 import type { BaseSyntheticEvent } from "react";
+import { Loader2 } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,12 @@ import type { ClientSeminarFormValues } from "@/lib/validation/seminar";
 import { seminarRegistrationOptions } from "@/lib/seminar/seminar-options";
 
 type SeminarRegistrationOptionStepProps = {
+  isSubmitting?: boolean;
   onSubmit: (event?: BaseSyntheticEvent) => void;
 };
 
 export default function SeminarRegistrationOptionStep({
+  isSubmitting = false,
   onSubmit,
 }: SeminarRegistrationOptionStepProps) {
   const {
@@ -95,8 +98,19 @@ export default function SeminarRegistrationOptionStep({
             <FieldError>{errors.registration_type.message}</FieldError>
           ) : null}
         </FieldSet>
-        <Button type="submit" className="h-11 rounded-[8px] mt-4">
-          Lanjutkan
+        <Button
+          type="submit"
+          className="h-11 rounded-[8px] mt-4"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+              Memeriksa email...
+            </>
+          ) : (
+            "Lanjutkan"
+          )}
         </Button>
       </FieldGroup>
     </form>

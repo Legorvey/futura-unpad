@@ -2,14 +2,14 @@ export const SEMINAR_EVENT_DATE_ISO = "2026-11-28T07:30:00+07:00";
 export const SEMINAR_EVENT_DATE_LABEL = "28 November 2026";
 export const SEMINAR_EVENT_TIME_LABEL = "07.30 WIB";
 
-// Registration opened 21 November 2026 00:00 WIB and closes 28 November 2026 07:30 WIB.
-// Public-facing deadline copy consistently displays 27 November 2026.
+// Registration opened 21 November 2026 00:00 WIB and closes 28 November 2026 23:59:59 WIB.
+// Public-facing deadline copy consistently displays 28 November 2026, 23.59 WIB.
 export const SEMINAR_REG_START_ISO = "2026-11-21T00:00:00+07:00";
-export const SEMINAR_REG_CLOSE_ISO = "2026-11-28T07:30:00+07:00";
+export const SEMINAR_REG_CLOSE_ISO = "2026-11-28T23:59:59+07:00";
 export const SEMINAR_REG_START_LABEL = "21 November 2026";
-export const SEMINAR_REG_DISPLAY_END_LABEL = "27 November 2026";
+export const SEMINAR_REG_DISPLAY_END_LABEL = "28 November 2026, 23.59 WIB";
 export const SEMINAR_REG_BANNER_TEXT =
-  "Registration for Semnas is Opened Until 27 November!";
+  "Registration for Semnas is Opened Until 28 November, 23.59 WIB!";
 
 export function hasSeminarRegistrationStarted(now: Date = new Date()): boolean {
   return now.getTime() >= new Date(SEMINAR_REG_START_ISO).getTime();
@@ -19,6 +19,14 @@ export function isSeminarRegistrationOpen(now: Date = new Date()): boolean {
   const timestamp = now.getTime();
   return (
     timestamp >= new Date(SEMINAR_REG_START_ISO).getTime() &&
+    timestamp < new Date(SEMINAR_REG_CLOSE_ISO).getTime()
+  );
+}
+
+export function isSeminarEventOngoing(now: Date = new Date()): boolean {
+  const timestamp = now.getTime();
+  return (
+    timestamp >= new Date(SEMINAR_EVENT_DATE_ISO).getTime() &&
     timestamp < new Date(SEMINAR_REG_CLOSE_ISO).getTime()
   );
 }

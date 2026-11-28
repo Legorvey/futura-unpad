@@ -14,6 +14,7 @@ import {
   SEMINAR_REG_DISPLAY_END_LABEL,
   SEMINAR_REG_START_ISO,
   hasSeminarRegistrationStarted,
+  isSeminarEventOngoing,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config";
 import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config";
@@ -151,6 +152,7 @@ export default async function SeminarRegistrationPage() {
 
   const waGroupUrl = latestRegistration ? getSeminarWaGroupUrl() : null;
   const isOpen = isSeminarRegistrationOpen();
+  const isOngoing = isSeminarEventOngoing();
   const hasStarted = hasSeminarRegistrationStarted();
 
   return (
@@ -176,7 +178,9 @@ export default async function SeminarRegistrationPage() {
               {latestRegistration
                 ? "Anda sudah terdaftar pada Seminar Nasional Futura 2026. Detail tiket dan tautan grup WhatsApp peserta tersedia di bawah ini."
                 : isOpen
-                  ? `Daftarkan diri atau grup Anda untuk Seminar Nasional Futura 2026, verifikasi data sertifikat, dan dapatkan tiket pendaftaran. Dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                  ? isOngoing
+                    ? `Seminar sedang berlangsung, namun pendaftaran masih dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                    : `Daftarkan diri atau grup Anda untuk Seminar Nasional Futura 2026, verifikasi data sertifikat, dan dapatkan tiket pendaftaran. Dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
                   : "Informasi status pendaftaran Seminar Nasional Futura 2026."}
             </p>
           </section>

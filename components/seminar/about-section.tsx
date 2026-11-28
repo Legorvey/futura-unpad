@@ -12,7 +12,10 @@ import {
 import Image from "next/image";
 import { ButtonV3 } from "../ui/button-v3";
 import { SEMINAR_REG_DISPLAY_END_LABEL } from "@/lib/seminar/config";
-import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open";
+import {
+  useSeminarEventOngoing,
+  useSeminarRegistrationOpen,
+} from "@/lib/seminar/use-seminar-registration-open";
 
 const documentationItems = [
   {
@@ -208,6 +211,7 @@ const GalleryRow = ({
 export default function AboutSection() {
   const targetRef = useRef<HTMLDivElement>(null);
   const isRegOpen = useSeminarRegistrationOpen();
+  const isEventOngoing = useSeminarEventOngoing();
 
   // Track scroll progress over a 500vh container for tablet & higher resolutions
   const { scrollYProgress } = useScroll({
@@ -313,7 +317,9 @@ export default function AboutSection() {
           </h3>
           <p className="text-base sm:text-lg font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
             {isRegOpen
-              ? `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+              ? isEventOngoing
+                ? `Seminar sedang berlangsung, tetapi kamu masih bisa mendaftar hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                : `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
               : "Pendaftaran Seminar Nasional Futura 2026 telah resmi ditutup."}
           </p>
           {isRegOpen ? (
@@ -450,7 +456,7 @@ export default function AboutSection() {
               className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none"
             >
               <h2 className="text-[8rem] sm:text-[12rem] md:text-[16rem] lg:text-[20rem] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.05)] text-center leading-none whitespace-nowrap">
-                {isRegOpen ? "OPEN NOW" : "CLOSED"}
+                {isRegOpen ? (isEventOngoing ? "LIVE NOW" : "OPEN NOW") : "CLOSED"}
               </h2>
             </motion.div>
 
@@ -465,7 +471,9 @@ export default function AboutSection() {
 
               <p className="max-w-3xl lg:max-w-4xl text-center text-base sm:text-lg md:text-xl lg:text-2xl font-light text-zinc-300 leading-relaxed tracking-tight text-balance">
                 {isRegOpen
-                  ? `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                  ? isEventOngoing
+                    ? `Seminar sedang berlangsung, tetapi kamu masih bisa mendaftar hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                    : `Siapkan dirimu untuk mengeksplorasi inovasi teknologi masa depan, memperluas relasi, dan berdiskusi langsung bersama para pakar terkemuka. Pendaftaran dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
                   : "Pendaftaran Seminar Nasional Futura 2026 telah resmi ditutup."}
               </p>
 

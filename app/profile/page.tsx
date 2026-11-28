@@ -20,6 +20,7 @@ import { getCachedAuth } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase-admin"
 import {
   SEMINAR_REG_DISPLAY_END_LABEL,
+  isSeminarEventOngoing,
   isSeminarRegistrationOpen,
 } from "@/lib/seminar/config"
 import { getSeminarWaGroupUrl } from "@/lib/seminar/server-config"
@@ -207,6 +208,7 @@ export default async function ProfilePage() {
 
 
   const isSeminarOpen = isSeminarRegistrationOpen()
+  const isSeminarOngoing = isSeminarEventOngoing()
   const displayName = user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split('@')[0] || 'Pengguna';
 
   const lightThemeVars = {
@@ -381,7 +383,7 @@ export default async function ProfilePage() {
               </span>
             ) : isSeminarOpen ? (
               <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
-                Pendaftaran Dibuka
+                {isSeminarOngoing ? "Berlangsung • Masih Buka" : "Pendaftaran Dibuka"}
               </span>
             ) : (
                <span className="inline-flex w-max self-start sm:self-auto items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400">
@@ -420,7 +422,11 @@ export default async function ProfilePage() {
               </div>
             ) : isSeminarOpen ? (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">Pendaftaran Seminar Nasional Futura 2026 dibuka hingga {SEMINAR_REG_DISPLAY_END_LABEL}.</p>
+                <p className="text-sm text-muted-foreground">
+                  {isSeminarOngoing
+                    ? `Seminar sedang berlangsung, pendaftaran masih dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`
+                    : `Pendaftaran Seminar Nasional Futura 2026 dibuka hingga ${SEMINAR_REG_DISPLAY_END_LABEL}.`}
+                </p>
                 <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 shrink-0">
                   <Button asChild variant="outline" className="w-full sm:w-auto h-9 px-5 font-medium">
                     <Link href="/seminar-nasional" prefetch={true}>Detail Acara</Link>

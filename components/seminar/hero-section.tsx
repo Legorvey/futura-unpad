@@ -6,11 +6,11 @@ import { Ban } from "lucide-react"
 import { ButtonV3 } from "../ui/button-v3"
 import FlipCountdown from "./flip-countdown"
 import {
-  SEMINAR_EVENT_DATE_LABEL,
-  SEMINAR_EVENT_TIME_LABEL,
   SEMINAR_REG_CLOSE_ISO,
 } from "@/lib/seminar/config"
-import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open"
+import {
+  useSeminarRegistrationOpen,
+} from "@/lib/seminar/use-seminar-registration-open"
 
 const SCRAMBLE_TARGET = "SEMINAR"
 const SCRAMBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]"
@@ -90,11 +90,8 @@ export function HeroSection() {
             <p className="mt-6 text-md md:text-xl font-light text-zinc-300 max-w-3xl text-balance">
               Transformasi Teknologi di Era Making Indonesia 4.0: Konvergensi Energi, Konektivitas, dan Industri Nasional Menuju 2030
             </p>
-            <div className="flex flex-col items-center mt-10 gap-3">
+            <div className="flex flex-col items-center mt-10">
               <FlipCountdown targetDate={new Date(SEMINAR_REG_CLOSE_ISO).getTime()} />
-              <p className="text-xs sm:text-sm font-medium tracking-wide text-blue-100/80 normal-case">
-                Sabtu, {SEMINAR_EVENT_DATE_LABEL} • {SEMINAR_EVENT_TIME_LABEL}
-              </p>
             </div>
 
             <div className="flex flex-col items-center mt-8 normal-case font-normal">

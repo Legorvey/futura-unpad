@@ -8,7 +8,10 @@ import {
     SEMINAR_LOCATION_NAME,
     SEMINAR_SPEAKERS,
 } from "@/lib/seminar/config";
-import { useSeminarRegistrationOpen } from "@/lib/seminar/use-seminar-registration-open";
+import {
+    useSeminarEventOngoing,
+    useSeminarRegistrationOpen,
+} from "@/lib/seminar/use-seminar-registration-open";
 
 type EventItem = {
     title: string;
@@ -20,16 +23,19 @@ type EventItem = {
     href: string;
     icon: typeof Presentation;
     isOpen?: boolean;
+    openBadgeText?: string;
     isUnopened?: boolean;
     isClosed?: boolean;
 };
 
 const speakerHighlights = SEMINAR_SPEAKERS.map((speaker) => speaker.name);
 
-const getEvents = (isSeminarOpen: boolean): EventItem[] => [
+const getEvents = (isSeminarOpen: boolean, isSeminarOngoing: boolean): EventItem[] => [
     {
         title: "Seminar Nasional",
-        date: `Sabtu, ${SEMINAR_EVENT_DATE_LABEL} • ${SEMINAR_EVENT_TIME_LABEL}`,
+        date: isSeminarOngoing && isSeminarOpen
+            ? "Hari Ini • Sedang Berlangsung"
+            : `Sabtu, ${SEMINAR_EVENT_DATE_LABEL} • ${SEMINAR_EVENT_TIME_LABEL}`,
         location: SEMINAR_LOCATION_NAME,
         description:
             "Forum ilmiah Seminar & Workshop bersama Persatuan Robotika Seluruh Indonesia (PRSI) yang mengkaji inovasi teknologi global, menghadirkan akademisi, praktisi industri, asosiasi, dan perwakilan pemerintah.",
@@ -38,6 +44,7 @@ const getEvents = (isSeminarOpen: boolean): EventItem[] => [
         href: "/seminar-nasional",
         icon: Presentation,
         isOpen: isSeminarOpen,
+        openBadgeText: isSeminarOngoing ? "Buka s.d. 23.59 WIB" : "Dibuka s.d. 28 Nov",
         isClosed: !isSeminarOpen,
     },
     {
@@ -66,7 +73,8 @@ const getEvents = (isSeminarOpen: boolean): EventItem[] => [
 
 export default function RegistrationsSection() {
     const isSeminarOpen = useSeminarRegistrationOpen();
-    const events = getEvents(isSeminarOpen);
+    const isSeminarOngoing = useSeminarEventOngoing();
+    const events = getEvents(isSeminarOpen, isSeminarOngoing);
 
     return (
         <section id="registrations" className="relative w-full py-20 lg:py-28 overflow-hidden">
@@ -158,7 +166,7 @@ function EventCard({ event }: { event: EventItem }) {
                         />
                         {event.isOpen && (
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                                Dibuka s.d. 27 Nov
+                                {event.openBadgeText ?? "Dibuka s.d. 28 Nov"}
                             </span>
                         )}
                         {event.isUnopened && (
